@@ -52,7 +52,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     /**
      * Cookies
      *
-     * @var 
+     * @var
      */
     var $cookies;
 
@@ -204,7 +204,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         }
         return $cookies;
     }
-    
+
     /**
      * validate url data passed to constructor
      *
@@ -286,7 +286,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             $headername = strtolower($name);
             $headervalue = trim($value);
             $this->result_headers[$headername]=$headervalue;
-            
+
             if ($headername == 'set-cookie') {
                 // Parse a SetCookie header to fill _cookies array
                 $cookie = array(
@@ -326,7 +326,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             }
         }
     }
-    
+
     /**
      * Remove http headers from response
      *
@@ -340,9 +340,9 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             $this->response =& $match[2];
             // find the response error, some servers response with 500 for soap faults
             $this->_parseHeaders($match[1]);
-    
+
             list($protocol, $code) = sscanf($this->result_headers[0], '%s %s');
-            unset($this->result_headers[0]);            
+            unset($this->result_headers[0]);
             if ($code >= 400 && $code < 500) {
                     $this->_raiseSoapFault("HTTP Response $code Not Found");
                     return FALSE;
@@ -394,7 +394,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         if (isset($options['headers'])) {
             $this->headers = array_merge($this->headers, $options['headers']);
         }
-        
+
         $this->cookies = array();
         if (!isset($options['nocookies']) || !$options['nocookies']) {
             // add the cookies we got from the last request
@@ -464,9 +464,15 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
 
         // get reponse
         // XXX time consumer
-        while ($data = fread($fp, 32768)) {
-            $this->incoming_payload .= $data;
-        }
+        do {
+            $data = fread($fp, 4096);
+            $_tmp_status = socket_get_status($fp);
+            if ($_tmp_status['timed_out']) {
+                return $this->_raiseSoapFault("Timed out read from $host");
+            } else {
+                $this->incoming_payload .= $data;
+            }
+        } while (!$_tmp_status['eof']);
 
         fclose($fp);
 
@@ -545,7 +551,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             $m = 'curl_exec error ' . curl_errno($ch) . ' ' . curl_error($ch);
             curl_close($ch);
             return $this->_raiseSoapFault($m);
-        }        
+        }
         curl_close($ch);
 
         return $this->response;
