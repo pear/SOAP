@@ -28,6 +28,7 @@
     <version>0.7.6</version>
     <date>2003-??-??</date>
     <notes>
+    * timeout reporting on HTTP transmission (now returns an error)
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
