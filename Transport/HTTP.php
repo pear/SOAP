@@ -32,14 +32,61 @@ require_once 'SOAP/Base.php';
 */
 class SOAP_Transport_HTTP extends SOAP_Base
 {
+    
+    /**
+    * Basic Auth string
+    *
+    * @var  string
+    */
     var $credentials = '';
-    var $_userAgent;
-    var $timeout = 4; // connect timeout
+    
+    /**
+    *
+    * @var  int connection timeout in seconds - 0 = none
+    */
+    var $timeout = 4;
+    
+    /**
+    * Error number
+    * 
+    * @var  int
+    */
     var $errno = 0;
+    
+    /**
+    * Error message
+    * 
+    * @var  string
+    */
     var $errmsg = '';
+    
+    /**
+    * Array containing urlparts - parse_url()
+    * 
+    * @var  mixed
+    */
     var $urlparts = NULL;
+    
+    /**
+    * Connection endpoint - URL
+    *
+    * @var  string
+    */
     var $url = '';
+    
+    /**
+    * Incoming payload
+    *
+    * @var  string
+    */
     var $incoming_payload = '';
+    
+    /**
+    * HTTP-Request User-Agent
+    *
+    * @var  string
+    */
+    var $_userAgent = SOAP_LIBRARY_NAME;
 
     /**
     * SOAP_Transport_HTTP Constructor
@@ -53,7 +100,6 @@ class SOAP_Transport_HTTP extends SOAP_Base
         parent::SOAP_Base('HTTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
-        $this->_userAgent = SOAP_LIBRARY_NAME;
     }
     
     /**
@@ -66,17 +112,21 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @return string|fault response
     * @access public
     */
-    function &send(&$msg, $action = '', $timeout=0)
+    function &send(&$msg, $action = '', $timeout = 0)
     {
         if (!$this->_validateUrl()) {
             return $this->raiseSoapFault($this->errmsg);
         }
-        if ($timeout) $this->timeout = $timeout;
-        if (strcasecmp($this->urlparts['scheme'],'HTTP') == 0) {
+        
+        if ($timeout) 
+            $this->timeout = $timeout;
+    
+        if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0) {
             return $this->_sendHTTP($msg, $action);
-        } else if (strcasecmp($this->urlparts['scheme'],'HTTPS') == 0) {
+        } else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) {
             return $this->_sendHTTPS($msg, $action);
         }
+        
         return $this->raiseSoapFault('Invalid url scheme '.$this->url);
     }
 
@@ -92,7 +142,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     */
     function setCredentials($username, $password)
     {
-        $this->credentials = 'Authorization: Basic '.base64_encode($username.':'.$password)."\r\n";
+        $this->credentials = 'Authorization: Basic ' . base64_encode($username . ':' . $password) . "\r\n";
     }
     
     // private members
@@ -106,8 +156,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->errno=2;
-            $this->errmsg="Unable to parse URL $url";
+            $this->errno = 2;
+            $this->errmsg = "Unable to parse URL $url";
             return FALSE;
         }
         if (!isset($this->urlparts['host'])) {
@@ -115,11 +165,17 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return FALSE;
         }
         if (!isset($this->urlparts['port'])) {
-            $this->urlparts['port'] = 80;
+            
+            if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0)
+                $this->urlparts['port'] = 80;
+            else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) 
+                $this->urlparts['port'] = 443;
+                
         }
         if (isset($this->urlparts['user'])) {
-            $this->setCredentials($this->urlparts['user'],$this->urlparts['password']);
+            $this->setCredentials($this->urlparts['user'], $this->urlparts['password']);
         }
+        
         return TRUE;
     }
     
@@ -131,8 +187,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
     */
     function _parseResponse()
     {
-        if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s",$this->incoming_payload,$match)) {
-            $this->response = preg_replace("/[\r|\n]/",'',$match[2]);
+        if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
+            $this->response = preg_replace("/[\r|\n]/", '', $match[2]);
             // if no content, return false
             return strlen($this->response) > 0;
         }
@@ -225,18 +281,18 @@ class SOAP_Transport_HTTP extends SOAP_Base
         
         $ch = curl_init(); 
         if ($this->timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT,$this->timeout); //times out after 4s 
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s 
         }
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->outgoing_payload);
         curl_setopt($ch, CURLOPT_URL, $this->url); 
         curl_setopt($ch, CURLOPT_FAILONERROR, 1); 
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); 
-        curl_setopt($ch, CURLOPT_VERBOSE,1); 
-        $this->response=curl_exec($ch); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+        curl_setopt($ch, CURLOPT_VERBOSE, 1); 
+        $this->response = curl_exec($ch); 
         curl_close($ch);
         
         return $this->response;
     }
-}; // end SOAP_Transport_HTTP
+} // end SOAP_Transport_HTTP
 ?>

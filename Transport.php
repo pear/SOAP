@@ -24,18 +24,33 @@ require_once 'SOAP/Base.php';
 
 /**
 * SOAP Transport Layer
+*
 * This layer can use different protocols dependant on the endpoint url provided
 * no knowlege of the SOAP protocol is available at this level
 * no knowlege of the transport protocols is available at this level
 *
-* @access public
-* @version $Id$
-* @package SOAP::Transport
-* @author Shane Caraveo <shane@php.net>
+* @access   public
+* @version  $Id$
+* @package  SOAP::Transport
+* @author   Shane Caraveo <shane@php.net>
 */
 class SOAP_Transport extends SOAP_Base
 {
+
+    /**
+    * Transport object - build using the constructor as a factory
+    * 
+    * @var  object  SOAP_Transport_SMTP|HTTP
+    */
     var $transport = NULL;
+    
+    /**
+    * Error message
+    * 
+    * Used to communicate between SOAP_Transport() and send()
+    *
+    * @var  string
+    */
     var $errmsg = '';
 
     /**
@@ -45,7 +60,7 @@ class SOAP_Transport extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Transport($url, $debug = 0)
+    function SOAP_Transport($url, $debug = false)
     {
         parent::SOAP_Base('TRANSPORT');
         /* only HTTP transport for now, later look at url for scheme */
@@ -53,12 +68,12 @@ class SOAP_Transport extends SOAP_Base
 
         $urlparts = @parse_url($url);
 
-        if (strcasecmp($urlparts['scheme'],'http')==0) {
-            require_once('SOAP/Transport/HTTP.php');
+        if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'http') == 0) {
+            include_once('SOAP/Transport/HTTP.php');
             $this->transport = new SOAP_Transport_HTTP($url);
             return;
-        } else if (strcasecmp($urlparts['scheme'],'mailto')==0) {
-            require_once('SOAP/Transport/SMTP.php');
+        } else if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
+            include_once('SOAP/Transport/SMTP.php');
             $this->transport = new SOAP_Transport_SMTP($url);
             return;
         }
@@ -76,7 +91,7 @@ class SOAP_Transport extends SOAP_Base
     * @return string &$response   soap response (in xml)
     * @access public
     */
-    function &send(&$soap_data, $action = '', $timeout=0)
+    function &send(&$soap_data, $action = '', $timeout = 0)
     {
         if (!$this->transport) {
             return $this->raiseSoapFault($this->errmsg);
@@ -93,5 +108,4 @@ class SOAP_Transport extends SOAP_Base
     }
 
 } // end SOAP_Transport
-
 ?>

@@ -42,13 +42,13 @@ require_once 'SOAP/Base.php';
 class SOAP_Transport_SMTP extends SOAP_Base
 {
     var $credentials = '';
-    var $_userAgent;
     var $timeout = 4; // connect timeout
     var $errno = 0;
     var $errmsg = '';
     var $urlparts = NULL;
     var $url = '';
     var $incoming_payload = '';
+    var $_userAgent = SOAP_LIBRARY_NAME;
 
     /**
     * SOAP_Transport_SMTP Constructor
@@ -62,7 +62,6 @@ class SOAP_Transport_SMTP extends SOAP_Base
         parent::SOAP_Base('SMTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
-        $this->_userAgent = SOAP_LIBRARY_NAME;
     }
     
     /**
@@ -75,7 +74,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
     * @return string &$response   response data, minus http headers
     * @access public
     */
-    function send(&$msg, $action = '', $timeout=0)
+    function send(&$msg, $action = '', $timeout = 0)
     {
         if (!$this->_validateUrl()) {
             return $this->raiseSoapFault($this->errmsg);
@@ -133,8 +132,8 @@ class SOAP_Transport_SMTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->errno=2;
-            $this->errmsg="Unable to parse URL $url";
+            $this->errno = 2;
+            $this->errmsg = "Unable to parse URL $url";
             return FALSE;
         }
         if (!isset($this->urlparts['scheme']) ||

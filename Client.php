@@ -32,35 +32,89 @@ require_once 'SOAP/Fault.php';
 * this class is the main interface for making soap requests
 *
 * basic usage: 
-* $soapclient = new SOAP_Client( string path [ ,boolean wsdl] );
-* echo $soapclient->call( string methodname [ ,array parameters] );
+*   $soapclient = new SOAP_Client( string path [ ,boolean wsdl] );
+*   echo $soapclient->call( string methodname [ ,array parameters] );
 *
 * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
 *
-* @access public
-* @version $Id$
-* @package SOAP::Client
-* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author Stig Bakken <ssb@fast.no> Conversion to PEAR
-* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+* @access   public
+* @version  $Id$
+* @package  SOAP::Client
+* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
+* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
 class SOAP_Client extends SOAP_Base
 {
-    var $fault, $faultcode, $faultstring, $faultdetail;
-    var $endpoint, $portName;
-    var $debug_flag = false;
+    
+    /**
+    * SOAP fault code
+    * 
+    * @var  mixed
+    */    
+    var $faultcode = '';
+    
+    /**
+    * SOAP fault string
+    * 
+    * @var  mixed
+    */
+    var $faultstring = '';
+    
+    /**
+    * SOAP fault details
+    * 
+    * @var  mixed
+    */
+    var $faultdetail = '';
+    
+    /**
+    * Communication endpoint.
+    *
+    * Currently the following transport formats are supported:
+    *  - HTTP
+    *  - SMTP
+    * 
+    * Example endpoints:
+    *   http://www.example.com/soap/server.php
+    *   https://www.example.com/soap/server.php
+    *   mailto:soap@example.com
+    *
+    * @var  string
+    * @see  SOAP_Client()
+    */
+    var $endpoint = '';
+    
+    /**
+    * 
+    */
+    var $portName = '';
+    
+    
+    /**
+    * Endpoint type 
+    *
+    * @var  string  e.g. wdsl
+    */
     var $endpointType = '';
+    
+    /**
+    * WDSL object
+    *
+    * @var  object  SOAP_WDSL
+    */
     var $wsdl = NULL;
+    
     
     /**
     * SOAP_Client constructor
     *
-    * @params string endpoint (URL)
-    * @params boolean wsdl (true if endpoint is a wsdl file)
-    * @params string portName
+    * @param string endpoint (URL)
+    * @param boolean wsdl (true if endpoint is a wsdl file)
+    * @param string portName
     * @access public
     */
-    function SOAP_Client($endpoint,$wsdl=false,$portName=false)
+    function SOAP_Client($endpoint, $wsdl = false, $portName = false)
     {
         parent::SOAP_Base('Client');
         $this->endpoint = $endpoint;
@@ -80,15 +134,15 @@ class SOAP_Client extends SOAP_Base
     /**
     * SOAP_Client::call
     *
-    * @params string method
-    * @params array params
-    * @params string namespace  (not required if using wsdl)
-    * @params string soapAction   (not required if using wsdl)
+    * @param string method
+    * @param array  params
+    * @param string namespace  (not required if using wsdl)
+    * @param string soapAction   (not required if using wsdl)
     *
     * @return array of results
     * @access public
     */
-    function call($method,$params=array(),$namespace=false,$soapAction=false)
+    function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $this->fault = null;
 
@@ -108,7 +162,7 @@ class SOAP_Client extends SOAP_Base
             $this->debug("endpoint: $this->endpoint");
             $this->debug("portName: $this->portName");
             // get operation data
-            $opData = $this->wsdl->getOperationData($this->portName,$method);
+            $opData = $this->wsdl->getOperationData($this->portName, $method);
             if (PEAR::isError($opData)) {
                 return $this->raiseSoapFault($opData);
             }
@@ -117,7 +171,7 @@ class SOAP_Client extends SOAP_Base
             // set input params
             $nparams = array();
             if (count($opData['input']['parts']) > 0) {
-                $i=0;
+                $i = 0;
                 // XXX this seems very wrong, we should be creating SOAP_Value
                 // classes at this point, setting the correct type defined by the wsdl
                 foreach ($opData['input']['parts'] as $name => $type) {
@@ -156,7 +210,7 @@ class SOAP_Client extends SOAP_Base
         $this->debug("namespace: $namespace");
         
         // make message
-        $soapmsg = new SOAP_Message($method,$params,$namespace, NULL, $this->wsdl);
+        $soapmsg = new SOAP_Message($method, $params, $namespace, NULL, $this->wsdl);
         if ($soapmsg->fault) {
             return $this->raiseSoapFault($soapmsg->fault);
         }
@@ -170,7 +224,7 @@ class SOAP_Client extends SOAP_Base
             return $this->raiseSoapFault($soap_transport->fault);
         }
         
-        $this->debug($dbg.'instantiated client successfully');
+        $this->debug($dbg . 'instantiated client successfully');
         $this->debug("endpoint: $this->endpoint<br>\n");
 
         // send
@@ -183,7 +237,7 @@ class SOAP_Client extends SOAP_Base
         }
         
         // send the message
-        $this->response = $soap_transport->send($soap_data,$soapAction);
+        $this->response = $soap_transport->send($soap_data, $soapAction);
         if ($soap_transport->fault) {
             return $this->raiseSoapFault($this->response);
         }
@@ -191,14 +245,13 @@ class SOAP_Client extends SOAP_Base
         // parse the response
         $return = $soapmsg->parseResponse($this->response);
         $this->debug($soap_transport->debug_str);
-        $this->debug($dbg.'sent message successfully and got a(n) '.gettype($return).' back');
+        $this->debug($dbg . 'sent message successfully and got a(n) ' . gettype($return) . ' back');
 
         // check for valid response
         if (PEAR::isError($return)) {
             return $this->raiseSoapFault($return);
-        } else
-        if (strcasecmp(get_class($return),'SOAP_Value')!=0) {
-            return $this->raiseSoapFault('didn\'t get SOAP_Value object back from client');
+        } else if (strcasecmp(get_class($return), 'SOAP_Value') != 0) {
+            return $this->raiseSoapFault("didn't get SOAP_Value object back from client");
         }
 
         // decode to native php datatype
@@ -226,6 +279,4 @@ class SOAP_Client extends SOAP_Base
         return $returnArray;
     }
 }
-
-
 ?>
