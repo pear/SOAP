@@ -91,7 +91,7 @@
       <dep type="php" rel="ge" version="4.1"/>
       <dep type="ext" rel="has">bcmath</dep>
       <dep type="ext" rel="has">pcre</dep>
-      <dep type="pkg" rel="has">Mime</dep>
+      <dep type="pkg" rel="has">Mail_Mime</dep>
       <dep type="pkg" rel="ge" version="0.1">Net_DIME</dep>
     </deps>
   </release>
