@@ -157,6 +157,9 @@ $soap_tests['base'][] = new SOAP_Test('echoStringArray',
                 new SOAP_Value('item','string','bad')
             )
         )));
+// null array test
+$soap_tests['base'][] = new SOAP_Test('echoStringArray(null)', array('inputStringArray' => NULL));
+$soap_tests['base'][] = new SOAP_Test('echoStringArray(null)', array('inputStringArray' => new SOAP_Value('inputStringArray','Array',NULL)));
 
 //***********************************************************
 // Base echoInteger
@@ -177,6 +180,10 @@ $soap_tests['base'][] = new SOAP_Test('echoIntegerArray',
                new SOAP_Value('item','int',2)
             )
         )));
+
+// null array test
+$soap_tests['base'][] = new SOAP_Test('echoIntegerArray(null)', array('inputIntegerArray' => NULL));
+$soap_tests['base'][] = new SOAP_Test('echoIntegerArray(null)', array('inputIntegerArray' => new SOAP_Value('inputIntegerArray','Array',NULL)));
 
 //***********************************************************
 // Base echoFloat
@@ -479,6 +486,15 @@ $test->type = 'soapval';
 $test->headers[] = new SOAP_Header('echoMeStringRequest', 'string', 'hello world', 'http://soapinterop.org/echoheader/', 1, SOAP_TEST_ACTOR_OTHER);
 $test->headers_expect['echoMeStringRequest'] = array();
 $soap_tests['GroupC'][] = $test;
+
+// echoMeStringRequest with endpoint header destination, must understand,
+// invalid namespace, should recieve a fault
+#$test = new SOAP_Test('echoVoid', '');
+#$test->type = 'soapval';
+#$test->headers[] = new SOAP_Header('echoMeStringRequest', 'string', 'hello world', 'http://unknown.org/', 1);
+#$test->headers_expect['echoMeStringRequest'] = array();
+#$test->expect_fault = TRUE;
+#$soap_tests['GroupC'][] = $test;
 
 //***********************************************************
 // php val tests

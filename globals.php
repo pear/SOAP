@@ -117,7 +117,9 @@ $SOAP_typemap[SOAP_XML_SCHEMA_VERSION] = array(
         'unsignedShort' => 'integer',
         'unsignedByte' => 'integer',
         'positiveInteger'  => 'integer',
-	'anyType' => 'string'
+	'anyType' => 'string',
+	'anyURI' => 'string',
+	'QName' => 'string'
         );
 $SOAP_typemap[SOAP_XML_SCHEMA_1999] = array(
 	'i4' => 'integer',

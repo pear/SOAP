@@ -64,10 +64,14 @@ class SOAP_Fault extends PEAR_Error
         $msg = new SOAP_Message();
         $msg->method('Fault',
                                     array(
-                                        'faultcode' => $this->code,
-                                        'faultstring' => $this->message,
-                                        'faultactor' => $this->error_message_prefix,
-                                        'faultdetail' => $this->userinfo
+                                        new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code),
+                                        #'faultcode' => $this->code,
+                                        new SOAP_Value('faultstring', 'string', $this->message),
+                                        #'faultstring' => $this->message,
+                                        new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix),
+                                        #'faultactor' => $this->error_message_prefix,
+                                        new SOAP_Value('faultdetail', 'string', $this->userinfo)
+                                        #'faultdetail' => $this->userinfo
                                     ),
                                     SOAP_ENVELOP
                                 );

@@ -247,7 +247,7 @@ class SOAP_Client extends SOAP_Base
         $this->wire = "OUTGOING:\n\n".
             $soap_transport->transport->outgoing_payload.
             "\n\nINCOMING\n\n".
-            preg_replace("/></",">\r\n<!--CRLF added--><",$soap_transport->transport->incoming_payload);
+            preg_replace("/></",">\r\n<",$soap_transport->transport->incoming_payload);
         // store the incoming xml for easy retreival by clients that want their own parsing
         $this->xml = $soap_transport->transport->incoming_payload;
         

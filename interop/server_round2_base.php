@@ -70,8 +70,10 @@ class SOAP_Interop_Base {
     function echoStringArray($inputStringArray)
     {
 	$ra = array();
+	if ($inputStringArray) {
 	foreach($inputStringArray as $s) {
 	    $ra[] = new SOAP_Value('item','string',$s);
+	}
 	}
 	return new SOAP_Value('outputStringArray',NULL,$ra);
     }
@@ -85,8 +87,10 @@ class SOAP_Interop_Base {
     function echoIntegerArray($inputIntegerArray)
     {
 	$ra = array();
-	foreach($inputIntegerArray as $i) {
+	if ($inputIntegerArray) {
+	foreach ($inputIntegerArray as $i) {
 	    $ra[] = new SOAP_Value('item','int',$i);
+	}
 	}
 	return new SOAP_Value('outputIntArray',NULL,$ra);
     }
@@ -99,8 +103,10 @@ class SOAP_Interop_Base {
     function echoFloatArray($inputFloatArray)
     {
 	$ra = array();
+	if ($inputFloatArray) {
 	foreach($inputFloatArray as $float) {
 	    $ra[] = new SOAP_Value('item','float',(FLOAT)$float);
+	}
 	}
 	return new SOAP_Value('outputFloatArray',NULL,$ra);
     }
@@ -119,6 +125,7 @@ class SOAP_Interop_Base {
     function echoStructArray($inputStructArray)
     {
 	$ra = array();
+	if ($inputStructArray) {
 	foreach($inputStructArray as $struct) {
 	    $ra[] = new SOAP_Value('item','SOAPStruct',
 			      array(
@@ -127,6 +134,7 @@ class SOAP_Interop_Base {
 				  new SOAP_Value('varString','string',$struct['varString'])
 				   ),
 			      'http://soapinterop.org/xsd');
+	}
 	}
 	return $ra;
     }

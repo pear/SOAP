@@ -158,6 +158,7 @@ class SOAP_Server {
         }
         restore_error_handler();
         if ($soap_server_fault) {
+            $this->soapfault = $soap_server_fault;
             return $soap_server_fault->message();
         }
         return $ret;
@@ -218,7 +219,7 @@ class SOAP_Server {
         $parser = new SOAP_Parser($data,$this->xml_encoding);
         // if fault occurred during message parsing
         if ($parser->fault) {
-            $fault = $parser->fault->message();
+            $this->soapfault = $parser->fault->message();
             #$this->makeFault('Server',"error in msg parsing:\n".$fault->serialize."\n\n<pre>$data</pre>\n\n");
             return $parser->fault->message();
         }

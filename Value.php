@@ -697,7 +697,7 @@ class SOAP_Value extends SOAP_Base
     */
     function isArray(&$value)
     {
-        return is_array($value) && count($value) >= 1;
+        return is_array($value); # && count($value) >= 1;
     }
 
     /**
