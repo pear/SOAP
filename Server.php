@@ -144,7 +144,7 @@ class SOAP_Server extends SOAP_Base
                 $useEncoding = 'Mime';
             }
             if (!isset($headers['content-type'])) {
-                $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+                $headers['content-type'] = stripslashes($_SERVER['CONTENT_TYPE']);
             }
             if (!$this->fault &&
                 !$this->_getContentEncoding($headers['content-type'])) {
@@ -158,7 +158,7 @@ class SOAP_Server extends SOAP_Base
         if (!$this->fault  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
             strncmp($headers['content-type'],'text/xml',8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
-                $this->_raiseSoapFault("Invalid SOAP request, must be POST with content-type: text/xml, got: {$headers['content-type']}",'','','Server');
+                $this->_raiseSoapFault("Invalid SOAP request, must be POST with content-type: text/xml, got: ".(isset($headers['content-type'])?$headers['content-type']:'Nothing!'),'','','Server');
         }
         
         if (!$this->fault) {

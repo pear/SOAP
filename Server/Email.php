@@ -125,7 +125,7 @@ class SOAP_Server_Email extends SOAP_Server {
             return $this->soapfault->getFault();
         }
         $client = new SOAP_Client(NULL);
-        return $client->parseResponse($data, $this->xml_encoding, $this->attachments);
+        return $client->__parse($data, $this->xml_encoding, $this->attachments);
     }
     
     function service(&$data, $endpoint = '', $send_response = TRUE, $dump = FALSE)
@@ -136,12 +136,12 @@ class SOAP_Server_Email extends SOAP_Server {
 
         # if neither matches, we'll just try it anyway
         if (stristr($data,'Content-Type: application/dime')) {
-            $this->decodeDIMEMessage($data,$this->headers,$attachments);
+            $this->_decodeDIMEMessage($data,$this->headers,$attachments);
             $useEncoding = 'DIME';
         } else if (stristr($data,'MIME-Version:')) {
             // this is a mime message, lets decode it.
             #$data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
-            $this->decodeMimeMessage($data,$this->headers,$attachments);
+            $this->_decodeMimeMessage($data,$this->headers,$attachments);
             $useEncoding = 'Mime';
         } else {
             // the old fallback, but decodeMimeMessage handles things fine.

@@ -34,6 +34,19 @@ print_r($ret);echo "<br>\n";
 $ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$options);
 print_r($ret);echo "<br>\n";
 
+$ret = $soapclient->call("divide",array("dividend"=>22,"divisor"=>7),$options);
+if (PEAR::isError($ret))
+    print("Error: " . $ret->getMessage() . "<br>\n");
+else
+    print("Quotient is " . $ret . "<br>\n");
+
+$ret = $soapclient->call("divide",array("dividend"=>22,"divisor"=>0),$options);
+if (PEAR::isError($ret))
+    print("Error: " . $ret->getMessage() . "<br>\n");
+else
+    print("Quotient is " . $ret . "<br>\n");
+
+
 class SOAPStruct {
     var $varString;
     var $varInt;

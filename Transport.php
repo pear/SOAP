@@ -34,7 +34,7 @@ require_once 'SOAP/Base.php';
 * @package  SOAP::Transport
 * @author   Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport extends SOAP_Base
+class SOAP_Transport extends SOAP_Base_Object
 {
 
     /**
@@ -55,10 +55,15 @@ class SOAP_Transport extends SOAP_Base
     */
     function SOAP_Transport($url, $encoding = SOAP_DEFAULT_ENCODING)
     {
-        parent::SOAP_Base('TRANSPORT');
+        parent::SOAP_Base_Object('TRANSPORT');
 
         $urlparts = @parse_url($url);
         $this->encoding = $encoding;
+        
+        if (!$urlparts['scheme']) {
+            $this->_raiseSoapFault("Invalid transport URI: $url");
+            return;
+        }
         
         if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'https') == 0) {
             include_once('SOAP/Transport/HTTP.php');
@@ -69,7 +74,11 @@ class SOAP_Transport extends SOAP_Base
             $this->transport = new SOAP_Transport_SMTP($url, $encoding);
             return;
         }
-        $this->_raiseSoapFault("No Transport for {$urlparts['scheme']}");
+        /* handle other transport types */
+        $res = @include_once('SOAP/Transport/'.strtoupper($urlparts['scheme']).'.php');
+        if(!res && !in_array('path/file.inc', get_included_files())) {
+            $this->_raiseSoapFault("No Transport for {$urlparts['scheme']}");
+        }
     }
     
     /**

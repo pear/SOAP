@@ -591,29 +591,30 @@ class SOAP_WSDL_Cache extends SOAP_Base
      * add to cache, and return from cache
      */
     function get($wsdl_fname, $proxy_params=array(), $cache=0) {
-        $cachename = SOAP_WSDL_Cache::_cacheDir() . "/" . md5($wsdl_fname);
-        $cacheinfo = $cachename.".info";
-        $cachename .= ".wsdl";
-        $md5_wsdl = "";
+        $cachename = '';
+        $md5_wsdl = '';
         $file_data = '';
-        if (WSDL_CACHE_USE && file_exists($cachename)) {
-            $wf = fopen($cachename,"rb");
-            if ($wf) {
-                $file_data = fread($wf, filesize($cachename));
-                $md5_wsdl = md5($file_data);
-                fclose($wf);
-            }
-            if ($cache) {
-                if ($cache != $md5_wsdl) {
-                    return $this->_raiseSoapFault("WSDL Checksum error!", $wsdl_fname);
+        if (WSDL_CACHE_USE) {
+            $cachename = SOAP_WSDL_Cache::_cacheDir() . '/' . md5($wsdl_fname). '.wsdl';
+            if (file_exists($cachename)) {
+                $wf = fopen($cachename,'rb');
+                if ($wf) {
+                    $file_data = fread($wf, filesize($cachename));
+                    $md5_wsdl = md5($file_data);
+                    fclose($wf);
                 }
-            } else {
-                $fi = stat($cachename);
-                $cache_mtime = $fi[8];
-                #print cache_mtime, time()
-                if ($cache_mtime + WSDL_CACHE_MAX_AGE < time()) {
-                    # expired
-                    $md5_wsdl = ""; # refetch
+                if ($cache) {
+                    if ($cache != $md5_wsdl) {
+                        return $this->_raiseSoapFault("WSDL Checksum error!", $wsdl_fname);
+                    }
+                } else {
+                    $fi = stat($cachename);
+                    $cache_mtime = $fi[8];
+                    #print cache_mtime, time()
+                    if ($cache_mtime + WSDL_CACHE_MAX_AGE < time()) {
+                        # expired
+                        $md5_wsdl = ""; # refetch
+                    }
                 }
             }
         }

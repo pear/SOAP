@@ -19,12 +19,10 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.7.1</version>
-    <date>2002-12-01</date>
+    <version>0.7.2</version>
+    <date>2003-04-01</date>
     <notes>
-      Minor bug fixes over the 0.7.0 release.
-      Support for the overload extension is currently 
-      dissabled until futher work can be done.
+      Minor bug fixes over the 0.7.1 release.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -67,11 +65,21 @@
       <dep type="ext" rel="has">pcre</dep>
       <dep type="pkg" rel="has">Mail_Mime</dep>
       <dep type="pkg" rel="has">HTTP_Request</dep>
-      <dep type="pkg" rel="ge" version="1.0.4">Net_URL</dep>
+      <dep type="pkg" rel="has">Net_URL</dep>
       <dep type="pkg" rel="has">Net_DIME</dep>
     </deps>
   </release>
   <changelog>
+  <release>
+    <state>beta</state>
+    <version>0.7.1</version>
+    <date>2002-12-01</date>
+    <notes>
+      Minor bug fixes over the 0.7.0 release.
+      Support for the overload extension is currently 
+      dissabled until futher work can be done.
+    </notes>
+  </release>
   <release>
     <state>beta</state>
     <version>0.7.0</version>

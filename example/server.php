@@ -77,6 +77,15 @@ class SOAP_Example_Server {
 	return new SOAP_Value('outputString','string',$inputString);
     }
 
+    // a method that might return a fault
+    function divide($dividend, $divisor)
+    {
+        if ($divisor == 0)
+            return new SOAP_Fault('You cannot divide by zero', 'Client');
+        else
+            return $dividend / $divisor;
+    }
+
     function echoStruct($inputStruct)
     {
 	return new SOAP_Value('outputStruct','{http://soapinterop.org/xsd}SOAPStruct',$inputStruct);

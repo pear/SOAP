@@ -228,6 +228,8 @@ class SOAP_Client extends SOAP_Base
      */
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
+        $this->__last_request = null;
+        $this->__last_response = null;
         $soap_data = $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
             return $this->_raiseSoapFault($soap_data);
@@ -394,7 +396,7 @@ class SOAP_Client extends SOAP_Base
                         $part = $this->_wsdl->elements[$part['namespace']][$part['type']];
                         $name = $part['name'];
                     }
-                    if (isset($params[$name])) {
+                    if (array_key_exists($name,$params)) {
                         $nparams[$name] = $params[$name];
                     } else {
                         # we now force an associative array for parameters if using wsdl
@@ -555,7 +557,7 @@ class SOAP_Client extends SOAP_Base
 
     function __get_wire()
     {
-        if ($this->__options['trace'] > 0) {
+        if ($this->__options['trace'] > 0 && ($this->__last_request || $this->__last_response)) {
             return "OUTGOING:\n\n".
             $this->__last_request.
             "\n\nINCOMING\n\n".

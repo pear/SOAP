@@ -40,7 +40,7 @@ require_once 'Net/DIME.php';
  * @package SOAP::Transport::HTTP
  * @author Shane Caraveo <shane@php.net>
  */
-class SOAP_Transport_HTTP extends SOAP_Base
+class SOAP_Transport_HTTP extends SOAP_Base_Object
 {
     /**
      * Basic Auth string
@@ -114,7 +114,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
      */
     function SOAP_Transport_HTTP($URL, $encoding = SOAP_DEFAULT_ENCODING)
     {
-        parent::SOAP_Base('HTTP');
+        parent::SOAP_Base_Object('HTTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
         $this->encoding = $encoding;
@@ -190,7 +190,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
 
         }
         if (isset($this->urlparts['user'])) {
-            $this->setCredentials($this->urlparts['user'], $this->urlparts['pass']);
+            $this->setCredentials(urldecode($this->urlparts['user']),
+                                    urldecode($this->urlparts['pass']));
         }
         if (!isset($this->urlparts['path']) || !$this->urlparts['path'])
             $this->urlparts['path'] = '/';
@@ -319,9 +320,9 @@ class SOAP_Transport_HTTP extends SOAP_Base
         }
         // send
         if ($this->timeout > 0) {
-            $fp = fsockopen($host, $port, $this->errno, $this->errmsg, $this->timeout);
+            $fp = @fsockopen($host, $port, $this->errno, $this->errmsg, $this->timeout);
         } else {
-            $fp = fsockopen($host, $port, $this->errno, $this->errmsg);
+            $fp = @fsockopen($host, $port, $this->errno, $this->errmsg);
         }
         if (!$fp) {
             return $this->_raiseSoapFault("Connect Error to $host:$port");

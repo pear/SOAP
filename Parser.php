@@ -82,10 +82,6 @@ class SOAP_Parser extends SOAP_Base
             $this->xml_encoding = strtoupper($m[2]?$m[2]:$m[3]);
         }
         
-        # XXX need to do this better, remove newlines after > or before <
-        $this->xml = preg_replace("/>[\r\n]+/", '>', $this->xml);
-        $this->xml = preg_replace("/[\r\n]+</", '<', $this->xml);
-        
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($this->xml)) {

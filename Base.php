@@ -54,8 +54,6 @@ if (class_exists('Net_DIME_Message')) {
     $GLOBALS['SOAP_options']['DIME'] = 1;
 }
 
-error_reporting(E_ALL);
-
 /**
 * Enable debugging informations?
 *
@@ -79,8 +77,8 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 define('INF',   1.8e307); 
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_VERSION', '0.7.1');
-define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.7.1');
+define('SOAP_LIBRARY_VERSION', '0.7.2');
+define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.7.2-devel');
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
 define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');
@@ -88,6 +86,9 @@ define('SOAP_XML_SCHEMA_1999',      'http://www.w3.org/1999/XMLSchema');
 define('SOAP_SCHEMA',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SOAP_SCHEMA_ENCODING',      'http://schemas.xmlsoap.org/soap/encoding/');
 define('SOAP_ENVELOP',              'http://schemas.xmlsoap.org/soap/envelope/');
+
+define('SCHEMA_DISCO',              'http://schemas.xmlsoap.org/disco/');
+define('SCHEMA_DISCO_SCL',          'http://schemas.xmlsoap.org/disco/scl/');
 
 define('SCHEMA_SOAP',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SCHEMA_HTTP',               'http://schemas.xmlsoap.org/wsdl/http/');
@@ -108,6 +109,111 @@ if (!function_exists('is_a'))
    }
 }
 
+class SOAP_Base_Object extends PEAR
+{
+    /**
+    * Store debugging information in $debug_data?
+    * 
+    * @var  boolean if true debugging informations will be store in $debug_data
+    * @see  $debug_data, SOAP_Base
+    */
+    var $_debug_flag = false;
+    
+    /**
+    * String containing debugging informations if $debug_flag is set to true
+    *
+    * @var      string  debugging informations - mostyl error messages
+    * @see      $debug_flag, SOAP_Base
+    * @access   public
+    */
+    var $_debug_data = '';
+    
+    # supported encodings, limited by XML extension
+    var $_encodings = array('ISO-8859-1','US-ASCII','UTF-8');
+    /**
+    * Fault code
+    * 
+    * @var  string
+    */
+    var $_myfaultcode = '';
+    
+    /**
+    * Recent PEAR error object
+    * 
+    * @var  object  PEAR Error
+    */
+    var $fault = NULL;
+    
+    /**
+    * Constructor
+    *
+    * @param    string  error code 
+    * @see  $debug_data, _debug()
+    */
+    function SOAP_Base_Object($faultcode = 'Client')
+    {
+        $this->_myfaultcode = $faultcode;
+        $this->_debug_flag = $GLOBALS['SOAP_DEBUG'];
+        parent::PEAR('SOAP_Fault');
+    }
+    
+    /**
+    * Raise a soap error
+    * 
+    * Please referr to the SOAP definition for an impression of what a certain parameter
+    * stands for.
+    *
+    * Use $debug_flag to store errors to the member variable $debug_data
+    * 
+    * @param    string  error message
+    * @param    string  detailed error message.
+    * @param    string  actor
+    * @param    mixed
+    * @param    mixed
+    * @param    mixed
+    * @param    boolean
+    * @see      $debug_flag, $debug_data
+    */
+    function &_raiseSoapFault($str, $detail = '', $actorURI = '', $code = null, $mode = null, $options = null, $skipmsg = false)
+    {
+        # pass through previous faults
+        if (is_object($str)) {
+            $this->fault = $str;
+        } else {
+            if (!$code) $code = $this->_myfaultcode;
+            $this->fault = new SOAP_Fault($str, 
+                                          $code, 
+                                          $actorURI,
+                                          $detail,
+                                          $mode,
+                                          $options);
+        }
+        return $this->fault;
+    }
+
+    function __isfault()
+    {
+        return $this->fault != NULL;
+    }
+    
+    function &__getfault()
+    {
+        return $this->fault;
+    }
+    
+    /**
+    * maintains a string of debug data
+    *
+    * @param    debugging message - sometimes an error message
+    */
+    function _debug($string)
+    {
+        if ($this->_debug_flag) {
+            $this->_debug_data .= get_class($this) . ': ' . preg_replace("/>/", ">\r\n", $string) . "\n";
+        }
+    }
+}
+
 /**
 *  SOAP_Base
 * Common base class of all Soap lclasses
@@ -117,7 +223,7 @@ if (!function_exists('is_a'))
 * @package  SOAP::Client
 * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 */
-class SOAP_Base extends PEAR
+class SOAP_Base extends SOAP_Base_Object
 {
     var $_XMLSchema = array('http://www.w3.org/2001/XMLSchema', 'http://www.w3.org/1999/XMLSchema');
     var $_XMLSchemaVersion = 'http://www.w3.org/2001/XMLSchema';
@@ -190,45 +296,12 @@ class SOAP_Base extends PEAR
     // load namespace uris into an array of uri => prefix
     var $_namespaces;
     var $_ns_count = 0;
-    # supported encodings, limited by XML extension
-    var $_encodings = array('ISO-8859-1','US-ASCII','UTF-8');
 
     var $_xmlEntities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
     
     var $_doconversion = FALSE;
     
     var $__attachments = array();
-    
-    /**
-    * Store debugging information in $debug_data?
-    * 
-    * @var  boolean if true debugging informations will be store in $debug_data
-    * @see  $debug_data, SOAP_Base
-    */
-    var $_debug_flag = false;
-    
-    /**
-    * String containing debugging informations if $debug_flag is set to true
-    *
-    * @var      string  debugging informations - mostyl error messages
-    * @see      $debug_flag, SOAP_Base
-    * @access   public
-    */
-    var $_debug_data = '';
-    
-    /**
-    * Fault code
-    * 
-    * @var  string
-    */
-    var $_myfaultcode = '';
-    
-    /**
-    * Recent PEAR error object
-    * 
-    * @var  object  PEAR Error
-    */
-    var $fault = NULL;
     
     var $_wsdl = NULL;
     
@@ -252,10 +325,8 @@ class SOAP_Base extends PEAR
     */
     function SOAP_Base($faultcode = 'Client')
     {
-        $this->_myfaultcode = $faultcode;
+        parent::SOAP_Base_Object($faultcode);
         $this->_resetNamespaces();
-        $this->_debug_flag = $GLOBALS['SOAP_DEBUG'];
-        parent::PEAR('SOAPfault');
     }
     
     function _resetNamespaces()
@@ -286,62 +357,6 @@ class SOAP_Base extends PEAR
         $tmpNS['xsd'] = $this->_XMLSchemaVersion;
         $tmpNS['xsi'] = $this->_XMLSchemaVersion.'-instance';
         $this->_namespaces = array_flip($tmpNS);
-    }
-    
-    /**
-    * Raise a soap error
-    * 
-    * Please referr to the SOAP definition for an impression of what a certain parameter
-    * stands for.
-    *
-    * Use $debug_flag to store errors to the member variable $debug_data
-    * 
-    * @param    string  error message
-    * @param    string  detailed error message.
-    * @param    string  actor
-    * @param    mixed
-    * @param    mixed
-    * @param    mixed
-    * @param    boolean
-    * @see      $debug_flag, $debug_data
-    */
-    function &_raiseSoapFault($str, $detail = '', $actorURI = '', $code = null, $mode = null, $options = null, $skipmsg = false)
-    {
-        # pass through previous faults
-        if (is_object($str)) {
-            $this->fault = $str;
-        } else {
-            if (!$code) $code = $this->_myfaultcode;
-            $this->fault = new SOAP_Fault($str, 
-                                          $code, 
-                                          $actorURI,
-                                          $detail,
-                                          $mode,
-                                          $options);
-        }
-        return $this->fault;
-    }
-
-    function __isfault()
-    {
-        return $this->fault != NULL;
-    }
-    
-    function &__getfault()
-    {
-        return $this->fault;
-    }
-    
-    /**
-    * maintains a string of debug data
-    *
-    * @param    debugging message - sometimes an error message
-    */
-    function _debug($string)
-    {
-        if ($this->_debug_flag) {
-            $this->_debug_data .= get_class($this) . ': ' . preg_replace("/>/", ">\r\n", $string) . "\n";
-        }
     }
     
     function _getNamespacePrefix($ns)
