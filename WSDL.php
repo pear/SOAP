@@ -399,27 +399,22 @@ class SOAP_WSDL extends SOAP_Base
         $el = $this->elements[$_argtype['namespace']][$_argtype['type']];
         $tns = isset($this->ns[$el['namespace']]) ? $this->ns[$el['namespace']] : $_argtype['namespace'];
 
-        if (isset($el['type']) && isset($this->complexTypes[$tns][$el['type']])) {
+        if (!empty($el['complex']) || (isset($el['type']) && isset($this->complexTypes[$tns][$el['type']]))) {
             // The element is a complex type.
-            $comments .= "        // {$el['type']} is a ComplexType, refer to wsdl for more info\n";
+            $comments .= "        // {$_argtype['type']} is a ComplexType, refer to the WSDL for more info.\n";
             $attrname = "{$_argtype['type']}_attr";
-            if (isset($this->complexTypes[$tns][$el['type']]['attribute'])) {
-                $comments .= "        // {$el['type']} may require attributes, refer to wsdl for more info\n";
+            if (isset($el['type']) && isset($this->complexTypes[$tns][$el['type']]['attribute'])) {
+                $comments .= "        // {$_argtype['type']} may require attributes, refer to the WSDL for more info.\n";
             }
             $comments .= "        \${$attrname}['xmlns'] = '{$this->namespaces[$_argtype['namespace']]}';\n";
             $comments .= "        \${$_argtype['type']} =& new SOAP_Value('{$_argtype['type']}', false, \${$_argtype['type']}, \$$attrname);\n";
             $this->_addArg($args, $argarray, $_argtype['type']);
-            if (isset($this->complexTypes[$tns][$el['type']]['attribute'])) {
+            if (isset($el['type']) && isset($this->complexTypes[$tns][$el['type']]['attribute'])) {
                 if ($args) {
                     $args .= ', ';
                 }
                 $args .= '$' . $attrname;
             }
-        } elseif (!empty($el['complex'])) {
-            $attrname = "{$_argtype['type']}_attr";
-            $comments .= "        \${$attrname}['xmlns'] = '{$this->namespaces[$_argtype['namespace']]}';\n";
-            $comments .= "        \${$_argtype['type']} =& new SOAP_Value('{$_argtype['type']}', false, \${$_argtype['type']}, \$$attrname);\n";
-            $this->_addArg($args, $argarray, $_argtype['type']);
         } elseif (isset($el['elements'])) {
             foreach ($el['elements'] as $ename => $element) {
                 $comments .= "        \$$ename =& new SOAP_Value('{{$this->namespaces[$element['namespace']]}}$ename', '" .
