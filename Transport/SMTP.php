@@ -31,20 +31,20 @@ require_once 'SOAP/Base.php';
 require_once 'Mail/smtp.php';
 
 /**
-*  SMTP Transport for SOAP
-*
-* implements SOAP-SMTP as defined at
-* http://www.pocketsoap.com/specs/smtpbinding/
-*
-* TODO: use PEAR smtp and Mime classes
-*
-* @access public
-* @version $Id$
-* @package SOAP::Transport::SMTP
-* @author Shane Caraveo <shane@php.net>
-*/
+ *  SMTP Transport for SOAP
+ *
+ * implements SOAP-SMTP as defined at
+ * http://www.pocketsoap.com/specs/smtpbinding/
+ *
+ * TODO: use PEAR smtp and Mime classes
+ *
+ * @access public
+ * @package SOAP::Transport::SMTP
+ * @author Shane Caraveo <shane@php.net>
+ */
 class SOAP_Transport_SMTP extends SOAP_Base
 {
+
     var $credentials = '';
     var $timeout = 4; // connect timeout
     var $urlparts = NULL;
@@ -69,7 +69,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
     }
-    
+
     /**
     * send and receive soap data
     *
@@ -90,13 +90,13 @@ class SOAP_Transport_SMTP extends SOAP_Base
         if (!$options || !array_key_exists('from',$options)) {
             return $this->_raiseSoapFault("No FROM address to send message with");
         }
-        
+
         if (isset($options['host'])) $this->host = $options['host'];
         if (isset($options['port'])) $this->port = $options['port'];
         if (isset($options['auth'])) $this->auth = $options['auth'];
         if (isset($options['username'])) $this->username = $options['username'];
         if (isset($options['password'])) $this->password = $options['password'];
-        
+
         $headers = array();
         $headers['From'] = $options['from'];
         $headers['X-Mailer'] = $this->_userAgent;
@@ -106,10 +106,10 @@ class SOAP_Transport_SMTP extends SOAP_Base
         if (array_key_exists('soapaction', $options)) {
             $headers['Soapaction'] = "\"{$options['soapaction']}\"";
         }
-        
+
         if (isset($options['headers']))
             $headers = array_merge($headers, $options['headers']);
-        
+
         // if the content type is already set, we assume that Mime encoding
         // is already done
         if (isset($headers['Content-Type'])) {
@@ -134,15 +134,15 @@ class SOAP_Transport_SMTP extends SOAP_Base
                 $out = chunk_split(base64_encode($msg));
             }
         }
-        
+
         $headers['Subject'] = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
-        
+
         foreach ($headers as $key => $value) {
             $header_text .= "$key: $value\n";
         }
         $this->outgoing_payload = $header_text."\r\n".$this->outgoing_payload;
         # we want to return a proper XML message
-        
+
         $mailer_params = array(
             'host' => $this->host,
             'port' => $this->port,
@@ -185,9 +185,9 @@ class SOAP_Transport_SMTP extends SOAP_Base
         $this->username = $username;
         $this->password = $password;
     }
-    
+
     // private members
-    
+
     /**
     * validate url data passed to constructor
     *
@@ -211,6 +211,5 @@ class SOAP_Transport_SMTP extends SOAP_Base
         }
         return TRUE;
     }
-    
-} // end SOAP_Transport_HTTP
-?>
+
+}

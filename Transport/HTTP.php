@@ -35,12 +35,12 @@ require_once 'SOAP/Base.php';
  *  HTTP Transport for SOAP
  *
  * @access public
- * @version $Id$
  * @package SOAP::Transport::HTTP
  * @author Shane Caraveo <shane@php.net>
  */
 class SOAP_Transport_HTTP extends SOAP_Base
 {
+
     /**
      * Basic Auth string
      *
@@ -548,13 +548,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return $this->_raiseSoapFault('CURL Extension is required for HTTPS');
         }
 
-//        $this->_getRequest($msg, $options);
-
         $ch = curl_init();
 
-        // XXX don't know if this proxy stuff is right for CURL
-        // Arnaud: apparently it is, we have a proxy and it works
-        // with these lines.
         if (isset($options['proxy_host'])) {
             // $options['http_proxy'] == 'hostname:port'
             $host = $options['proxy_host'];
@@ -591,8 +586,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         curl_setopt($ch, CURLOPT_HTTP_VERSION,   1);
 
         if (isset($options['curl'])) {
-            reset($options['curl']);
-            while (list($key, $val) = each ($options['curl'])) {
+            foreach ($options['curl'] as $key => $val) {
                 curl_setopt($ch, $key, $val);
             }
         }
@@ -611,5 +605,5 @@ class SOAP_Transport_HTTP extends SOAP_Base
 
         return $this->response;
     }
-} // end SOAP_Transport_HTTP
-?>
+
+}

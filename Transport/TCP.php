@@ -22,18 +22,18 @@
 require_once 'SOAP/Base.php';
 
 /**
-*  TCP Transport for SOAP
-*
-* TODO:
-*   use Net_Socket
-*   implement some security scheme
-*   implement support for attachments
-*
-*
-* @access public
-* @package SOAP::Transport::TCP
-* @author Shane Hanna <iordy_at_iordy_dot_com>
-*/
+ *  TCP Transport for SOAP
+ *
+ * TODO:
+ *   use Net_Socket
+ *   implement some security scheme
+ *   implement support for attachments
+ *
+ *
+ * @access public
+ * @package SOAP::Transport::TCP
+ * @author Shane Hanna <iordy_at_iordy_dot_com>
+ */
 class SOAP_Transport_TCP extends SOAP_Base_Object
 {
 
@@ -46,16 +46,18 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
     var $result_encoding = 'UTF-8';
     var $result_content_type;
 
-    # socket
+    /**
+     * socket
+     */
     var $socket = '';
 
     /**
-    * SOAP_Transport_TCP Constructor
-    *
-    * @param string $URL    http url to soap endpoint
-    *
-    * @access public
-    */
+     * SOAP_Transport_TCP Constructor
+     *
+     * @param string $URL    http url to soap endpoint
+     *
+     * @access public
+     */
     function SOAP_Transport_TCP($URL, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base_Object('TCP');
@@ -64,7 +66,8 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
         $this->encoding = $encoding;
     }
 
-    function _socket_ping () {
+    function _socket_ping()
+    {
         // XXX how do we restart after socket_shutdown?
         //if (!$this->socket) {
             # create socket resource
@@ -79,57 +82,56 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
     }
 
     /**
-    * send and receive soap data
-    *
-    * @param string &$msg       outgoing post data
-    * @param string $action      SOAP Action header data
-    *
-    * @return string|fault response
-    * @access public
-    */
+     * send and receive soap data
+     *
+     * @param string &$msg       outgoing post data
+     * @param string $action      SOAP Action header data
+     *
+     * @return string|fault response
+     * @access public
+     */
     function &send(&$msg, $options = NULL)
     {
         $this->incoming_payload = '';
         $this->outgoing_payload = &$msg;
         if (!$this->_validateUrl()) return $this->fault;
 
-        # check for TCP scheme
+        // check for TCP scheme
         if (strcasecmp($this->urlparts['scheme'], 'TCP') == 0) {
-            # check connection
+            // check connection
             if (!$this->_socket_ping())
                 return $this->_raiseSoapFault('error on '.$this->url.' reason '.socket_strerror(socket_last_error($this->socket)));
 
-            # write to the socket
+            // write to the socket
             if (!@socket_write($this->socket, $this->outgoing_payload, strlen($this->outgoing_payload))) {
                 return $this->_raiseSoapFault('Error sending data to '.$this->url.' reason '.socket_strerror(socket_last_error($this->socket)));
             }
 
-            # shutdown writing
+            // shutdown writing
             if(!socket_shutdown($this->socket, 1))
                 return $this->_raiseSoapFault("can't change socket mode to read.");
 
-            # read everything we can.
+            // read everything we can.
             while($buf = @socket_read($this->socket, 1024, PHP_BINARY_READ)) {
                 $this->incoming_payload .= $buf;
             }
 
-            # return payload or die
+            // return payload or die
             if ($this->incoming_payload)
                 return $this->incoming_payload;
-            
+
             return $this->_raiseSoapFault("Error reveiving data from ".$this->url);
         }
+
         return $this->_raiseSoapFault('Invalid url scheme '.$this->url);
     }
 
-    // private members
-
     /**
-    * validate url data passed to constructor
-    *
-    * @return boolean
-    * @access private
-    */
+     * validate url data passed to constructor
+     *
+     * @return boolean
+     * @access private
+     */
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
@@ -146,4 +148,3 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
     }
 
 }
-?>
