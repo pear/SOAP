@@ -95,7 +95,7 @@ class SOAP_WSDL {
     
     // start-element handler
     function start_element($parser, $name, $attrs) {
-        global $SOAPSchema;
+        global $SOAP_Schema;
         // position in the total number of elements, starting from 0
         
         $pos = $this->position++;
@@ -243,7 +243,7 @@ class SOAP_WSDL {
         case "definitions":
             $this->wsdl_info = $attrs;
             foreach ($attrs as $name=>$value) {
-                if (strcasecmp($value,$SOAPSchema)==0) {
+                if (strcasecmp($value,$SOAP_Schema)==0) {
                     $s = split(":",$name);
                     $this->soapns = $s[1];
                     break;

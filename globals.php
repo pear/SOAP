@@ -22,14 +22,14 @@
 // make errors handle properly in windows (thx, thong@xmethods.com)
 error_reporting(2039);
 
-$phpversion = substr(phpversion(),0,3);
-if ($phpversion == "4.0") {
+if (!function_exists("version_compare") ||
+    version_compare(phpversion(), "4.1", "<")) {
     die("requires PHP 4.1 or higher\n");
 }
-if ($phpversion == "4.1") {
+if (version_compare(phpversion(), "4.1", ">=") &&
+    version_compare(phpversion(), "4.2", "<")) {
     define("FLOAT","double");
 } else {
-    #print "setting float to float";
     define("FLOAT","float");
 }
 
@@ -38,17 +38,17 @@ if ($phpversion == "4.1") {
 define("INF", 1.8e307); 
 define("NAN", 0.0);
 
-$soapLibraryName = "PEAR-SOAPx4 0.6";
+$SOAP_LibraryName = "PEAR-SOAPx4 0.6";
 
 // set schema version
-$XMLSchemaVersion  = "http://www.w3.org/2001/XMLSchema";
-$SOAPSchema = "http://schemas.xmlsoap.org/wsdl/soap/";
-$SOAPSchemaEncoding = "http://schemas.xmlsoap.org/soap/encoding/";
-$SOAPInteropOrg = "http://soapinterop.org/xsd";
+$SOAP_XMLSchemaVersion  = "http://www.w3.org/2001/XMLSchema";
+$SOAP_Schema = "http://schemas.xmlsoap.org/wsdl/soap/";
+$SOAP_SchemaEncoding = "http://schemas.xmlsoap.org/soap/encoding/";
+$SOAP_InteropOrg = "http://soapinterop.org/xsd";
 
 // load types into typemap array
 /*
-$typemap["http://www.w3.org/2001/XMLSchema"] = array(
+$SOAP_typemap["http://www.w3.org/2001/XMLSchema"] = array(
 	"string","boolean","float","double","decimal","duration","dateTime","time",
 	"date","gYearMonth","gYear","gMonthDay","gDay","gMonth","hexBinary","base64Binary",
 	// derived datatypes
@@ -56,13 +56,13 @@ $typemap["http://www.w3.org/2001/XMLSchema"] = array(
 	"IDREF","IDREFS","ENTITY","ENTITIES","integer","nonPositiveInteger",
 	"negativeInteger","long","int","short","byte","nonNegativeInteger",
 	"unsignedLong","unsignedInt","unsignedShort","unsignedByte","positiveInteger");
-$typemap["http://www.w3.org/1999/XMLSchema"] = array(
+$SOAP_typemap["http://www.w3.org/1999/XMLSchema"] = array(
 	"i4","int","boolean","string","double","float","dateTime",
 	"timeInstant","base64Binary","base64","ur-type");
-$typemap[$SOAPInteropOrg] = array("SOAPStruct");
-$typemap[$SOAPSchemaEncoding] = array("base64","array","Array");
+$SOAP_typemap[$SOAP_InteropOrg] = array("SOAPStruct");
+$SOAP_typemap[$SOAP_SchemaEncoding] = array("base64","array","Array");
 */
-$typemap["http://www.w3.org/2001/XMLSchema"] = array(
+$SOAP_typemap["http://www.w3.org/2001/XMLSchema"] = array(
 	"string" => "string",
         "boolean" => "boolean",
         "float" => FLOAT,
@@ -106,7 +106,7 @@ $typemap["http://www.w3.org/2001/XMLSchema"] = array(
         "unsignedByte" => "integer",
         "positiveInteger"  => "integer"
         );
-$typemap["http://www.w3.org/1999/XMLSchema"] = array(
+$SOAP_typemap["http://www.w3.org/1999/XMLSchema"] = array(
 	"i4" => "integer",
         "int" => "integer",
         "boolean" => "boolean",
@@ -119,18 +119,18 @@ $typemap["http://www.w3.org/1999/XMLSchema"] = array(
         "base64" => "string",
         "ur-type" => "string"
         );
-$typemap[$SOAPInteropOrg] = array("SOAPStruct" => "array");
-$typemap[$SOAPSchemaEncoding] = array("base64" => "string","array" => "array","Array" => "array");
+$SOAP_typemap[$SOAP_InteropOrg] = array("SOAPStruct" => "array");
+$SOAP_typemap[$SOAP_SchemaEncoding] = array("base64" => "string","array" => "array","Array" => "array");
 
 // load namespace uris into an array of uri => prefix
-$namespaces = array(
+$SOAP_namespaces = array(
 	"http://schemas.xmlsoap.org/soap/envelope/" => "SOAP-ENV",
-	$XMLSchemaVersion => "xsd",
-	$XMLSchemaVersion."-instance" => "xsi",
-	$SOAPSchemaEncoding => "SOAP-ENC",
-	$SOAPInteropOrg=>"si");
+	$SOAP_XMLSchemaVersion => "xsd",
+	$SOAP_XMLSchemaVersion."-instance" => "xsi",
+	$SOAP_SchemaEncoding => "SOAP-ENC",
+	$SOAP_InteropOrg=>"si");
 
-$xmlEntities = array("quot" => '"',"amp" => "&",
+$SOAP_xmlEntities = array("quot" => '"',"amp" => "&",
 	"lt" => "<","gt" => ">","apos" => "'");
 
 

@@ -57,12 +57,12 @@ class SOAP_Message
         // make method struct
         $this->value = new SOAP_Value($method,"struct",$params,$method_namespace);
         if (is_array($new_namespaces)) {
-            global $namespaces;
-            $i = count($namespaces);
+            global $SOAP_namespaces;
+            $i = count($SOAP_namespaces);
             foreach ($new_namespaces as $v) {
-                $namespaces[$v] = "ns".$i++;
+                $SOAP_namespaces[$v] = "ns".$i++;
             }
-            $this->namespaces = $namespaces;
+            $this->namespaces = $SOAP_namespaces;
         }
         $this->payload = "";
         $this->debug_flag = false;
@@ -79,13 +79,13 @@ class SOAP_Message
     */
     function _makeEnvelope($payload)
     {
-        global $SOAPSchemaEncoding;
-        global $namespaces;
+        global $SOAP_SchemaEncoding;
+        global $SOAP_namespaces;
         $ns_string = "";
-        foreach ($namespaces as $k => $v) {
+        foreach ($SOAP_namespaces as $k => $v) {
             $ns_string .= "xmlns:$v=\"$k\" ";
         }
-        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"$SOAPSchemaEncoding\">\n".
+        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"$SOAP_SchemaEncoding\">\n".
                    $payload.
                    "</SOAP-ENV:Envelope>\n";
     }

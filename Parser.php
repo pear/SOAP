@@ -193,12 +193,12 @@ class SOAP_Parser
             if (strstr($key,"xmlns:")) {
                 $prefix = substr(strrchr($key,":"),1);
                 if ($prefix == "xsd") {
-                    global $XMLSchemaVersion,$namespaces;
-                    $XMLSchemaVersion = $value;
-                    $tmpNS = array_flip($namespaces);
-                    $tmpNS["xsd"] = $XMLSchemaVersion;
-                    $tmpNS["xsi"] = $XMLSchemaVersion."-instance";
-                    $namespaces = array_flip($tmpNS);
+                    global $SOAP_XMLSchemaVersion,$SOAP_namespaces;
+                    $SOAP_XMLSchemaVersion = $value;
+                    $tmpNS = array_flip($SOAP_namespaces);
+                    $tmpNS["xsd"] = $SOAP_XMLSchemaVersion;
+                    $tmpNS["xsi"] = $SOAP_XMLSchemaVersion."-instance";
+                    $SOAP_namespaces = array_flip($tmpNS);
                 }
                 $this->namespaces[substr(strrchr($key,":"),1)] = $value;
                 // set method namespace

@@ -60,7 +60,7 @@ class SOAP_Server {
     // parses request and posts response
     function service($data)
     {
-        global $soapLibraryName;
+        global $SOAP_LibraryName;
         // $response is a soap_msg object
         $response = $this->parse_request($data);
         $this->debug("parsed request and got an object of this class '".get_class($response)."'");
@@ -78,7 +78,7 @@ class SOAP_Server {
             //$header[] = "HTTP/1.0 200 OK\r\n";
             $header[] = "Status: 200 OK\r\n";
         }
-        $header[] = "Server: $soapLibraryName\r\n";
+        $header[] = "Server: $SOAP_LibraryName\r\n";
         $header[] = "Connection: Close\r\n";
         $header[] = "Content-Type: text/xml; charset=$this->xml_encoding\r\n";
         $header[] = "Content-Length: ".strlen($payload)."\r\n\r\n";
@@ -151,12 +151,12 @@ class SOAP_Server {
             /* set namespaces
             if ($parser->namespaces["xsd"] != "") {
                 //print "got ".$parser->namespaces["xsd"];
-                global $XMLSchemaVersion,$namespaces;
-                $XMLSchemaVersion = $parser->namespaces["xsd"];
-                $tmpNS = array_flip($namespaces);
-                $tmpNS["xsd"] = $XMLSchemaVersion;
-                $tmpNS["xsi"] = $XMLSchemaVersion."-instance";
-                $namespaces = array_flip($tmpNS);
+                global $SOAP_XMLSchemaVersion,$SOAP_namespaces;
+                $SOAP_XMLSchemaVersion = $parser->namespaces["xsd"];
+                $tmpNS = array_flip($SOAP_namespaces);
+                $tmpNS["xsd"] = $SOAP_XMLSchemaVersion;
+                $tmpNS["xsi"] = $SOAP_XMLSchemaVersion."-instance";
+                $SOAP_namespaces = array_flip($tmpNS);
             }*/
             if (strcasecmp(get_class($request_val),"SOAP_Value")==0) {
                 // verify that SOAP_Value objects in request match the methods signature
@@ -228,7 +228,7 @@ class SOAP_Server {
     
     function verify_method($request)
     {
-        global $typemap, $XMLSchemaVersion;
+        global $SOAP_typemap, $SOAP_XMLSchemaVersion;
         //return true;
         $this->debug("entered verify_method() w/ request name: ".$request->name);
         $params = $request->value;
@@ -257,8 +257,8 @@ class SOAP_Server {
                         // this allows using plain php variables to work (ie. stuff like Decimal would fail otherwise)
                         // XXX we should do further validation of the value of the type
                         if (strtolower($sig[$i]) != strtolower($p[$i]) &&
-                            !(isset($typemap[$XMLSchemaVersion][$sig[$i]]) &&
-                            strtolower($typemap[$XMLSchemaVersion][$sig[$i]]) == strtolower($typemap[$XMLSchemaVersion][$p[$i]]))) {
+                            !(isset($SOAP_typemap[$SOAP_XMLSchemaVersion][$sig[$i]]) &&
+                            strtolower($SOAP_typemap[$SOAP_XMLSchemaVersion][$sig[$i]]) == strtolower($SOAP_typemap[$SOAP_XMLSchemaVersion][$p[$i]]))) {
                             $param = $params[$i];
                             $this->debug("mismatched parameter types: $sig[$i] != $p[$i]");
                             $this->make_fault("Client","soap request contained mismatching parameters of name $param->name had type $p[$i], which did not match signature's type: $sig[$i]");

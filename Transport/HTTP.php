@@ -46,10 +46,10 @@ class SOAP_Transport_HTTP
     */
     function SOAP_Transport_HTTP($URL)
     {
-        global $soapLibraryName;
+        global $SOAP_LibraryName;
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
-        $this->_userAgent = $soapLibraryName;
+        $this->_userAgent = $SOAP_LibraryName;
     }
     
     /**

@@ -23,7 +23,7 @@ require_once("SOAP/Client.php");
 require_once("client_params.php");
 error_reporting(E_ALL ^ E_NOTICE);
 
-$localonly = 0; // set to 1 to test only your local server
+$localonly = 1; // set to 1 to test only your local server
 $test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
@@ -34,9 +34,9 @@ $specificendpoint = ""; //"http://63.142.188.184:1122/"; // endpoint url
 
 if ($localonly) {
     # define your test servers endpointURL here
-    $endpoints[$soapLibraryName] = array(
+    $endpoints[$SOAP_LibraryName] = array(
             "endpointURL" => "http://127.0.0.1/soap/interop.php",
-            "name" => $soapLibraryName);
+            "name" => $SOAP_LibraryName);
 }
 
 /********************************************************************

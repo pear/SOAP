@@ -52,7 +52,7 @@ class SOAP_Value
     
     function SOAP_Value($name="",$type=false,$value=-1,$namespace=false,$type_namespace=false)
     {
-        global $soapTypes, $typemap, $namespaces, $methodNamespace, $XMLSchemaVersion;
+        global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace, $SOAP_XMLSchemaVersion;
         // detect type if not passed
         
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
@@ -64,10 +64,10 @@ class SOAP_Value
         
         if ($namespace) {
             $this->namespace = $namespace;
-            if (!isset($namespaces[$namespace])) {
-                $namespaces[$namespace] = "ns".(count($namespaces)+1);
+            if (!isset($SOAP_namespaces[$namespace])) {
+                $SOAP_namespaces[$namespace] = "ns".(count($SOAP_namespaces)+1);
             }
-            $this->prefix = $namespaces[$namespace];
+            $this->prefix = $SOAP_namespaces[$namespace];
         }
         
         // get type prefix
@@ -75,23 +75,23 @@ class SOAP_Value
             $this->type = substr(strrchr($type,":"),1,strlen(strrchr($type,":")));
             $this->type_prefix = substr($type,0,strpos($type,":"));
         } elseif ($type_namespace) {
-            if (!isset($namespaces[$type_namespace])) {
-                $namespaces[$type_namespace] = "ns".(count($namespaces)+1);
+            if (!isset($SOAP_namespaces[$type_namespace])) {
+                $SOAP_namespaces[$type_namespace] = "ns".(count($SOAP_namespaces)+1);
             }
-            $this->type_prefix = $namespaces[$type_namespace];
+            $this->type_prefix = $SOAP_namespaces[$type_namespace];
         // if type namespace was not explicitly passed, and we're not in a method struct:
         } elseif (!$this->type_prefix && $type != "struct" /*!isset($type_namespace)*/) {
             // try to get type prefix from typeMap
             if ($ns = $this->verify_type($this->type)) {
-                $this->type_prefix = $namespaces[$ns];
+                $this->type_prefix = $SOAP_namespaces[$ns];
             } else {
                 // else default to method namespace
-                $this->type_prefix = $namespaces[$methodNamespace];
+                $this->type_prefix = $SOAP_namespaces[$methodNamespace];
             }
         }
         
         // if scalar
-        if (in_array($this->type,$typemap[$XMLSchemaVersion])) {
+        if (in_array($this->type,$SOAP_typemap[$SOAP_XMLSchemaVersion])) {
             $this->type_code = 1;
             $this->addScalar($value,$this->type,$name);
         // if array
@@ -249,7 +249,7 @@ class SOAP_Value
     
     function decode($soapval=false)
     {
-        global $XMLSchemaVersion, $typemap;
+        global $SOAP_XMLSchemaVersion, $SOAP_typemap;
         if (!$soapval) {
             $soapval = $this;
         }
@@ -270,11 +270,11 @@ class SOAP_Value
             #    # THOUGHT: we could return a class instead.
             #    $dt = new SOAP_Type_dateTime($soapval->value);
             #    $soapval->value = $dt->to_unixtime();
-            } else if (in_array($soapval->type, $typemap[$XMLSchemaVersion], TRUE)) {
+            } else if (in_array($soapval->type, $SOAP_typemap[$SOAP_XMLSchemaVersion], TRUE)) {
                 # if we can, lets set php's variable type
-                settype($soapval->value,$typemap[$XMLSchemaVersion][$soapval->type]);
+                settype($soapval->value,$SOAP_typemap[$SOAP_XMLSchemaVersion][$soapval->type]);
             }
-            #print "value: $soapval->value type: $soapval->type phptype: {$typemap[$XMLSchemaVersion][$soapval->type]}\n";
+            #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[$SOAP_XMLSchemaVersion][$soapval->type]}\n";
             return $soapval->value;
         // array decode
         } elseif ($soapval->type_code == 2) {
@@ -311,14 +311,14 @@ class SOAP_Value
     // pass it a type, and it attempts to return a namespace uri
     function verify_type($type)
     {
-        global $typemap,$namespaces,$XMLSchemaVersion;
-        /*foreach ($typemap as $namespace => $types) {
+        global $SOAP_typemap,$SOAP_namespaces,$SOAP_XMLSchemaVersion;
+        /*foreach ($SOAP_typemap as $namespace => $types) {
             if (is_array($types) && in_array($type,$types)) {
                 return $namespace;
             }
         }*/
-        foreach ($namespaces as $uri => $prefix) {
-            if (is_array($typemap[$uri]) && isset($typemap[$uri][$type])) {
+        foreach ($SOAP_namespaces as $uri => $prefix) {
+            if (is_array($SOAP_typemap[$uri]) && isset($SOAP_typemap[$uri][$type])) {
                 #print "returning: $uri for type $type\n";
                 return $uri;
             }
