@@ -19,7 +19,6 @@
 //
 // $Id$
 //
-require_once("SOAP/Transport/HTTP.php");
 
 /**
 * SOAP Transport Layer
@@ -52,7 +51,12 @@ class SOAP_Transport
         $this->debug_flag = $debug;
         $urlparts = @parse_url($url);
         if (strcasecmp($urlparts['scheme'],"http")==0) {
+            require_once("SOAP/Transport/HTTP.php");
             $this->transport = new SOAP_Transport_HTTP($url);
+            return;
+        } else if (strcasecmp($urlparts['scheme'],"mailto")==0) {
+            require_once("SOAP/Transport/SMTP.php");
+            $this->transport = new SOAP_Transport_SMTP($url);
             return;
         }
         $this->errmsg = "No Transport for {$urlparts['scheme']}";
