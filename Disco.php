@@ -40,7 +40,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
     {
         parent::SOAP_Base_Object('Server');
 
-        if ( !is_object($soap_server) 
+        if ( !is_object($soap_server)
             || !get_class($soap_server) == 'soap_server') return;
 
         $this->_service_name = $service_name;
@@ -50,7 +50,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         $this->soap_server = $soap_server;
         $this->host = isset($_SERVER['HTTP_HOST'])?$_SERVER['HTTP_HOST']:'localhost';
     }
-    
+
     function getDISCO()
     {
         $this->_generate_DISCO();
@@ -62,21 +62,21 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         $this->_generate_WSDL();
         return $this->wsdl;
     }
-    
+
     function _generate_DISCO()
     {
         # DISCO
         $this->_disco['disco:discovery']['attr']['xmlns:disco'] = SCHEMA_DISCO;
         $this->_disco['disco:discovery']['attr']['xmlns:scl'] = SCHEMA_DISCO_SCL;
-        $this->_disco['disco:discovery']['scl:contractRef']['attr']['ref'] = 
+        $this->_disco['disco:discovery']['scl:contractRef']['attr']['ref'] =
                                     (array_key_exists('HTTPS',$_SERVER) && $_SERVER['HTTPS']=='on')
-                                    ? 'https://' . $this->host . $_SERVER['PHP_SELF'] . '?wsdl' 
+                                    ? 'https://' . $this->host . $_SERVER['PHP_SELF'] . '?wsdl'
                                     : 'http://'  . $this->host . $_SERVER['PHP_SELF'] . '?wsdl';
 
         # generate disco xml
         $this->_generate_DISCO_XML($this->_disco);
     }
-    
+
     function _generate_WSDL()
     {
         # WSDL
@@ -98,7 +98,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
 
         # import namespaces
         # seems to not work yet: wsdl.exe fom .NET cant handle imported complete wsdl-definitions
-        # 
+        #
         if (count($this->import_ns)>0) {
             $i = 0;
             foreach ($this->import_ns as $_ns => $_location) {
@@ -126,9 +126,9 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         $this->_wsdl['definitions']['service']['documentation'] = htmlentities($this->_service_desc);
         $this->_wsdl['definitions']['service']['port']['attr']['name'] = $this->_portname;
         $this->_wsdl['definitions']['service']['port']['attr']['binding'] = 'tns:' . $this->_bindingname;
-        $this->_wsdl['definitions']['service']['port']['soap:address']['attr']['location'] = 
+        $this->_wsdl['definitions']['service']['port']['soap:address']['attr']['location'] =
                                     (array_key_exists('HTTPS',$_SERVER) && $_SERVER['HTTPS']=='on')
-                                    ? 'https://' . $this->host . $_SERVER['PHP_SELF'] 
+                                    ? 'https://' . $this->host . $_SERVER['PHP_SELF']
                                     : 'http://'  . $this->host . $_SERVER['PHP_SELF'];
 
         #
@@ -148,7 +148,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         }
         if (isset($server->dispatch_map))
             $this->addMethodsFromMap($server->dispatch_map,$namespace);
-        
+
 
         # generate wsdl
         $this->_generate_WSDL_XML($this->_wsdl);
@@ -170,7 +170,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         $this->_wsdl['definitions']['types']['schema'][] =& $schema;
         return $schema;
     }
-    
+
     function addSchemaFromMap(&$map) {
         if (!$map) return;
         foreach ($map as $_type_name => $_type_def) {
@@ -203,9 +203,13 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
             }
         }
     }
-    
-    function addMethodsFromMap(&$map,$namespace,$classname=NULL) {
-        if (!$map) return;
+
+    function addMethodsFromMap(&$map, $namespace, $classname = null)
+    {
+        if (!$map) {
+            return;
+        }
+
         foreach ($map as $method_name => $method_types) {
             if (array_key_exists('namespace',$method_types)) {
                 $method_namespace = $method_types['namespace'];
@@ -221,7 +225,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                 $part['attr']['name'] = $name;
                 $part['attr']['type'] = $typens . ':' . $type;
             }
-    
+
             # OUTPUT
             $output_message =& $this->_wsdl['definitions']['message'][];
             $output_message['attr']['name'] = $method_name . 'Response';
@@ -231,32 +235,32 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                 $part['attr']['name'] = $name;
                 $part['attr']['type'] = $typens . ':' . $type;
             }
-    
+
             # PORTTYPES
             $operation =& $this->_wsdl['definitions']['portType']['operation'][];
-            
+
             $operation['attr']['name'] = $method_name;
-    
+
             # INPUT
-            $operation['input']['attr']['message'] = 'tns:' 
+            $operation['input']['attr']['message'] = 'tns:'
                             . $input_message['attr']['name'];
-    
+
             # OUTPUT
-            $operation['output']['attr']['message'] = 'tns:' 
+            $operation['output']['attr']['message'] = 'tns:'
                             . $output_message['attr']['name'];
-    
+
             # BINDING
             $binding =& $this->_wsdl['definitions']['binding']['operation'][];
             $binding['attr']['name'] = $method_name;
             $action = $method_namespace . '#' . ($classname?$classname . '#':'') . $method_name;
             $binding['soap:operation']['attr']['soapAction'] = $action;
-    
+
             # INPUT
             $binding['input']['attr'] = '';
             $binding['input']['soap:body']['attr']['use'] = 'encoded';
             $binding['input']['soap:body']['attr']['namespace'] = $method_namespace;
             $binding['input']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
-    
+
             # OUTPUT
             $binding['output']['attr'] = '';
             $binding['output']['soap:body']['attr']['use'] = 'encoded';
@@ -264,7 +268,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
             $binding['output']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
         }
     }
-    
+
     function _generate_DISCO_XML($disco_array) {
         $disco = '<?xml version="1.0"?>';
         foreach ($disco_array as $key => $val) {
