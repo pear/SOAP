@@ -6,8 +6,8 @@
   <name>SOAP</name>
   <summary>SOAP Client/Server for PHP</summary>
   <description>
-  Implementation of SOAP protocol and services
- </description>
+    Implementation of SOAP protocol and services
+  </description>
   <maintainers>
     <maintainer>
       <user>shane</user>
@@ -16,51 +16,53 @@
       <role>lead</role>
     </maintainer>
   </maintainers>
+  <license>PHP License</license>
   <release>
+    <state>devel</state>
     <version>0.6</version>
     <date>2002-02-18</date>
     <notes>
-   This is the initial independent PEAR release.
-  </notes>
+      This is the initial independent PEAR release.
+    </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
-	<file role="php">Base.php</file>
-	<file role="php">Client.php</file>
-	<file role="php">Server.php</file>
-	<file role="php">Fault.php</file>
-	<file role="php">Message.php</file>
-	<file role="php">Value.php</file>
-	<file role="php">Parser.php</file>
-	<file role="php">Transport.php</file>
-	<file role="php">globals.php</file>
-	<file role="php">WSDL.php</file>
-	<dir name="example" role="doc"> 
-	  <file role="doc">stockquote.php</file>
-	</dir>
-	<dir name="Transport"> 
-	  <file role="php">HTTP.php</file>
-	  <file role="php">SMTP.php</file>
-	</dir>
-	<dir name="Type"> 
-	  <file role="php">dateTime.php</file>
-	  <file role="php">hexBinary.php</file>
-	</dir>
-	<dir name="interop" role="test"> 
-	  <file role="test">client_params.php</file>
-	  <file role="test">client_round2_base.php</file>
-	  <file role="test">client_library.php</file>
-	  <file role="test">client_round2_pretty.php</file>
-	  <file role="test">interop.php</file>
-	  <file role="test">server_soapinterop_base.php</file>
-	  <file role="test">server_soapinterop_groupB.php</file>
-	</dir>
-	<dir name="test" role="test"> 
-	  <file role="test">5.2.simpletypes.php</file>
-	  <file role="test">5.2.1.simpletypes.string.php</file>
-	  <file role="test">5.2.1.simpletypes.multiref.php</file>
-	  <file role="test">all.php</file>
-	  <file role="test">test.utility.php</file>
-	</dir>
+        <file role="php" name="Base.php"/>
+        <file role="php" name="Client.php"/>
+        <file role="php" name="Server.php"/>
+        <file role="php" name="Fault.php"/>
+        <file role="php" name="Message.php"/>
+        <file role="php" name="Value.php"/>
+        <file role="php" name="Parser.php"/>
+        <file role="php" name="Transport.php"/>
+        <file role="php" name="globals.php"/>
+        <file role="php" name="WSDL.php"/>
+        <dir name="example" role="doc"> 
+          <file role="doc" name="stockquote.php"/>
+        </dir>
+        <dir name="Transport"> 
+          <file role="php" name="HTTP.php"/>
+          <file role="php" name="SMTP.php"/>
+        </dir>
+        <dir name="Type"> 
+          <file role="php" name="dateTime.php"/>
+          <file role="php" name="hexBinary.php"/>
+        </dir>
+        <dir name="interop" role="test"> 
+          <file role="test" name="client_params.php"/>
+          <file role="test" name="client_round2_base.php"/>
+          <file role="test" name="client_library.php"/>
+          <file role="test" name="client_round2_pretty.php"/>
+          <file role="test" name="interop.php"/>
+          <file role="test" name="server_soapinterop_base.php"/>
+          <file role="test" name="server_soapinterop_groupB.php"/>
+        </dir>
+        <dir name="test" role="test"> 
+          <file role="test" name="5.2.simpletypes.php"/>
+          <file role="test" name="5.2.1.simpletypes.string.php"/>
+          <file role="test" name="5.2.1.simpletypes.multiref.php"/>
+          <file role="test" name="all.php"/>
+          <file role="test" name="test.utility.php"/>
+        </dir>
       </dir>
     </filelist>
     <deps>
