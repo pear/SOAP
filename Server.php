@@ -48,7 +48,7 @@ function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars)
  *
  * @access   public
  * @version  $Id$
- * @package  SOAP::Client
+ * @package  SOAP
  * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
  */
