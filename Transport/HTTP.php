@@ -246,14 +246,16 @@ class SOAP_Transport_HTTP extends SOAP_Base
      */
     function _parseEncoding($headers)
     {
-        $h = stristr($headers,'Content-Type');
-        preg_match('/^Content-Type:\s*(.*)$/im',$h,$ct);
-        $this->result_content_type = str_replace("\r","",$ct[1]);
-        if (preg_match('/(.*?)(?:;\s?charset=)(.*)/i',$this->result_content_type,$m)) {
+        $h = stristr($headers, 'Content-Type');
+        preg_match_all('/^Content-Type:\s*(.*)$/im', $h, $ct, PREG_SET_ORDER);
+        $n = count($ct);
+        $ct = $ct[$n - 1];
+        $this->result_content_type = str_replace("\r", '', $ct[1]);
+        if (preg_match('/(.*?)(?:;\s?charset=)(.*)/i', $this->result_content_type, $m)) {
             // strip the string of \r
             $this->result_content_type = $m[1];
             if (count($m) > 2) {
-                $enc = strtoupper(str_replace('"',"",$m[2]));
+                $enc = strtoupper(str_replace('"', '', $m[2]));
                 if (in_array($enc, $this->_encodings)) {
                     $this->result_encoding = $enc;
                 }
@@ -338,10 +340,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
             // find the response error, some servers response with 500 for soap faults
             $this->_parseHeaders($match[1]);
 
-            list($protocol, $code) = sscanf($this->result_headers[0], '%s %s');
+            list($protocol, $code, $msg) = sscanf($this->result_headers[0], '%s %s %s');
             unset($this->result_headers[0]);
 
             switch($code) {
+                case 100: // Continue
+                   $this->incoming_payload = $match[2];
+                   return $this->_parseResponse();
                 case 400:
                     $this->_raiseSoapFault("HTTP Response $code Bad Request");
                     return false;
@@ -372,7 +377,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
                     break;
                 default:
                     if ($code >= 400 && $code < 500) {
-                        $this->_raiseSoapFault("HTTP Response $code Not Found");
+                        $this->_raiseSoapFault("HTTP Response $code Not Found, Server message: $msg");
                         return false;
                     }
             }

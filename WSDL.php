@@ -450,7 +450,7 @@ class SOAP_WSDL extends SOAP_Base
             } else {
                 $classname = 'WebService_'.$this->service;
             }
-            $classname = str_replace('.','_',$classname);
+            $classname = str_replace('-','_',$classname);
         }
 
         if (!$this->_validateString($classname)) return NULL;
@@ -607,7 +607,7 @@ class SOAP_WSDL extends SOAP_Base
             $classname = $name . '_' . $classname;
         }
 
-        $classname = preg_replace('/[ .\(\)]+/', '_', $classname);
+        $classname = preg_replace('/[ .\-\(\)]+/', '_', $classname);
 
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port, $classname);
