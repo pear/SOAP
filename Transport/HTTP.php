@@ -47,20 +47,6 @@ class SOAP_Transport_HTTP extends SOAP_Base
     var $timeout = 4;
     
     /**
-    * Error number
-    * 
-    * @var  int
-    */
-    var $errno = 0;
-    
-    /**
-    * Error message
-    * 
-    * @var  string
-    */
-    var $errmsg = '';
-    
-    /**
     * Array containing urlparts - parse_url()
     * 
     * @var  mixed
@@ -115,7 +101,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function &send(&$msg, $action = '', $timeout = 0)
     {
         if (!$this->_validateUrl()) {
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->fault;
         }
         
         if ($timeout) 
@@ -156,12 +142,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->errno = 2;
-            $this->errmsg = "Unable to parse URL $url";
+            $this->raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['host'])) {
-            $this->errmsg = "No host in URL $url";
+            $this->raiseSoapFault("No host in URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['port'])) {
@@ -199,6 +184,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             // if no content, return false
             return strlen($this->response) > 0;
         }
+        $this->raiseSoapFault('Invalid HTTP Response');
         return FALSE;
     }
     
@@ -245,15 +231,14 @@ class SOAP_Transport_HTTP extends SOAP_Base
             $fp = fsockopen($this->urlparts['host'], $this->urlparts['port'], $this->errno, $this->errmsg);
         }
         if (!$fp) {
-            $this->errmsg = "Connect Error to {$this->urlparts['host']}:{$this->urlparts['port']}";
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->raiseSoapFault("Connect Error to {$this->urlparts['host']}:{$this->urlparts['port']}");
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
-            $this->errmsg = "Error POSTing Data to {$this->urlparts['host']}";
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->raiseSoapFault("Error POSTing Data to {$this->urlparts['host']}");
         }
         
         // get reponse
+        // XXX time consumer
         while ($data = fread($fp, 32768)) {
             $this->incoming_payload .= $data;
         }
@@ -261,8 +246,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         fclose($fp);
 
         if (!$this->_parseResponse()) {
-            $this->errmsg = 'Invalid HTTP Response';
-            return $this->raiseSoapFault($this->errmsg, $this->outgoing_payload."\n\n".$this->incoming_payload);
+            return $this->fault;
         }
         return $this->response;
     }
@@ -282,9 +266,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         *  Your php must be compiled with CURL
         */
         if (!extension_loaded('curl')) {
-            $this->errno = -1;
-            $this->errmsg = 'CURL Extension is required for HTTPS';
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->raiseSoapFault('CURL Extension is required for HTTPS');
         }
         
         $this->_getRequest($msg, $action);

@@ -45,26 +45,15 @@ class SOAP_Transport extends SOAP_Base
     var $transport = NULL;
     
     /**
-    * Error message
-    * 
-    * Used to communicate between SOAP_Transport() and send()
-    *
-    * @var  string
-    */
-    var $errmsg = '';
-
-    /**
     * SOAP::Transport constructor
     *
     * @param string $url   soap endpoint url
     *
     * @access public
     */
-    function SOAP_Transport($url, $debug = SOAP_DEBUG)
+    function SOAP_Transport($url)
     {
         parent::SOAP_Base('TRANSPORT');
-        /* only HTTP transport for now, later look at url for scheme */
-        $this->debug_flag = $debug;
 
         $urlparts = @parse_url($url);
 
@@ -77,8 +66,7 @@ class SOAP_Transport extends SOAP_Base
             $this->transport = new SOAP_Transport_SMTP($url);
             return;
         }
-        $this->errmsg = "No Transport for {$urlparts['scheme']}";
-        $this->raiseSoapFault($this->errmsg);
+        $this->raiseSoapFault("No Transport for {$urlparts['scheme']}");
     }
     
     /**
@@ -94,7 +82,7 @@ class SOAP_Transport extends SOAP_Base
     function &send(&$soap_data, $action = '', $timeout = 0)
     {
         if (!$this->transport) {
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->fault;
         }
         
         $response = $this->transport->send($soap_data, $action, $timeout);
@@ -102,8 +90,6 @@ class SOAP_Transport extends SOAP_Base
             return $this->raiseSoapFault($response);
         }
         
-        $this->debug("OUTGOING: ".$this->transport->outgoing_payload);
-        $this->debug("INCOMING: ".$this->transport->incoming_payload);
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
         #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
         return $response;

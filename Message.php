@@ -78,9 +78,8 @@ class SOAP_Message extends SOAP_Base
     */
     function SOAP_Message($new_namespaces = NULL, $wsdl = NULL)
     {
-        $this->debug_data = "entering SOAP_Message()\n";
         parent::SOAP_Base('Message');
-	$this->wsdl = $wsdl;
+        $this->wsdl = $wsdl;
         if (is_array($new_namespaces)) {
             global $SOAP_namespaces;
             $i = count($SOAP_namespaces);
@@ -99,8 +98,7 @@ class SOAP_Message extends SOAP_Base
     function method($method, $params, $method_namespace = NULL)
     {
         // make method struct
-        $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $wsdl);
-        $this->debug_data = 'SOAP_Message() with method SOAP_Value ' . $this->value->name . "\n";
+        $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $this->wsdl);
     }
     
     /**
@@ -117,12 +115,9 @@ class SOAP_Message extends SOAP_Base
         $ns_string = '';
 
         foreach ($SOAP_namespaces as $k => $v) {
-            $ns_string .= "xmlns:$v=\"$k\"\n ";
+            $ns_string .= " xmlns:$v=\"$k\"\r\n ";
         }
-        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\n" .
-		   $header .
-                   $body .
-                   "</SOAP-ENV:Envelope>\n";
+        return "<?xml version=\"1.0\"?>\r\n\r\n<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\r\n$header$body</SOAP-ENV:Envelope>\r\n";
     }
 
     /**
@@ -140,7 +135,7 @@ class SOAP_Message extends SOAP_Base
 	    $payload .= $header->serialize();
 	}
 	if (!$payload) return NULL;
-        return "<SOAP-ENV:Header>\n" . $payload . "</SOAP-ENV:Header>\n";
+        return "<SOAP-ENV:Header>\r\n$payload</SOAP-ENV:Header>\r\n";
     }
     
     /**
@@ -153,7 +148,7 @@ class SOAP_Message extends SOAP_Base
     */
     function _makeBody($payload)
     {
-        return "<SOAP-ENV:Body>\n" . $payload . "</SOAP-ENV:Body>\n";
+        return "<SOAP-ENV:Body>\r\n$payload</SOAP-ENV:Body>\r\n";
     }
     
     /**
@@ -165,13 +160,7 @@ class SOAP_Message extends SOAP_Base
     {
 	$body = $this->value?$this->_makeBody($this->value->serialize()):NULL;
 	$header = count($this->headers)?$this->_makeHeader():NULL;
-        $payload = $this->_makeEnvelope($header, $body);
-        $this->debug($value->debug_data);
-        $payload = "<?xml version=\"1.0\"?>\n\n" . $payload;
-        if ($this->debug_flag) {
-            $payload .= $this->serializeDebug();
-        }
-        $this->payload = str_replace("\n", "\r\n", $payload);
+        $this->payload = $this->_makeEnvelope($header, $body);
     }
     
     /**
@@ -199,31 +188,12 @@ class SOAP_Message extends SOAP_Base
     */
     function parseResponse($data)
     {
-        $this->debug('Entering parseResponse()');
-        $this->debug(" w/ data $data");
-        $this->debug('about to create parser instance w/ data');
-
         // parse response
         $response = new SOAP_Parser($data);
         // return array of parameters
         $ret = $response->getResponse();
-        $this->debug($response->debug_data);
         return $ret;
     }
     
-    /**
-    * preps debug data for encoding into SOAP::Message
-    *
-    * @return string
-    * @access private
-    */
-    function serializeDebug()
-    {
-        if ($this->debug_flag) {
-            return "<!-- DEBUG INFO:\n" . $this->debug_data . "-->\n";
-        }
-
-        return '';
-    }
 }
 ?>

@@ -520,8 +520,8 @@ class Interop_Client
                                   $skipfault
                                   );
                     #$endpoint_info['tests'][] = &$soap_test;
-                    $soap_test->showTestResult($this->debug);
-                    $this->_saveResults($endpoint_info['id'], $soap_test->method_name);
+                    #$soap_test->showTestResult($this->debug);
+                    #$this->_saveResults($endpoint_info['id'], $soap_test->method_name);
                     $soap_test->result = NULL;
                     continue;
                 }

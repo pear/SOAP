@@ -73,38 +73,26 @@ class SOAP_Parser extends SOAP_Base
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($this->xml)) {
-            $this->debug('Entering SOAP_Parser()');
-
-            //$this->debug("DATA DUMP:\n\n$xml");
-            // Create an XML parser.
+            // prepare the xml parser
             $parser = xml_parser_create($this->xml_encoding);
-            // Set the options for parsing the XML data.
-            //xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1); 
             xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-            // Set the object for the parser.
             xml_set_object($parser, &$this);
-
-            // Set the element handlers for the parser.
             xml_set_element_handler($parser, 'startElement','endElement');
             xml_set_character_data_handler($parser,'characterData');
-            xml_set_default_handler($parser, 'defaultHandler');
 
             // Parse the XML file.
             if (!xml_parse($parser,$this->xml,true)) {
-                // Display an error message.
                 $err = sprintf('XML error on line %d: %s',
                     xml_get_current_line_number($parser),
                     xml_error_string(xml_get_error_code($parser)));
-                $this->fault = true;
                 $this->raiseSoapFault($err,htmlspecialchars($this->xml));
             } else {
-                // get final value
+                // build the response
                 $this->soapresponse = $this->buildResponse($this->root_struct[0]);
-                $this->soapheaders = $this->buildResponse($this->header_struct[0]);
+                if (count($this->header_struct))
+                    $this->soapheaders = $this->buildResponse($this->header_struct[0]);
             }
             xml_parser_free($parser);
-        } else {
-            $this->debug('xml was empty, didn\'t parse!');
         }
     }
     
@@ -124,14 +112,10 @@ class SOAP_Parser extends SOAP_Base
         $response = NULL;
 
         if ($this->message[$pos]['children'] != '') {
-            $this->debug('children string = '.$this->message[$pos]['children']);
             $children = explode('|',$this->message[$pos]['children']);
-            $this->debug('it has '.count($children).' children');
 
             foreach ($children as $c => $child_pos) {
-                //$this->debug("child pos $child_pos: ".$this->message[$child_pos]['name']);
                 if ($this->message[$child_pos]['type'] != NULL) {
-                    $this->debug('entering buildResponse() for '.$this->message[$child_pos]['name'].", array pos $c, pos: $child_pos");
                     $response[] = $this->buildResponse($child_pos);
                 }
             }
@@ -171,18 +155,15 @@ class SOAP_Parser extends SOAP_Base
         }
         // add current node's value
         if ($response) {
-            #print "Parser creating: {$this->message[$pos]["name"]} type: {$this->message[$pos]["type"]}\n";
             $response = new SOAP_Value($this->message[$pos]["name"], $this->message[$pos]["type"] , $response, $this->message[$pos]["namespace"], $this->message[$pos]['type_namespace']);
         } else {
-            #print "Parser creating: {$this->message[$pos]["name"]} type: {$this->message[$pos]["type"]}\n";
-            $this->debug('inside buildresponse: creating SOAP_Value '.$this->message[$pos]['name'].' of type '.$this->message[$pos]['type'].' and value: '.$this->message[$pos]['cdata']);
             $response = new SOAP_Value($this->message[$pos]['name'], $this->message[$pos]['type'] , $this->message[$pos]['cdata'], $this->message[$pos]["namespace"],  $this->message[$pos]['type_namespace']);
         }
         // handle header attribute that we need
-        if ($this->message[$pos]['actor']) {
+        if (array_key_exists('actor',$this->message[$pos])) {
             $response->actor = $this->message[$pos]['actor'];
         }
-        if ($this->message[$pos]['mustUnderstand']) {
+        if (array_key_exists('mustUnderstand',$this->message[$pos])) {
             $response->mustunderstand = $this->message[$pos]['mustUnderstand'];
         }
         return $response;
@@ -322,7 +303,6 @@ class SOAP_Parser extends SOAP_Base
                     $ref_pos = $this->references[$ref];
                     $this->message[$pos]['cdata'] = &$this->message[$ref_pos]['cdata'];
                     $this->message[$pos]['type'] = &$this->message[$ref_pos]['type'];
-                    $this->message[$pos]['inval'] = &$this->message[$ref_pos]['inval'];
                 } else {
                     # reverse reference, store in 'need reference'
                     if (!is_array($this->need_references[$ref])) $this->need_references[$ref] = array();
@@ -365,16 +345,6 @@ class SOAP_Parser extends SOAP_Base
             }
         }
         
-        // set eval str start if it has a valid type and is inside the method
-        if ($pos >= $this->curent_root_struct) {
-            $this->message[$pos]['inval'] = 'true';
-        }
-        
-        // if in the process of making a soap_val, close the parentheses and move on...
-        if ($this->message[$pos]['inval'] == 'true') {
-            $this->message[$pos]['inval'] == 'false';
-        }
-
         // if tag we are currently closing is the method wrapper
         if ($pos == $this->curent_root_struct) {
             $this->status = 'body';
@@ -384,8 +354,6 @@ class SOAP_Parser extends SOAP_Base
 
         // set parent back to my parent
         $this->parent = $this->message[$pos]['parent'];
-        $this->debug("parsed $name end, type '".$this->message[$pos]['type']."' children = ".$this->message[$pos]['children']);
-        #print ("parsed $name end, type '".$this->message[$pos]['type']."' children = ".$this->message[$pos]['children']."\n");
         
         # handle any reverse references now
         $idref = $this->message[$pos]['id'];
@@ -396,7 +364,6 @@ class SOAP_Parser extends SOAP_Base
                 $this->message[$ref_pos]['children'] = &$this->message[$pos]['children'];
                 $this->message[$ref_pos]['cdata'] = &$this->message[$pos]['cdata'];
                 $this->message[$ref_pos]['type'] = &$this->message[$pos]['type'];
-                $this->message[$ref_pos]['inval'] = &$this->message[$pos]['inval'];
                 $this->message[$ref_pos]['arraySize'] = &$this->message[$pos]['arraySize'];
                 $this->message[$ref_pos]['arrayType'] = &$this->message[$pos]['arrayType'];
             }
@@ -412,30 +379,13 @@ class SOAP_Parser extends SOAP_Base
         $this->message[$pos]['cdata'] .= $data;
     }
     
-    // default handler
-    function defaultHandler($parser, $data)
-    {
-        //$this->debug("DEFAULT HANDLER: $data");
-    }
-    
-    // function to check fault status
-    function fault()
-    {
-        if ($this->fault) {
-            return true;
-        }
-        return false;
-    }
-    
     // have this return a soap_val object
     function getResponse()
     {
         if ($this->soapresponse) {
             return $this->soapresponse;
         }
-        $this->debug('ERROR: did not successfully eval the msg');
-        $this->fault = true;
-        return new SOAP_Value('Fault','Struct', array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'), new SOAP_Value('faultstring','string',"couldn't build response")));
+        return $this->raiseSoapFault("couldn't build response");
     }
 
     // have this return a soap_val object
@@ -458,22 +408,4 @@ class SOAP_Parser extends SOAP_Base
     }
 }
 
-/*
-$testtext = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<SOAP-ENV:Body>
-<ns1:echoStringResponse xmlns:ns1="http://soapinterop.org/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<return xsi:type="xsd:string">blah</return>
-</ns1:echoStringResponse>
-
-</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
-';
-
-$soapmsg = new SOAP_Parser($testtext);
-$return = $soapmsg->getResponse();
-print_r($return);
-$returnArray = $return->decode();
-print_r($returnArray);
-*/
 ?>

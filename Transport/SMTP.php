@@ -43,8 +43,6 @@ class SOAP_Transport_SMTP extends SOAP_Base
 {
     var $credentials = '';
     var $timeout = 4; // connect timeout
-    var $errno = 0;
-    var $errmsg = '';
     var $urlparts = NULL;
     var $url = '';
     var $incoming_payload = '';
@@ -77,7 +75,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
     function send(&$msg, $action = '', $timeout = 0)
     {
         if (!$this->_validateUrl()) {
-            return $this->raiseSoapFault($this->errmsg);
+            return $this->fault;
         }
 
         $headers = "From: $action\n".
@@ -93,7 +91,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
         if ($result) {
             $val = new SOAP_Value('return','boolean',TRUE);
         } else {
-            $val = new SOAP_Value('Fault','struct',array(
+            $val = new SOAP_Value('Fault','Struct',array(
                 new SOAP_Value('faultcode','string','SOAP-ENV:Transport:SMTP'),
                 new SOAP_Value('faultstring','string',"couldn't send message to $action")
                 ));
@@ -132,15 +130,16 @@ class SOAP_Transport_SMTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->errno = 2;
-            $this->errmsg = "Unable to parse URL $url";
+            $this->raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['scheme']) ||
             strcasecmp($this->urlparts['scheme'], 'mailto') != 0) {
+                $this->raiseSoapFault("Unable to parse URL $url");
                 return FALSE;
         }
         if (!isset($this->urlparts['path'])) {
+            $this->raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         return TRUE;

@@ -29,11 +29,11 @@ $iop = new Interop_Client();
 // set some options
 $iop->currentTest = 'base';      // see $tests above
 $iop->paramType = 'soapval';     // 'php' or 'soapval'
-$iop->useWSDL = 1;           // 1= do wsdl tests
+$iop->useWSDL = 0;           // 1= do wsdl tests
 $iop->numServers = 0;        // 0 = all
 $iop->specificEndpoint = ''; // test only this endpoint
 $iop->testMethod = '';       // test only this method
-$iop->skipEndpointList = array(); // endpoints to skip
+$iop->skipEndpointList = array('WASP for C++','MS SOAP ToolKit 2.0 Typed'); // endpoints to skip
 $this->nosave = 0; // 1= disable saving results to database
 // debug output
 $iop->show = 1;

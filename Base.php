@@ -112,8 +112,6 @@ class SOAP_Base extends PEAR
                              'SOAP_Fault',
                              $skipmsg);
         }
-        $this->debug($this->fault->toString());
-        
         return $this->fault;
     }
     
@@ -138,10 +136,14 @@ class QName
     #var $arrayInfo = '';
     
     function QName($name) {
-        $s = split(':',$name);
-        $s = array_reverse($s);
-        $this->name = $s[0];
-        $this->ns = $s[1];
+        if (strpos($name, ':') != FALSE) {
+            $s = split(':',$name);
+            $s = array_reverse($s);
+            $this->name = $s[0];
+            $this->ns = $s[1];
+        } else {
+            $this->name = $name;
+        }
         
         # a little more magic than should be in a qname
         #$p = strpos($this->name, '[');

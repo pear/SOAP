@@ -122,16 +122,12 @@ class SOAP_Value extends SOAP_Base
         global $SOAP_typemap, $SOAP_namespaces;
         parent::SOAP_Base('Value');
         // detect type if not passed
-        
-        #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
 
         $this->name = $name;
         $this->wsdl = $wsdl;
         $this->type_namespace = $type_namespace;
         $this->type = $this->_getSoapType($value, $type, $name, $type_namespace);
 
-        #$this->debug("Entering SOAP_Value - name: '$name' type: '$type' value: $value");
-        
         if ($methodNamespace) {
             $this->namespace = $methodNamespace;
 
@@ -167,7 +163,7 @@ class SOAP_Value extends SOAP_Base
             }
         }
         
-        if (in_array($this->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
+        if (array_key_exists($this->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
             // scalar
 
             $this->type_code = SOAP_VALUE_SCALAR;
@@ -208,8 +204,6 @@ class SOAP_Value extends SOAP_Base
     */
     function addScalar($value, $type, $name = '')
     {
-        $this->debug("adding scalar '$name' of type '$type'");
-        
         $this->value = $value;
         return true;
     }
@@ -221,24 +215,18 @@ class SOAP_Value extends SOAP_Base
     */
     function addArray($vals)
     {
-        
-        $this->debug("adding array '$this->name' with ".count($vals).' vals');
         $this->value = array();
         
         if (is_array($vals) && count($vals) >= 1) {
             foreach ($vals as $k => $v) {
-                $this->debug("checking value $k : $v");
-
                 // if SOAP_Value, add..
                 if (strcasecmp(get_class($v), 'SOAP_Value' ) == 0) {
                     $this->value[] = $v;
-                    $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     #$type = $this->arrayType;
                     $type = $this->_getSoapType($v, $type, $k);
                     $new_val =  new SOAP_Value('item', $this->arrayType, $v);
-                    $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
             }
@@ -253,19 +241,16 @@ class SOAP_Value extends SOAP_Base
     */
     function addStruct($vals)
     {
-        $this->debug("adding struct '$this->name' with " . count($vals) . ' vals');
         if (is_array($vals) && count($vals) >= 1) {
             foreach ($vals as $k => $v) {
                 // if serialize, if SOAP_Value
                 if (strcasecmp(get_class($v), 'SOAP_Value') == 0) {
                     $this->value[] = $v;
-                    $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     $type = NULL;
                     $type = $this->_getSoapType($v, $type, $k);
                     $new_val = new SOAP_Value($k, $type, $v);
-                    $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
             }
@@ -335,8 +320,6 @@ class SOAP_Value extends SOAP_Base
         if (!$soapval) {
             $soapval = $this;
         }
-
-        $this->debug("serializing '$soapval->name' of type '$soapval->type'");
 
         if (is_int($soapval->name)) {
             $soapval->name = 'item';
@@ -424,9 +407,9 @@ class SOAP_Value extends SOAP_Base
         }
         
         if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
-        $xml = "\n<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
+        $xml = "<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
             $this->xmlout_extra.">".
-            $xmlout_value."</$xmlout_name>\n";
+            $xmlout_value."</$xmlout_name>\r\n";
         
         return $xml;
     }
@@ -454,11 +437,9 @@ class SOAP_Value extends SOAP_Base
             $soapval = $this;
         }
         
-        $this->debug("inside SOAP_Value->decode for $soapval->name of type $soapval->type and value: $soapval->value");
         // scalar decode
         if ($soapval->type_code == SOAP_VALUE_SCALAR) {
             if ($soapval->type == 'boolean') {
-                #echo strcasecmp($soapval->value,'false');
                 if ($soapval->value != '0' && strcasecmp($soapval->value,'false') !=0) {
                     $soapval->value = TRUE;
                 } else {
@@ -470,11 +451,10 @@ class SOAP_Value extends SOAP_Base
             #    # THOUGHT: we could return a class instead.
             #    $dt = new SOAP_Type_dateTime($soapval->value);
             #    $soapval->value = $dt->toUnixtime();
-            } else if (in_array($soapval->type, array_keys($SOAP_typemap[SOAP_XML_SCHEMA_VERSION]), TRUE)) {
+            } else if (array_key_exists($soapval->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
                 # if we can, lets set php's variable type
                 settype($soapval->value, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
-            #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]}\n";
             return $soapval->value;
         // array decode
         } elseif ($soapval->type_code == SOAP_VALUE_ARRAY) {
@@ -514,25 +494,12 @@ class SOAP_Value extends SOAP_Base
     */
     function verifyType($type)
     {
-        global $SOAP_typemap, $SOAP_namespaces;
-        /*foreach ($SOAP_typemap as $namespace => $types) {
-            if (is_array($types) && in_array($type,$types)) {
-                return $namespace;
-            }
-        }*/
-        #if ($this->wsdl && array_key_exists($type, $this->wsdl->complexTypes)) {
-        #    # XXX should return the import uri if the complex type was imported
-        #    return $this->wsdl->uri;
-        #}
-        foreach ($SOAP_namespaces as $uri => $prefix) {
-            if (is_array($SOAP_typemap[$uri]) && isset($SOAP_typemap[$uri][$type])) {
-                #print "returning: $uri for type $type\n";
-                return $uri;
-            }
-            #print "$type not in: $uri\n";
+        global $SOAP_typemap;
+        foreach ($SOAP_typemap as $uri => $types) {
+            if (array_key_exists($type,$types)) return $uri;
         }
-        #print "$type not found\n";
-        return false;
+        return FALSE;
+        #return array_key_exists($type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION]);
     }
     
     /** 
@@ -568,7 +535,6 @@ class SOAP_Value extends SOAP_Base
             if (!$type && $name) {
                 # XXX TODO:
                 # look up the name in the wsdl and validate the type
-                $this->debug("SOAP_VALUE no type for $name!");
                 if ($this->type) {
                     foreach ($this->wsdl->complexTypes as $types) {
                         if (array_key_exists($this->type, $types) &&

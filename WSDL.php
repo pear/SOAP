@@ -296,7 +296,7 @@ class SOAP_WSDL_Cache extends SOAP_Base
             }
         }
         if (!$md5_wsdl) {
-            $fd = @file($wsdl_fname);
+            $fd = @file($wsdl_fname); // time consumer
             if (!$fd) {
                 return $this->raiseSoapFault("Unable to retrieve WSDL", $wsdl_fname);
             }
@@ -335,22 +335,21 @@ class SOAP_WSDL_Parser extends SOAP_Base
     var $schema = '';
     var $schemaStatus = '';
     var $status = '';
-    
+    var $schema_stack = array();
     var $cache;
     
     // constructor
-    function SOAP_WSDL_Parser($uri, &$wsdl) {
+    function SOAP_WSDL_Parser($uri, &$wsdl, $docs=false) {
         parent::SOAP_Base('WSDLPARSER');
         $this->cache = new SOAP_WSDL_Cache();
         $this->uri = $uri;
         $this->wsdl = &$wsdl;
+        $this->docs = $docs;
         $this->parse($uri);
     }
     
     function parse($uri) {
         // Check whether content has been read.
-        // XXX implement caching
-        #$fd = @file($uri);
         $fd = $this->cache->get($uri);
         if (PEAR::isError($fd)) {
             return $this->raiseSoapFault($fd);
@@ -358,17 +357,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
 
         // Create an XML parser.
         $parser = xml_parser_create();
-        // Set the options for parsing the XML data.
-        //xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1); 
         xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-        // Set the object for the parser.
         xml_set_object($parser, $this);
-        // Set the element handlers for the parser.
         xml_set_element_handler($parser, 'startElement', 'endElement');
-        xml_set_character_data_handler($parser, 'characterData');
-        //xml_set_default_handler($this->parser, 'defaultHandler');
+        if ($this->docs) xml_set_character_data_handler($parser, 'characterData');
     
-        // Parse the XML file.
         if (!xml_parse($parser,$fd, true)) {
             $detail = sprintf('XML error on line %d: %s',
                                     xml_get_current_line_number($parser),
@@ -417,7 +410,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     !array_key_exists($attrs['name'], $this->wsdl->complexTypes[$this->schema])) {
                         
                     $this->currentElement = $attrs['name'];
-                    if ($attrs['base']) {
+                    if (array_key_exists('base',$attrs)) {
                         $qn = new QName($attrs['base']);
                         $this->wsdl->complexTypes[$this->schema][$this->currentElement]['base'] = $qn->name;
                         $this->wsdl->complexTypes[$this->schema][$this->currentElement]['baseNS'] = $qn->ns;
@@ -431,7 +424,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 if (array_key_exists('type',$attrs)) {
                     $qname = new QName($attrs['type']);
                     $attrs['type'] = $qname->name;
-                    $attrs['namespace'] = $this->wsdl->namespaces[$qname->ns];
+                    if ($qname->ns && array_key_exists($qname->ns, $this->wsdl->namespaces)) {
+                        $attrs['namespace'] = $this->wsdl->namespaces[$qname->ns];
+                    }
                 }
                 if ($parent_tag == 'schema') {
                     # XXX this check if funky, but there are wsdl's with redefinitions, need to find out why.
@@ -505,9 +500,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
             default:
                 $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]= $attrs;
-                $qn = new QName($attrs['message']);
-                $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qn->name;
-                $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qn->ns;
+                if (array_key_exists('message',$attrs)) {
+                    $qn = new QName($attrs['message']);
+                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qn->name;
+                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qn->ns;
+                }
             break;
             }
         break;
@@ -561,17 +558,16 @@ class SOAP_WSDL_Parser extends SOAP_Base
         case 'import':
             //XXX
             $import = '';
-            if ($attrs['location']) {
+            if (array_key_exists('location',$attrs)) {
                 $result = $this->parse($attrs['location'], $this->wsdl);
                 if (PEAR::isError($result)) {
                     return $result;
                 }
+                $this->wsdl->imports[$attrs['namespace']] = array(
+                            'location' => $attrs['location'],
+                            'namespace' => $attrs['namespace']);
+                $this->currentImport = $attrs['namespace'];
             }
-            
-            $this->wsdl->imports[$attrs['namespace']] = array(
-                        'location' => $attrs['location'],
-                        'namespace' => $attrs['namespace']);
-            $this->currentImport = $attrs['namespace'];
             $this->status = 'import';
         case 'types':
             $this->status = 'types';
