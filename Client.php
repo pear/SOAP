@@ -178,8 +178,7 @@ class SOAP_Client extends SOAP_Base
             if (PEAR::isError($this->endpoint)) {
                 return $this->raiseSoapFault($this->endpoint);
             }
-            $this->debug("endpoint: $this->endpoint");
-            $this->debug("portName: $this->portName");
+
             // get operation data
             $opData = $this->wsdl->getOperationData($this->portName, $method);
             if (PEAR::isError($opData)) {
@@ -220,10 +219,6 @@ class SOAP_Client extends SOAP_Base
             $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
         
-        
-        $this->debug("soapAction: $soapAction");
-        $this->debug("namespace: $namespace");
-        
         $this->soapmsg->method($method, $params, $namespace);
         if ($this->soapmsg->fault) {
             return $this->raiseSoapFault($this->soapmsg->fault);
@@ -231,11 +226,10 @@ class SOAP_Client extends SOAP_Base
 
         // serialize the message
         $soap_data = $this->soapmsg->serialize($this->encoding);
-        $this->debug("soap_data " . $soap_data);
+
         if (PEAR::isError($soap_data)) {
             return $this->raiseSoapFault($soap_data);
         }
-        $this->debug('<xmp>' . $soap_data . '</xmp>');
         
         // instantiate client
         $dbg = "calling server at '$this->endpoint'...";
@@ -246,12 +240,6 @@ class SOAP_Client extends SOAP_Base
             return $this->raiseSoapFault($soap_transport->fault);
         }
         
-        $this->debug($dbg . 'instantiated client successfully');
-        $this->debug("endpoint: $this->endpoint<br>\n");
-
-        // send
-        $dbg = "sending msg w/ soapaction '$soapAction'...";
-       
         // send the message
         $this->response = $soap_transport->send($soap_data, $soapAction);
 
@@ -262,14 +250,12 @@ class SOAP_Client extends SOAP_Base
             preg_replace("/>/",">\n",$soap_transport->transport->incoming_payload);
         // store the incoming xml for easy retreival by clients that want their own parsing
         $this->xml = $soap_transport->transport->incoming_payload;
-        $this->debug($this->wire);
         
         if ($soap_transport->fault) {
             return $this->raiseSoapFault($this->response);
         }
 
         // parse the response
-        #$return = $this->soapmsg->parseResponse($this->response);
         $this->response = new SOAP_Parser($this->response, $soap_transport->result_encoding);
         if ($this->response->fault) {
             return $this->raiseSoapFault($this->response->fault);
@@ -283,9 +269,6 @@ class SOAP_Client extends SOAP_Base
         
         $this->soapmsg = NULL;        
         
-        $this->debug($soap_transport->debug_data);
-        $this->debug($dbg . 'sent message successfully and got a(n) ' . gettype($return) . ' back');
-
         // check for valid response
         if (PEAR::isError($return)) {
             return $this->raiseSoapFault($return);

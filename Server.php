@@ -59,22 +59,6 @@ class SOAP_Server {
     var $soapobject = NULL;
     
     /**
-    * Store debugging messages in $debug_str?
-    * 
-    * @var  boolean
-    * @see  $debug_str, SOAP_Server()
-    */
-    var $debug_flag = SOAP_DEBUG;
-    
-    /**
-    * Debugging messages
-    *
-    * @var  string
-    * @see  $debug_flag, SOAP_Server()
-    */
-    var $debug_data = '';
-    
-    /**
     *
     * @var  string
     */
@@ -104,9 +88,7 @@ class SOAP_Server {
     
     var $service = ''; //soapaction header
     
-    function SOAP_Server($debug = SOAP_DEBUG) {
-        // turn on debugging?
-        $this->debug_flag = $debug;
+    function SOAP_Server() {
         ini_set('track_errors',1);
     }
     
@@ -135,13 +117,6 @@ class SOAP_Server {
             $response = $this->parseRequest($data);
         }
         
-        $this->debug("parsed request and got an object of this class '" . get_class($response) . "'");
-        $this->debug('server sending...');
-
-        // pass along the debug string
-        if ($this->debug_flag) {
-            $response->debug($this->debug_data);
-        }
         $payload = $response->serialize($this->response_encoding);
         // print headers
         if ($this->soapfault) {
@@ -166,7 +141,6 @@ class SOAP_Server {
         set_error_handler("SOAP_ServerErrorHandler");
         if ($args) {
             // call method with parameters
-            $this->debug("calling '$methodname' with params");
             if (is_object($this->soapobject)) {
                 $ret = @call_user_func_array(array(&$this->soapobject, $methodname),$args);
             } else {
@@ -174,7 +148,6 @@ class SOAP_Server {
             }
         } else {
             // call method w/ no parameters
-            $this->debug("calling $methodname w/ no params");
             if (is_object($this->soapobject)) {
                 $ret = @call_user_func(array(&$this->soapobject, $methodname));
             } else {
@@ -195,7 +168,6 @@ class SOAP_Server {
         if ($class == 'soap_value' || $class == 'soap_header') {
             $return_val = array($method_response);
         } else {
-            $this->debug("creating new SOAP_Value to return, of type $return_type");
             if (is_array($return_type) && is_array($method_response)) {
                 $i = 0;
 
@@ -213,9 +185,6 @@ class SOAP_Server {
                 $return_val = array(new SOAP_Value($return_name,$return_type,$method_response, $namespace));
             }
         }
-        if ($this->debug_flag) {
-            $this->debug($return_val->debug_data);
-        }
         return $return_val;
     }
     
@@ -223,9 +192,6 @@ class SOAP_Server {
     {
         global $_ENV, $_SERVER, $SOAP_Encodings;
         
-        $this->debug('entering parseRequest() on ' . date('H:i Y-m-d'));
-        $this->debug('request uri: ' . $_SERVER['PATH_INFO']);
-
         // get headers
         // get SOAPAction header
         if ($headers_array['SOAPAction']) {
@@ -247,25 +213,16 @@ class SOAP_Server {
                 return $this->getFaultMessage();                
             }
         }
-        $this->debug("got encoding: $this->xml_encoding");
 
         $this->request = $dump."\r\n\r\n".$data;
         // parse response, get soap parser obj
         $parser = new SOAP_Parser($data,$this->xml_encoding);
         // if fault occurred during message parsing
         if ($parser->fault) {
-            // parser debug
-            $this->debug($parser->debug_data);
-            $this->result = 'fault: error in msg parsing';
             $fault = $parser->fault->message();
             #$this->makeFault('Server',"error in msg parsing:\n".$fault->serialize."\n\n<pre>$data</pre>\n\n");
-
-            // return soapresp
             return $parser->fault->message();
-        // else successfully parsed request into SOAP_Value object
         }
-        // parser debug
-        $this->debug($parser->debug_data);
 
         /* set namespaces
         if ($parser->namespaces['xsd'] != '') {
@@ -286,11 +243,6 @@ class SOAP_Server {
 
         if ($request_headers) {
             if (get_class($request_headers) != 'soap_value') {
-                // debug
-                $this->debug("ERROR: parser did not return SOAP_Value object: $request_headers ".get_class($request_headers));
-                $this->result = "fault: parser did not return SOAP_Value object: $request_headers";
-
-                // return fault
                 $this->makeFault('Server',"parser did not return SOAP_Value object: $request_headers");
                 return $this->getFaultMessage();
             }
@@ -317,7 +269,7 @@ class SOAP_Server {
                     // if there are parameters to pass
                     $hr = $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
-                    if (strcasecmp(get_class($hr),'SOAP_Message')==0 &&
+                    if (get_class($hr) == 'soap_message' &&
                         stristr($hr->value->name,'fault')) {
                             return $hr;
                     }
@@ -331,66 +283,41 @@ class SOAP_Server {
         // handle the method call
         
         // evaluate message, getting back a SOAP_Value object
-        $this->debug('calling parser->getResponse()');
         $this->methodname = $parser->root_struct_name[0];
-        $this->debug("method name: $this->methodname");
 
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname)) {
-            // "method not found" fault here
-            $this->debug("method '$this->methodname' not found!");
-            $this->result = 'fault: method not found';
             $this->makeFault('Server',"method '$this->methodname' not defined in service '$this->service'");
             return $this->getFaultMessage();
         }
-        $this->debug("method '$this->methodname' exists");
-
 
         if (!$request_val = $parser->getResponse()) {
             return $this->getFaultMessage();
         }
-        if (strcasecmp(get_class($request_val),'SOAP_Value') != 0) {
-            // debug
-            $this->debug("ERROR: parser did not return SOAP_Value object: $request_val ".get_class($request_val));
-            $this->result = "fault: parser did not return SOAP_Value object: $request_val";
-
-            // return fault
+        if (get_class($request_val) != 'soap_value') {
             $this->makeFault('Server',"parser did not return SOAP_Value object: $request_val");
             return $this->getFaultMessage();
         }
         
         // verify that SOAP_Value objects in request match the methods signature
         if (!$this->verifyMethod($request_val)) {
-            // debug
-            $this->debug('ERROR: request not verified against method signature');
-            $this->result = 'fault: request failed validation against method signature';
-
-            // return soapresp
+            $this->makeFault('Server','request failed validation against method signature');
             return $this->getFaultMessage();
         }
         
-        $this->debug("request data - name: $request_val->name, type: $request_val->type, value: $request_val->value");
         // need to set special error detection inside the value class
         // so as to differentiate between no params passed, and an error decoding
         $request_data = $request_val->decode();
-        $this->debug($request_val->debug_data);
-        $this->debug("request data: $request_data");
-        $this->debug("about to call method '$this->methodname'");
 
         $method_response = $this->callMethod($this->methodname, $request_data);
 
-        $this->debug("done calling method: $this->methodname");
-
         // if return val is SOAP_Message
-        if (strcasecmp(get_class($method_response),'SOAP_Message')==0) {
+        if (get_class($method_response) == 'soap_message') {
             return $method_response;
         }
         
         // get the method result
         $return_val = $this->buildResult($method_response, $this->return_type, $this->methodname);
-        
-
-        $this->debug("creating return soap_msg object: ".$this->methodname.'Response');
         
         // response object is a soap_msg object
         $return_msg =  new SOAP_Message();
@@ -408,8 +335,6 @@ class SOAP_Server {
             $return_msg->debug_flag = true;
         }
 
-        $this->result = 'successful';
-
         return $return_msg;
     }
     
@@ -418,7 +343,6 @@ class SOAP_Server {
         global $SOAP_typemap;
 
         //return true;
-        $this->debug('entered verifyMethod() w/ request name: '.$request->name);
         $params = $request->value;
 
         // if there are input parameters required...
@@ -426,17 +350,8 @@ class SOAP_Server {
             $this->input_value = count($sig);
             $this->return_type = $this->getReturnType($this->methodname);
             if (is_array($params)) {
-                if ($this->debug_flag) {
-                    $this->debug('entered verifyMethod() with '.count($params).' parameters');
-
-                    foreach ($params as $v) {
-                        $this->debug("param '$v->name' of type '$v->type'");
-                    }
-                }
                 // validate the number of parameters
                 if (count($params) == count($sig)) {
-                    $this->debug('got correct number of parameters: '.count($sig));
-
                     // make array of param types
                     foreach ($params as $param) {
                         $p[] = strtolower($param->type);
@@ -453,27 +368,19 @@ class SOAP_Server {
                             strcasecmp($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])==0)) {
 
                             $param = $params[$i];
-
-                            $this->debug("mismatched parameter types: [{$sig_t[$i]}] != [{$p[$i]}]");
                             $this->makeFault('Client',"soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])));
-
                             return false;
                         }
-                        $this->debug("parameter type match: $sig_t[$i] = $p[$i]");
                     }
                     return true;
                 // oops, wrong number of paramss
                 } else {
-                    $this->debug('oops, wrong number of parameters!');
                     $this->makeFault('Client',"soap request contained incorrect number of parameters. method '$this->methodname' required ".count($sig).' and request provided '.count($params));
-
                     return false;
                 }
             // oops, no params...
             } else {
-                $this->debug("oops, no parameters sent! Method '$this->methodname' requires ".count($sig).' input parameters!');
                 $this->makeFault('Client',"soap request contained incorrect number of parameters. method '$this->methodname' requires ".count($sig).' parameters, and request provided none');
-
                 return false;
             }
         // no params
@@ -490,22 +397,12 @@ class SOAP_Server {
     {
         if (is_array($this->dispatch_map[$methodname]['out'])) {
             if (count($this->dispatch_map[$methodname]['out']) > 1) {
-                $this->debug("got multiple return types from dispatch map: '$type'");
                 return $this->dispatch_map[$methodname]['out'];
             }
             $type = array_shift($this->dispatch_map[$methodname]['out']);
-            $this->debug("got return type from dispatch map: '$type'");
             return $type;
         }
         return false;
-    }
-    
-    // dbg
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_data .= "SOAP_Server: $string\n";
-        }
     }
     
     function validateMethod($methodname)
@@ -545,6 +442,9 @@ class SOAP_Server {
     // set up a fault
     function getFaultMessage()
     {
+        if (!$this->soapfault) {
+            $this->makeFault('Server','fault message requested, but no fault has occured!');
+        }
         return $this->soapfault->message();
     }
     
