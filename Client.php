@@ -175,7 +175,7 @@ class SOAP_Client extends SOAP_Base
             $this->raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
     }
-    
+
     /**
     * SOAP_Client::call
     *
@@ -207,15 +207,18 @@ class SOAP_Client extends SOAP_Base
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $this->fault = null;
-        $options = array();
-        
+        $options = array('input'=>'parse','result'=>'parse');
+        if (gettype($params) != 'array') {
+            $params = array($params);
+        }
         if (gettype($namespace) == 'array') {
-            $options = $namespace;
+            $options = array_merge($options,$namespace);
             if (isset($options['namespace'])) $namespace = $options['namespace'];
             else $namespace = false;
         } else {
             // we'll place soapaction into our array for usage in the transport
             $options['soapaction'] = $soapAction;
+            $options['namespace'] = $namespace;
         }
         
         if ($this->endpointType == 'wsdl') {
@@ -237,23 +240,36 @@ class SOAP_Client extends SOAP_Base
 
             // get operation data
             $opData = $this->wsdl->getOperationData($this->portName, $method);
+            
             if (PEAR::isError($opData)) {
                 return $this->raiseSoapFault($opData);
             }
+            $options['style'] = $opData['style'];
+            $options['use'] = $opData['input']['use'];
             $options['soapaction'] = $opData['soapAction'];
 
             // set input params
+            if ($options['input'] == 'parse') {
             $nparams = array();
-            if (count($opData['input']['parts']) > 0) {
+            if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
                 $i = 0;
                 reset($params);
                 foreach ($opData['input']['parts'] as $name => $part) {
+                    $xmlns = '';
+                    $attrs = array();
+                    // is the name actually a complex type?
+                    if (isset($part['element'])) {
+                        $xmlns = $this->wsdl->namespaces[$part['namespace']];
+                        $part = $this->wsdl->elements[$part['namespace']][$part['type']];
+                        $name = $part['name'];
+                    }
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
                     } else {
                         // XXX assuming it's an array, not a hash
                         // XXX this is pretty pethetic, but "fixes" a problem where
                         // paremeter names do not match correctly
+                        
                         $nparams[$name] = current($params);
                         next($params);
                     }
@@ -269,11 +285,16 @@ class SOAP_Client extends SOAP_Base
                             $type_namespace = NULL;
                         $qname->namespace = $type_namespace;
                         $type = $qname->name;
-                        $nparams[$name] = new SOAP_Value($name, $qname->fqn(), $nparams[$name]);
+                        $pqname = $name;
+                        if ($xmlns) $pqname = '{'.$xmlns.'}'.$name;
+                        $nparams[$name] = new SOAP_Value($pqname, $qname->fqn(), $nparams[$name],$attrs);
+                    } else {
+                        // wsdl fixups to the soap value
                     }
                 }
             }
             $params = $nparams;
+            }
         } else {
             $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
@@ -284,10 +305,24 @@ class SOAP_Client extends SOAP_Base
         
         if (!isset($options['style']) || $options['style'] == 'rpc') {
             $options['style'] = 'rpc';
+            $this->docparams = true;
             $mqname = new QName($method, $namespace);
             $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
             $soap_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding,$options);
         } else {
+            if ($options['input'] == 'parse') {
+                if (is_array($params)) {
+                    $nparams = array();
+                    foreach ($params as $n => $v) {
+                        if (gettype($v) != 'object') {
+                            $nparams[] = new SOAP_Value($n, false, $v);
+                        } else {
+                            $nparams[] = $v;
+                        }
+                    }
+                    $params = $nparams;
+                }
+            }
             $soap_msg = $this->_makeEnvelope($params, $this->headers, $this->encoding,$options);
         }
 
@@ -337,20 +372,20 @@ class SOAP_Client extends SOAP_Base
         }
         
         // send the message
-        $response = $soap_transport->send($soap_data, $options);
+        $this->xml = $soap_transport->send($soap_data, $options);
 
         // save the wire information for debugging
         $this->wire = "OUTGOING:\n\n".
             $soap_transport->transport->outgoing_payload.
             "\n\nINCOMING\n\n".
             preg_replace("/></",">\r\n<",$soap_transport->transport->incoming_payload);
-        // store the incoming xml for easy retreival by clients that want their own parsing
-        $this->xml = $soap_transport->transport->incoming_payload;
+        
+        if (isset($options['result']) && $options['result'] != 'parse') return $this->xml;
         
         if ($soap_transport->fault) {
-            return $this->raiseSoapFault($response);
+            return $this->raiseSoapFault($this->xml);
         }
-        return $this->parseResponse($response, $soap_transport->result_encoding,$soap_transport->transport->attachments);
+        return $this->parseResponse($this->xml, $soap_transport->result_encoding,$soap_transport->transport->attachments);
     }
     
     function parseResponse($response, $encoding, $attachments)
@@ -384,6 +419,7 @@ class SOAP_Client extends SOAP_Base
         }
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
+                $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($returnArray as $k => $v) {
                     if (stristr($k,'faultcode')) $faultcode = $v;
                     if (stristr($k,'faultstring')) $faultstring = $v;

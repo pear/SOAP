@@ -181,15 +181,21 @@ class SOAP_Parser extends SOAP_Base
                 }
             }
         }
+        // build attributes
+        $attrs = array();
+        foreach ($this->message[$pos]['attrs'] as $atn => $atv) {
+            if (!strstr($atn, 'xmlns') &&
+                !strpos($atn, ':')) $attrs[$atn]=$atv;
+        }
         // add current node's value
         if ($response) {
-            $nqn = new Qname($this->message[$pos]["name"],$this->message[$pos]["namespace"]);
-            $tqn = new Qname($this->message[$pos]["type"],$this->message[$pos]["type_namespace"]);
-            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $response);
+            $nqn = new Qname($this->message[$pos]['name'],$this->message[$pos]['namespace']);
+            $tqn = new Qname($this->message[$pos]['type'],$this->message[$pos]['type_namespace']);
+            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $response, $attrs);
         } else {
-            $nqn = new Qname($this->message[$pos]["name"],$this->message[$pos]["namespace"]);
-            $tqn = new Qname($this->message[$pos]["type"],$this->message[$pos]["type_namespace"]);
-            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $this->message[$pos]['cdata']);
+            $nqn = new Qname($this->message[$pos]['name'],$this->message[$pos]['namespace']);
+            $tqn = new Qname($this->message[$pos]['type'],$this->message[$pos]['type_namespace']);
+            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $this->message[$pos]['cdata'], $attrs);
         }
         // handle header attribute that we need
         if (array_key_exists('actor',$this->message[$pos])) {

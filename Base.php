@@ -68,7 +68,7 @@ define('NAN',   0.0);
 define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.1');
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
-define('SOAP_XML_SCHEMA_INSTANCE',   'http://www.w3.org/2001/XMLSchema-instance');
+define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');
 define('SOAP_XML_SCHEMA_1999',      'http://www.w3.org/1999/XMLSchema');
 define('SOAP_SCHEMA',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SOAP_SCHEMA_ENCODING',      'http://schemas.xmlsoap.org/soap/encoding/');
@@ -78,6 +78,9 @@ define('SCHEMA_SOAP',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SCHEMA_HTTP',               'http://schemas.xmlsoap.org/wsdl/http/');
 define('SCHEMA_MIME',               'http://schemas.xmlsoap.org/wsdl/mime/');
 define('SCHEMA_WSDL',               'http://schemas.xmlsoap.org/wsdl/');
+define('SCHEMA_DIME',               'http://schemas.xmlsoap.org/ws/2002/04/dime/wsdl/');
+define('SCHEMA_CONTENT',            'http://schemas.xmlsoap.org/ws/2002/04/content-type/');
+define('SCHEMA_REF',                'http://schemas.xmlsoap.org/ws/2002/04/reference/');
 
 define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
@@ -356,12 +359,14 @@ class SOAP_Base extends PEAR
                 // XXX this will be slow on larger array's.  Basicly, it flattens array's to allow us
                 // to serialize multi-dimensional array's.  We only do this if arrayType is set,
                 // which will typicaly only happen if we are using WSDL
-                if (isset($options['flatten']) || ($arrayType && strchr($arrayType,','))) {
+                if (isset($options['flatten']) || ($arrayType && (strchr($arrayType,',') || strstr($arrayType,'][')))) {
                     $numtypes = $this->_multiArrayType($value, $arrayType, $ar_size, $xmlout_value);
                 }
                 
                 $array_type = $array_type_prefix = '';
                 if ($numtypes != 1) {
+                    $arrayTypeQName = new QName($arrayType);
+                    $arrayType = $arrayTypeQName->name;
                     $array_types = array();
                     $array_val = NULL;
                     
@@ -419,8 +424,8 @@ class SOAP_Base extends PEAR
                 $elPrefix = $this->getNamespacePrefix($elNamespace);
                 $xmlout_name = "$elPrefix:$name";
             } else {
-                $xmlns = " xmlns=\"$elNamespace\"";
-                $xmlout_name = $name;
+                $xmlns = " xmlns:ns1=\"$elNamespace\"";
+                $xmlout_name = 'ns1:'.$name;
             }
         } else {
             $xmlout_name = $name;
@@ -654,12 +659,16 @@ class SOAP_Base extends PEAR
             }
             $header_xml = "<SOAP-ENV:Header>\r\n$header_xml\r\n</SOAP-ENV:Header>\r\n";
         }
-        if (is_array($method)) {
-            foreach ($method as $part) {
-                $smsg .= $part->serialize($this);
+        if (!isset($options['input']) || $options['input'] == 'parse') {
+            if (is_array($method)) {
+                foreach ($method as $part) {
+                    $smsg .= $part->serialize($this);
+                }
+            }  else {
+                $smsg = $method->serialize($this);
             }
-        }  else {
-            $smsg = $method->serialize($this);
+        } else {
+            $smsg = $method;
         }
         $body = "<SOAP-ENV:Body>\r\n".$smsg."\r\n</SOAP-ENV:Body>\r\n";
         
@@ -667,9 +676,14 @@ class SOAP_Base extends PEAR
             $ns_string .= " xmlns:$v=\"$k\"\r\n";
         }
         
+        /* if use='literal', we do not put in the encodingStyle.  This is denoted by
+           $this->section5 being false.
+           XXX use can be defined at a more granular level than we are dealing with
+           here, so this does not work for all services.
+        */
         $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
             "<SOAP-ENV:Envelope $ns_string".
-            ($options['style'] == 'rpc'?" SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\"":'').
+            ($this->section5?" SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\"":'').
             ">\r\n".
             "$header_xml$body</SOAP-ENV:Envelope>\r\n";
         
