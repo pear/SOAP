@@ -264,6 +264,7 @@ class WSDL {
         $bindingXPath->register_namespace('soap',Namespace_Registry::$namespaces['soap']);
         
         $portType = $this->getPortTypeForBinding($binding);
+        $portTypeName = $portType->getAttribute('name');
         $operations = $portType->getElementsByTagNameNS(Namespace_Registry::$namespaces['wsdl'],'operation');
         $portTypeXPath = new domXpath($portType->ownerDocument);
         $portTypeXPath->register_namespace('wsdl',Namespace_Registry::$namespaces['wsdl']);
@@ -278,11 +279,11 @@ class WSDL {
             $soapOperation = $bindingXPath->query("//wsdl:binding[@name='$bindingName']/wsdl:operation[@name='$operationName']/soap:operation");
             $soapAction = $soapOperation[0]->getAttribute('soapAction');
         
-            $operationStyle = $soapBinding[0]->getAttribute('style');
+            $operationStyle = $soapBinding->getAttribute('style');
             $inputBody = $bindingXPath->query("//wsdl:binding[@name='$bindingName']/wsdl:operation[@name='$operationName']/wsdl:input/soap:body");
             $inputUse = $inputBody[0]->getAttribute('use');
             $inputMessage = $portTypeXPath->query("//wsdl:portType[@name='$portTypeName']/wsdl:operation[@name='$operationName']/wsdl:input");
-            if ($use == 'encoded') {
+            if ($inputUse == 'encoded') {
                 $namespace = $inputBody[0]->getAttribute('namespace');
             } else {
                 $ns = new Qname($inputMessage[0]->getAttribute('message'));
