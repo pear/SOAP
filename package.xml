@@ -15,6 +15,12 @@
       <email>shane@php.net</email>
       <role>lead</role>
     </maintainer>
+    <maintainer>
+      <user>arnaud</user>
+      <name>Arnaud Limbourg</name>
+      <email>arnaud@php.net</email>
+      <role>lead</role>
+    </maintainer>
   </maintainers>
   <license>PHP License</license>
   <release>
