@@ -85,6 +85,13 @@ class SOAP_WSDL extends SOAP_Base
     var $cacheMaxAge = null;
 
     /**
+     * Class to use for WSDL parsing. Can be overridden for special
+     * cases, subclasses, etc.
+     * @var string $wsdlParserClass
+     */
+    var $wsdlParserClass = 'SOAP_WSDL_Parser';
+
+    /**
      * SOAP_WSDL constructor.
      *
      * @param string  $wsdl_uri     URL to WSDL file.
@@ -139,7 +146,7 @@ class SOAP_WSDL extends SOAP_Base
      */
     function parseURL($wsdl_uri, $proxy = array())
     {
-        $parser =& new SOAP_WSDL_Parser($wsdl_uri, $this, $this->docs);
+        $parser =& new $this->wsdlParserClass($wsdl_uri, $this, $this->docs);
 
         if ($parser->fault) {
             $this->_raiseSoapFault($parser->fault);
@@ -1492,7 +1499,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
 
                 $this->wsdl->imports[$attrs['namespace']] = $attrs;
-                $import_parser =& new SOAP_WSDL_Parser($uri, $this->wsdl, $this->docs);
+                $import_parser_class = get_class($this);
+                $import_parser =& new $import_parser_class($uri, $this->wsdl, $this->docs);
                 if ($import_parser->fault) {
                     unset($this->wsdl->imports[$attrs['namespace']]);
                     return false;

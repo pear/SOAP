@@ -66,6 +66,8 @@
 
       - Successfully parse the &lt;schema&gt; sections of XSD documents
         imported via &lt;wsdl:import&gt;.
+
+      - Allow overriding the name of the class used for WSDL parsing.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
