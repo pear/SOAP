@@ -785,7 +785,7 @@ class SOAP_WSDL_Cache extends SOAP_Base
                     $rq->addRawQueryString($uri[1]);
                 }
 
-                if (isset($proxy_params['proxy_user']) && isset($proxy_params['proxy_user'])) {
+                if (isset($proxy_params['proxy_user']) && isset($proxy_params['proxy_pass'])) {
                     $rq->setBasicAuth($proxy_params['proxy_user'], $proxy_params['proxy_pass']);
                 }
 

@@ -215,7 +215,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     {
         if ( ! is_array($this->urlparts) ) {
             $this->_raiseSoapFault("Unable to parse URL $url");
-            return FALSE;
+            return false;
         }
         if (!isset($this->urlparts['host'])) {
             $this->_raiseSoapFault("No host in URL $url");
@@ -343,11 +343,45 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
 
             list($protocol, $code) = sscanf($this->result_headers[0], '%s %s');
             unset($this->result_headers[0]);
-            if ($code >= 400 && $code < 500) {
+
+            switch($code) {
+                400:
+                    $this->_raiseSoapFault("HTTP Response $code Bad Request");
+                    return false;
+                    break;
+                401:
+                    $this->_raiseSoapFault("HTTP Response $code Authentication Failed");
+                    return false;
+                    break;
+                403:
+                    $this->_raiseSoapFault("HTTP Response $code Forbidden");
+                    return false;
+                    break;
+                404:
                     $this->_raiseSoapFault("HTTP Response $code Not Found");
-                    return FALSE;
+                    return false;
+                    break;
+                407:
+                    $this->_raiseSoapFault("HTTP Response $code Proxy Authentication Required");
+                    return false;
+                    break;
+                408:
+                    $this->_raiseSoapFault("HTTP Response $code Request Timeout");
+                    return false;
+                    break;
+                410:
+                    $this->_raiseSoapFault("HTTP Response $code Gone");
+                    return false;
+                    break;
+                default:
+                    if ($code >= 400 && $code < 500) {
+                        $this->_raiseSoapFault("HTTP Response $code Not Found");
+                        return false;
+                    }
             }
+
             $this->_parseEncoding($match[1]);
+
             if ($this->result_content_type == 'application/dime') {
                 // XXX quick hack insertion of DIME
                 $this->_decodeDIMEMessage($this->response,$this->headers,$this->attachments);
@@ -357,13 +391,13 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
                 $this->_decodeMimeMessage($this->response,$this->headers,$this->attachments);
             } else if ($this->result_content_type != 'text/xml') {
                 $this->_raiseSoapFault($this->response);
-                return FALSE;
+                return false;
             }
             // if no content, return false
             return strlen($this->response) > 0;
         }
         $this->_raiseSoapFault('Invalid HTTP Response');
-        return FALSE;
+        return false;
     }
 
     /**
@@ -380,12 +414,19 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         $fullpath = $this->urlparts['path'].
                         (isset($this->urlparts['query'])?'?'.$this->urlparts['query']:'').
                         (isset($this->urlparts['fragment'])?'#'.$this->urlparts['fragment']:'');
+
         if (isset($options['proxy_host'])) {
             $fullpath = 'http://' . $this->urlparts['host'] . ':' . $this->urlparts['port'] . $fullpath;
         }
+
         if (isset($options['proxy_user'])) {
             $this->headers['Proxy-Authorization'] = 'Basic ' . base64_encode($options['proxy_user'].":".$options['proxy_pass']);
         }
+
+        if (isset($options['user'])) {
+            $this->setCredentials($options['user'], $options['pass']);
+        }
+
         $this->headers['User-Agent'] = $this->_userAgent;
         $this->headers['Host'] = $this->urlparts['host'];
         $this->headers['Content-Type'] = "text/xml; charset=$this->encoding";
