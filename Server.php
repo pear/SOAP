@@ -517,7 +517,7 @@ class SOAP_Server {
         
         /* if it's in an object, it's ok */
         foreach ($this->dispatch_objects as $obj) {
-            if (method_exists(&$obj, $methodname)) {
+            if (method_exists($obj, $methodname)) {
                 $this->soapobject =  &$obj;
                 return TRUE;
             }
