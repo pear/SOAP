@@ -178,11 +178,10 @@ class SOAP_WSDL extends SOAP_Base
     }
     
     function _validateString($string) {
+        // XXX this should be done sooner or later
         return true;
-        echo "testing $string<br>\n";
-        if (preg_match("/^[\w_:#\/]+$/",$string)) return true;
-        echo "test failed<br>\n";
-        return false;
+        #if (preg_match("/^[\w_:#\/]+$/",$string)) return true;
+        #return false;
     }
     
     /**
@@ -196,7 +195,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         // XXX currentPort is BAD
         $clienturl = $port['location']; 
-        $classname = $this->service;
+        $classname = 'WebService_'.$this->service;
 
         if (!$this->_validateString($classname)) return NULL;
         
@@ -244,6 +243,13 @@ class SOAP_WSDL extends SOAP_Base
         return $class;
     }
 
+    function getProxy($port = '')
+    {
+        $proxy = $this->generateProxyCode($port);
+        eval($proxy);
+        $classname = 'WebService_'.$this->service;
+        return new $classname;
+    }
 }
 
 class SOAP_WSDL_Cache extends SOAP_Base
