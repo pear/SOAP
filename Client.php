@@ -82,6 +82,7 @@ class SOAP_Client extends SOAP_Base
     *
     * @var  string  contains outoing and incoming data stream for debugging.
     */
+    var $xml; // contains the received xml
     var $wire;
     var $__last_request = NULL;
     var $__last_response = NULL;
@@ -235,13 +236,13 @@ class SOAP_Client extends SOAP_Base
             return $this->_raiseSoapFault($this->xml);
         }
 
-        $this->__attachements =& $soap_transport->transport->attachments;
+        $this->__attachments =& $soap_transport->transport->attachments;
         $this->__result_encoding = $soap_transport->result_encoding;
         unset($soap_transport);
         
         if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
         
-        return $this->__parse($this->xml, $this->__result_encoding,$this->__attachements);
+        return $this->__parse($this->xml, $this->__result_encoding,$this->__attachments);
     }
     
     /**
@@ -432,7 +433,7 @@ class SOAP_Client extends SOAP_Base
         // XXX DIME Encoding should move to the transport, do it here for now
         // and for ease of getting it done
         if (count($this->__attachments)) {
-            if ((isset($this->__options['Attachments']) && $this->__options['Attachments'] == 'Mime') || isset($this->__options['Mime'])) {
+            if ((isset($this->__options['attachments']) && $this->__options['attachments'] == 'Mime') || isset($this->__options['Mime'])) {
                 $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding);
             } else {
                 // default is dime
