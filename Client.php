@@ -36,7 +36,7 @@ require_once("SOAP/WSDL.php");
 *
 * @access public
 * @version $Id$
-* @package SOAP::Client
+* @package SOAP
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
@@ -49,7 +49,7 @@ class SOAP_Client
     var $wsdl = NULL;
     
     /**
-    * SOAP::Client constructor
+    * SOAP_Client constructor
     *
     * @params string endpoint (URL)
     * @params boolean wsdl (true if endpoint is a wsdl file)
@@ -70,7 +70,7 @@ class SOAP_Client
     }
     
     /**
-    * SOAP::_setFault
+    * SOAP_Client::_setFault
     *
     * @params string method
     * @params array params
@@ -90,7 +90,7 @@ class SOAP_Client
     }
     
     /**
-    * SOAP::Client::call
+    * SOAP_Client::call
     *
     * @params string method
     * @params array params

@@ -22,7 +22,7 @@
 require_once("SOAP/globals.php");
 
 /**
-*  SOAP::WSDL
+*  SOAP_WSDL
 *  this class parses wsdl files, and can be used by SOAP::Client to properly register
 * soap values for services
 *
@@ -38,7 +38,7 @@ require_once("SOAP/globals.php");
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class WSDL {
+class SOAP_WSDL {
     // define internal arrays of bindings, ports, operations, messages, etc.
     var $complexTypes = array();
     var $messages = array();
@@ -61,7 +61,7 @@ class WSDL {
     var $soapns = "soap";
 
     // constructor
-    function WSDL($wsdl=false) {
+    function SOAP_WSDL($wsdl=false) {
         $this->parse($wsdl);
     }
     

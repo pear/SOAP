@@ -233,7 +233,7 @@ function string_compare($e1, $e2)
     $e2_type = gettype($e2);
     $ok = FALSE;
     if ($e1_type == "string") {
-        $dt = new dateTime();
+        $dt = new SOAP_Type_dateTime();
         $ok = $dt->compare($e1, $e2) == 0;
     }
     return $ok || $e1 == $e2 || strcasecmp($e1, $e2) == 0;

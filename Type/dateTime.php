@@ -19,7 +19,7 @@
 //
 // $Id$
 //
-class dateTime
+class SOAP_Type_dateTime
 {
     var $ereg_iso8601 = '(-?[0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]*)?(Z|[+\-][0-9]{4}|[+\-][0-9]{2}:[0-9]{2})?';
         #"(-?[0-9]{4})-".  // centuries & years CCYY-
@@ -33,7 +33,7 @@ class dateTime
         # if no 8th reg (Z) assumes UTC
     var $timestamp = -1;
     
-    function dateTime($date = -1)
+    function SOAP_Type_dateTime($date = -1)
     {
         if ($date == -1) $date = time();
         if (gettype($date) == "integer") {
@@ -108,7 +108,7 @@ class dateTime
 
     function compare($date1, $date2 = NULL)
     {
-        if (!$date2) {
+        if ($date2 === null) {
             $date2 = $date1;
             $date1 = $this->timestamp;
         }
@@ -141,7 +141,7 @@ class dateTime
 }
 
 # these should all match
-#$d = new dateTime();
+#$d = new SOAP_Type_dateTime();
 #echo $d->compare("2001-04-25T20:31:41Z","2001-04-25T20:31:41Z")."\n";
 #echo $d->compare("2001-04-25T20:31:41Z","2001-04-25T12:31:41-0800")."\n";
 #echo $d->compare("2001-04-25T20:31:41Z","2001-04-25T12:31:41-08:00")."\n";

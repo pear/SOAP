@@ -27,7 +27,7 @@ require_once("SOAP/globals.php");
 * @package SOAP::Transport::HTTP
 * @author Shane Caraveo <shane@php.net>
 */
-class HTTP_Transport
+class SOAP_Transport_HTTP
 {
     var $credentials = "";
     var $_userAgent;
@@ -38,13 +38,13 @@ class HTTP_Transport
     var $url = "";
     var $incoming_payload = "";
     /**
-    * HTTP_Transport Constructor
+    * SOAP_Transport_HTTP Constructor
     *
     * @param string $URL    http url to soap endpoint
     *
     * @access public
     */
-    function HTTP_Transport($URL)
+    function SOAP_Transport_HTTP($URL)
     {
         global $soapLibraryName;
         $this->urlparts = @parse_url($URL);
@@ -235,5 +235,5 @@ class HTTP_Transport
         
         return TRUE;
     }
-}; // end HTTP_Transport
+}; // end SOAP_Transport_HTTP
 ?>

@@ -52,7 +52,7 @@ class SOAP_Transport
         $this->debug_flag = $debug;
         $urlparts = @parse_url($url);
         if (strcasecmp($urlparts['scheme'],"http")==0) {
-            $this->transport = new HTTP_Transport($url);
+            $this->transport = new SOAP_Transport_HTTP($url);
             return;
         }
         $this->errmsg = "No Transport for {$urlparts['scheme']}";

@@ -20,8 +20,8 @@
 // $Id$
 //
 require_once('SOAP/globals.php');
-require_once('SOAP/types/dateTime.php');
-require_once('SOAP/types/hexBinary.php');
+require_once('SOAP/Type/dateTime.php');
+require_once('SOAP/Type/hexBinary.php');
 /**
 *  SOAP::Value
 * this class converts values between PHP and SOAP
@@ -268,7 +268,7 @@ class SOAP_Value
             #    # we don't realy know what a user want's in return,
             #    # but we'll just do unix time stamps for now
             #    # THOUGHT: we could return a class instead.
-            #    $dt = new dateTime($soapval->value);
+            #    $dt = new SOAP_Type_dateTime($soapval->value);
             #    $soapval->value = $dt->to_unixtime();
             } else if (in_array($soapval->type, $typemap[$XMLSchemaVersion], TRUE)) {
                 # if we can, lets set php's variable type
@@ -385,7 +385,7 @@ class SOAP_Value
         }
         # we have the type, handle any value munging we need
         if ($doconvert) {
-            $dt = new dateTime($value);
+            $dt = new SOAP_Type_dateTime($value);
             if ($dt->to_unixtime() != -1) {
                 $type = "dateTime";
                 $value = $dt->to_soap();
@@ -393,7 +393,7 @@ class SOAP_Value
         } else
         if ($type == "dateTime") {
             # encode a dateTime to ISOE
-            $dt = new dateTime($value);
+            $dt = new SOAP_Type_dateTime($value);
             $value = $dt->to_soap();
         } else
         // php type name mangle
@@ -445,7 +445,7 @@ function isArray($value)
 
 function isDateTime($value)
 {
-    $dt = new dateTime($value);
+    $dt = new SOAP_Type_dateTime($value);
     return $dt->to_unixtime() != -1;
 }
 ?>
