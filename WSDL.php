@@ -281,13 +281,18 @@ class SOAP_WSDL extends SOAP_Base
      */
     function generateProxyCode($port = '')
     {
+        $multiport = count($this->services[$this->service]['ports']) > 1;
         if (!$port) {
             reset($this->services[$this->service]['ports']);
             $port = current($this->services[$this->service]['ports']);
         }
         // XXX currentPort is BAD
         $clienturl = $port['address']['location']; 
-        $classname = 'WebService_'.$this->service;
+        if ($multiport || $port) {
+            $classname = 'WebService_'.$this->service.'_'.$port['name'];
+        } else {
+            $classname = 'WebService_'.$this->service;
+        }
         $classname = str_replace('.','_',$classname);
         
         if (!$this->_validateString($classname)) return NULL;
@@ -389,9 +394,28 @@ class SOAP_WSDL extends SOAP_Base
         return $class;
     }
 
+    function generateAllProxies()
+    {
+        $proxycode = '';
+        foreach (array_keys($this->services[$this->service]['ports']) as $key) {
+            $port =& $this->services[$this->service]['ports'][$key];
+            $proxycode .= $this->generateProxyCode($port);
+        }
+        return $proxycode;
+    }
+    
     function getProxy($port = '')
     {
-        $classname = 'WebService_'.$this->service;
+        $multiport = count($this->services[$this->service]['ports']) > 1;
+        if (!$port) {
+            reset($this->services[$this->service]['ports']);
+            $port = current($this->services[$this->service]['ports']);
+        }
+        if ($multiport || $port) {
+            $classname = 'WebService_'.$this->service.'_'.$port['name'];
+        } else {
+            $classname = 'WebService_'.$this->service;
+        }
         $classname = str_replace('.','_',$classname);
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port);
