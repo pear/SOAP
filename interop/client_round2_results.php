@@ -16,51 +16,12 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
-// | Authors: Dietrich Ayala <dietrich@ganx4.com> Original Author         |
+// | Authors: Shane Caraveo <Shane@Caraveo.com>                           |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
-set_time_limit(0);
-require_once("SOAP/Client.php");
-require_once("client_params.php");
-require_once("SOAP/test/test.utility.php");
-require_once("SOAP/interop/client_library.php");
-
-error_reporting(E_ALL ^ E_NOTICE);
-
-$localonly = 0; // set to 1 to test only your local server
-$usebuiltin = $localonly || 0; // use builtin list of endpoints
-$usewsdl = 0;
-$testtype = array(0,1); // with or without wsdl
-$tests = array_keys($method_params);
-$parms = array_keys($method_params[$tests[0]]);
-$show = 1;
-$debug = 0;
-$numservers = 0; // zero for all of them
-$testfunc = ''; // test a single function
-$specificendpoint = ''; //"http://63.142.188.184:1122/"; // endpoint url
-// slow or unavailable sites in interop list
-$skip = array('SQLData SOAP Server',
-              'HP SOAP'); //endpoints to skip, too slow, or no connect
-
-if ($localonly) {
-    # define your test servers endpointURL here
-    $endpoints[$SOAP_LibraryName] = array(
-            'endpointURL' => 'http://127.0.0.1/soap/interop.php',
-            'name' => $SOAP_LibraryName);
-} elseif ($usebuiltin) {
-    # NOTE: run endpoints_generate.php to generate 'builtin' files. 
-    include_once 'SOAP/interop/edpoints_'.$test;
-    # overrides for when whitemesa is not up to date
-    if ($test = 'base') {
-        $endpoints['MS SOAP ToolKit 2.0'] = array(
-                'endpointURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
-                'wsdlURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
-                'endpointName' => 'MS SOAP ToolKit 2.0');
-    }
-}
+require_once 'SOAP/interop/client_round2_interop.php';
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
@@ -70,9 +31,12 @@ if ($localonly) {
 TD { background-color: Red; }
 TD.BLANK { background-color: White; }
 TD.OK { background-color: Lime; }
+TD.RESULT { background-color: Green; }
+TD.untested { background-color: White; }
 TD.CONNECT { background-color: Yellow; }
 TD.TRANSPORT { background-color: Yellow; }
 TD.WSDL { background-color: Yellow; }
+TD.WSDLCACHE { background-color: Yellow; }
 TD.WSDLPARSER { background-color: Yellow; }
 TD.HTTP { background-color: Yellow; }
 TD.SMTP { background-color: Yellow; }
@@ -97,21 +61,31 @@ by nature.
 More detail about errors (marked yellow or red) will follow each table.  If we have an HTTP error
 attempting to connect to the endpoint, we will mark all consecutive attempts as errors, and skip
 testing that endpoint.  This reduces the time it takes to run the tests if a server is unavailable.
+WSDLCACHE errors mean we cannot retreive the WSDL file specified for the endpoint.
 </p>
 <p>
 More information on Round 2 Interopability is available at
 <a href="http://www.whitemesa.com/interop.htm">http://www.whitemesa.com/interop.htm</a>.
 </p>
+
 <?php
-foreach ($tests as $test) {
-    foreach ($parms as $parm) {
-        if (!$usebuiltin) getInteropEndpoints($test);
-        foreach ($testtype as $usewsdl) {
-            echo "<!-- DEBUG OUTPUT\n";
-            do_interopTest($method_params[$test][$parm]);
-            echo "#-->\n";
-            outputTables($test, $parm, $usewsdl, $endpoints, array_keys($method_params[$test][$parm]));
-        }
+$iop = new Interop_Client();
+
+if ($_GET['detail'] == 1) $iop->showFaults = 1;
+
+if ($_GET['wire']) {
+    $iop->showWire($_GET['wire']);
+} else {
+    $iop->getEndpoints();
+    $iop->getResults();
+    
+    if ($_GET['test']) {
+        $iop->currentTest = $_GET['test'];
+        $iop->useWSDL = $_GET['wsdl']?$_GET['wsdl']:0;
+        $iop->paramType = $_GET['type']?$_GET['type']:'php';
+        $iop->outputTable();
+    } else {
+        $iop->outputTables();
     }
 }
 ?>

@@ -19,7 +19,7 @@
 //
 // $Id$
 //
-require_once("SOAP/Server.php");
+require_once 'SOAP/Server.php';
 
 function generateFault($short, $long)
 {

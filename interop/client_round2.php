@@ -1,4 +1,4 @@
-<?
+<?php
 // this script is usefull for quickly testing stuff, use the 'pretty' file for html output
 //
 // +----------------------------------------------------------------------+
@@ -19,28 +19,30 @@
 //
 // $Id$
 //
-
 set_time_limit(0);
-require_once("SOAP/Client.php");
-require_once("client_params.php");
-require_once("SOAP/test/test.utility.php");
-require_once("SOAP/interop/client_library.php");
+require_once 'SOAP/interop/client_round2_interop.php';
 
-$tests = array('base','GroupB', 'GroupC');
+$iop = new Interop_Client();
+// force a fetch of endpoints, this happens irregardless if no endpoints in database
+#$iop->fetchEndpoints();
 
-foreach ($tests as $test) {
-    getInteropEndpoints($test);
-    $out = "<?php\n";
-    foreach ($endpoints as $k => $v) {
-        $out .= "\$endpoints['$k'] = array(\n".
-            "    'endpointURL' => '{$v['endpointURL']}',\n".
-            "    'wsdlURL' => '{$v['wsdlURL']}',\n".
-            "    'endpointName' => '{$v['endpointName']}');\n";
-        
-    }
-    $out .= "?>";
-    $fd = fopen('endpoints_'.$test.'.php', 'w');
-    fwrite($fd, $out);
-    fclose($fd);
-}
+// set some options
+$iop->currentTest = 'GroupB';      // see $tests above
+$iop->paramType = 'soapval';     // 'php' or 'soapval'
+$iop->useWSDL = 1;           // 1= do wsdl tests
+$iop->numServers = 0;        // 0 = all
+$iop->specificEndpoint = ''; // test only this endpoint
+$iop->testMethod = '';       // test only this method
+$iop->skipEndpointList = array(); // endpoints to skip
+$this->nosave = 0; // 1= disable saving results to database
+// debug output
+$iop->show = 1;
+$iop->debug = 0;
+$iop->showFaults = 0; // used in result table output
+
+#$iop->doTest();  // run a single set of tests using above options
+$iop->doTests();  // run all tests, ignore above options
+#$iop->outputTables();
+echo "done";
+
 ?>

@@ -19,7 +19,7 @@
 //
 // $Id$
 //
-require_once('SOAP/Server.php');
+require_once 'SOAP/Server.php';
 
 class SOAP_Interop_GroupB {
     function SOAP_Interop_GroupB() {

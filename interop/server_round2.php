@@ -13,37 +13,20 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
-// | Authors: Dietrich Ayala <dietrich@ganx4.com> Original Author         |
+// | Authors: Shane Caraveo <Shane@Caraveo.com>                           |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
 
-// 1. include server.php
-include("SOAP/Server.php");
+require_once 'SOAP/Server.php';
 
-// 2. instantiate server object
 $server = new SOAP_Server;
 
-/* 3. call the addToMap() method for each service (function) you want to expose:
+require_once 'server_round2_base.php';
+require_once 'server_round2_groupB.php';
+require_once 'server_round2_groupC.php';
 
-$server->addToMap(
-	"echoString",		// function name
-	array("string"),	// array of input types
-	array("string")		// array of output types
-);
-
-function echoString($string){
-	return $string;
-}
-
-*/
-include("server_soapinterop_base.php");
-include("server_soapinterop_groupB.php");
-
-// 4. call the service method to initiate transaction
-// and send response
-$server->service($HTTP_RAW_POST_DATA, TRUE);
+$server->service($HTTP_RAW_POST_DATA);
 
 ?>
