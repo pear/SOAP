@@ -31,13 +31,13 @@ error_reporting(E_ALL ^ E_NOTICE);
 $localonly = 0; // set to 1 to test only your local server
 $usebuiltin = 1; // use builtin list of endpoints
 $usewsdl = 1;
-$test = 'GroupB';  // which test to do: base, GroupB, GroupC
+$test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'php'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
 #$testfunc = 'echo2DStringArray'; // test a single function
-#$specificendpoint = 'Apache Axis'; //"http://63.142.188.184:1122/"; // endpoint url
+#$specificendpoint = 'EasySoap++'; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
 $skip = array();
 

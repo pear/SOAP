@@ -288,7 +288,7 @@ class SOAP_Parser
                 #print "set type for {$this->message[$pos]['name']} to {$this->message[$pos]['type']}\n";
                 // should do something here with the namespace of specified type?
             } elseif (preg_match('/:arrayType$/i',$key)) {
-                $this->message[$pos]['type'] = 'array';
+                $this->message[$pos]['type'] = 'Array';
                 $type = substr(strrchr($value,':'),1);
                 if (!$type) $type = $value;
                 $sa = strpos($type,'[');
@@ -334,7 +334,7 @@ class SOAP_Parser
                 $this->message[$pos]['type'] = 'Struct';
             } else {
                 $parent = $this->message[$pos]['parent'];
-                if ($this->message[$parent]['type'] == 'array' &&
+                if ($this->message[$parent]['type'] == 'Array' &&
                   array_key_exists('arrayType', $this->message[$parent])) {
                     $this->message[$pos]['type'] = $this->message[$parent]['arrayType'];
                 } else {

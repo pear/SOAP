@@ -104,6 +104,7 @@ if (array_compare($val, $expect)) {
     print "$prefix Forward Reference root decode OK\n";
 } else {
     print "$prefix Forward Reference root decode FAILED\n";
+    print_r($val);
 }
 
 ?>

@@ -165,7 +165,7 @@ function make_2d($x, $y)
 {
     for ($_x = 0; $_x < $x; $_x++) {
         for ($_y = 0; $_y < $y; $_y++) {
-            $a[$_x][$_y] = 'x{$_x}y{$_y}';
+            $a[$_x][$_y] = "x{$_x}y{$_y}";
         }
     }
     return $a;

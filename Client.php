@@ -211,7 +211,13 @@ class SOAP_Client extends SOAP_Base
             return $this->raiseSoapFault($soapmsg->fault);
         }
 
-        $this->debug('<xmp>' . $soapmsg->serialize() . '</xmp>');
+        // serialize the message
+        $soap_data = $soapmsg->serialize();
+        $this->debug("soap_data " . $soap_data);
+        if (PEAR::isError($soap_data)) {
+            return $this->raiseSoapFault($soap_data);
+        }
+        $this->debug('<xmp>' . $soap_data . '</xmp>');
         
         // instantiate client
         $dbg = "calling server at '$this->endpoint'...";
@@ -226,14 +232,7 @@ class SOAP_Client extends SOAP_Base
 
         // send
         $dbg = "sending msg w/ soapaction '$soapAction'...";
-        
-        // serialize the message
-        $soap_data = $soapmsg->serialize();
-        $this->debug("soap_data " . $soap_data);
-        if (PEAR::isError($soap_data)) {
-            return $this->raiseSoapFault($soap_data);
-        }
-        
+       
         // send the message
         $this->response = $soap_transport->send($soap_data, $soapAction);
         if ($soap_transport->fault) {

@@ -79,7 +79,7 @@ class SOAP_Value extends SOAP_Base
     *
     * @var  string
     */
-    var $type;
+    var $type = '';
     
     /**
     *
@@ -735,13 +735,16 @@ function isDateTime(&$value)
 function isHash(&$a) {
     # XXX I realy dislike having to loop through this in php code,
     # realy large arrays will be slow.  We need a C function to do this.
+    $names = array();
     foreach ($a as $k => $v) {
         # checking the type is faster than regexp.
         if (gettype($k) != 'integer') {
             return TRUE;
+        } else if (gettype($v) == 'object' && get_class($v) == 'soap_value') {
+            $names[$v->name] = 1;
         }
     }
-    return FALSE;
+    return count($names)>1;
 }
 
 ?>

@@ -31,7 +31,7 @@ $expect = '<inputStruct>
 <color xsi:type="xsd:string">Blue</color>
 </inputStruct>
 ';
-$v =  new SOAP_Value("inputStruct","struct",array(
+$v =  new SOAP_Value("inputStruct","Struct",array(
         new SOAP_Value("age","int",45),
         new SOAP_Value("height","float",5.9),
         new SOAP_Value("displacement","negativeInteger",-450),
@@ -41,7 +41,7 @@ $val = $v->serialize();
 if (string_compare($expect, $val)) {
     print "$prefix Serialize Type OK\n";
 } else {
-    print "$prefix Serialize Type FAILED\n";
+    print "$prefix Serialize Type FAILED $val\n";
 }
 
 # deserialize a soap value
