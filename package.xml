@@ -35,6 +35,23 @@
     <date>2005-04-01</date>
     <notes>
       - Fix #3456
+
+      - SOAP_Base now has a $_namespace property for the object's
+        default namespace (included as xmlns="foo", and given no ns
+        prefix).
+
+      - If a name has more than one colon, don't split it as a
+        prefix:foo QName, treat it as a namespace name instead.
+
+      - Never put a colon in if a namespace prefix is empty.
+
+      - SOAP_Header objects can take regular SOAP_Value attributes.
+
+      - validateString() is not a NOP anymore.
+
+      - E_ALL warnings during WSDL parsing are fixed.
+
+      - ref="" elements in WSDL are correctly treated as QNames now.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
