@@ -22,50 +22,50 @@
 require_once 'SOAP/Base.php';
 require_once 'Net/DIME.php';
 /**
-*  HTTP Transport for SOAP
-*
-* @access public
-* @version $Id$
-* @package SOAP::Transport::HTTP
-* @author Shane Caraveo <shane@php.net>
-*/
+ *  HTTP Transport for SOAP
+ *
+ * @access public
+ * @version $Id$
+ * @package SOAP::Transport::HTTP
+ * @author Shane Caraveo <shane@php.net>
+ */
 class SOAP_Transport_HTTP extends SOAP_Base
 {
-    
+
     /**
     * Basic Auth string
     *
     * @var  string
     */
     var $headers = array();
-    
+
     /**
     *
     * @var  int connection timeout in seconds - 0 = none
     */
     var $timeout = 4;
-    
+
     /**
     * Array containing urlparts - parse_url()
-    * 
+    *
     * @var  mixed
     */
     var $urlparts = NULL;
-    
+
     /**
     * Connection endpoint - URL
     *
     * @var  string
     */
     var $url = '';
-    
+
     /**
     * Incoming payload
     *
     * @var  string
     */
     var $incoming_payload = '';
-    
+
     /**
     * HTTP-Request User-Agent
     *
@@ -74,7 +74,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     var $_userAgent = SOAP_LIBRARY_NAME;
 
     var $encoding = SOAP_DEFAULT_ENCODING;
-    
+
     /**
     * HTTP-Response Content-Type encoding
     *
@@ -82,8 +82,9 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @var  string
     */
     var $result_encoding = 'UTF-8';
-    
+
     var $result_content_type;
+
     /**
     * SOAP_Transport_HTTP Constructor
     *
@@ -98,7 +99,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         $this->url = $URL;
         $this->encoding = $encoding;
     }
-    
+
     /**
     * send and receive soap data
     *
@@ -114,16 +115,16 @@ class SOAP_Transport_HTTP extends SOAP_Base
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
-        
-        if (isset($options['timeout'])) 
+
+        if (isset($options['timeout']))
             $this->timeout = (int)$options['timeout'];
-    
+
         if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0) {
             return $this->_sendHTTP($msg, $options);
         } else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) {
             return $this->_sendHTTPS($msg, $options);
         }
-        
+
         return $this->_raiseSoapFault('Invalid url scheme '.$this->url);
     }
 
@@ -141,9 +142,9 @@ class SOAP_Transport_HTTP extends SOAP_Base
     {
         $this->headers['Authorization'] = 'Basic ' . base64_encode($username . ':' . $password);
     }
-    
+
     // private members
-    
+
     /**
     * validate url data passed to constructor
     *
@@ -161,12 +162,12 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return FALSE;
         }
         if (!isset($this->urlparts['port'])) {
-            
+
             if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0)
                 $this->urlparts['port'] = 80;
-            else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) 
+            else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0)
                 $this->urlparts['port'] = 443;
-                
+
         }
         if (isset($this->urlparts['user'])) {
             $this->setCredentials($this->urlparts['user'], $this->urlparts['pass']);
@@ -175,7 +176,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             $this->urlparts['path'] = '/';
         return TRUE;
     }
-    
+
     function _parseEncoding($headers)
     {
         $h = stristr($headers,'Content-Type');
@@ -194,7 +195,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         // deal with broken servers that don't set content type on faults
         if (!$this->result_content_type) $this->result_content_type = 'text/xml';
     }
-    
+
     /**
     * remove http headers from response
     *
@@ -230,7 +231,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         $this->_raiseSoapFault('Invalid HTTP Response');
         return FALSE;
     }
-    
+
     /**
     * create http request, including headers, for outgoing request
     *
@@ -244,7 +245,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
                         (isset($this->urlparts['query'])?'?'.$this->urlparts['query']:'').
                         (isset($this->urlparts['fragment'])?'#'.$this->urlparts['fragment']:'');
         if (isset($options['proxy_host'])) {
-            $fullpath = ($https?'https://':'http://').$this->urlparts['host'].':'.$this->urlparts['port'].$fullpath;
+            $fullpath = 'http://' . $this->urlparts['host'] . ':' . $this->urlparts['port'] . $fullpath;
         }
         if (isset($options['proxy_user'])) {
             $this->headers['Proxy-Authorization'] = 'Basic ' . base64_encode($options['proxy_user'].":".$options['proxy_pass']);
@@ -261,13 +262,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
         foreach ($this->headers as $k => $v) {
             $headers .= "$k: $v\r\n";
         }
-        $this->outgoing_payload = 
+        $this->outgoing_payload =
                 "POST $fullpath HTTP/1.0\r\n".
                 $headers."\r\n".
                 $msg;
         return $this->outgoing_payload;
     }
-    
+
     /**
     * send outgoing request, and read/parse response
     *
@@ -284,7 +285,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         $port = $this->urlparts['port'];
         if (isset($options['proxy_host'])) {
             $host = $options['proxy_host'];
-            $port = isset($options['proxy_port'])?$options['proxy_port']:8080;
+            $port = isset($options['proxy_port']) ? $options['proxy_port'] : 8080;
         }
         // send
         if ($this->timeout > 0) {
@@ -303,7 +304,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
             return $this->_raiseSoapFault("Error POSTing Data to $host");
         }
-        
+
         // get reponse
         // XXX time consumer
         while ($data = fread($fp, 32768)) {
@@ -330,40 +331,49 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function &_sendHTTPS(&$msg, $options)
     {
         /* NOTE This function uses the CURL functions
-        *  Your php must be compiled with CURL
-        */
+         *  Your php must be compiled with CURL
+         */
         if (!extension_loaded('curl')) {
             return $this->_raiseSoapFault('CURL Extension is required for HTTPS');
         }
-        
-        $this->_getRequest($msg, $options);
-        
-        $ch = curl_init(); 
-        
+
+//        $this->_getRequest($msg, $options);
+
+        $ch = curl_init();
+
         // XXX don't know if this proxy stuff is right for CURL
+        // Arnaud: apparently it is, we have a proxy and it works
+        // with these lines.
         if (isset($options['proxy_host'])) {
             // $options['http_proxy'] == 'hostname:port'
             $host = $options['proxy_host'];
-            $port = isset($options['proxy_port'])?$options['proxy_port']:8080;
-            curl_setopt($ch, CURLOPT_PROXY, $host.":".$port); 
+            $port = isset($options['proxy_port']) ? $options['proxy_port'] : 8080;
+            curl_setopt($ch, CURLOPT_PROXY, $host . ":" . $port);
         }
+
         if (isset($options['proxy_user'])) {
             // $options['http_proxy_userpw'] == 'username:password'
-            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy_user'].':'.$options['proxy_pass']); 
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy_user'] . ':' . $options['proxy_pass']);
         }
-        
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER ,    array('Content-Type: text/xml;charset=' . $this->encoding, 'SOAPAction: ""'));
+        curl_setopt($ch, CURLOPT_USERAGENT ,     $this->_userAgent);
+
         if ($this->timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s 
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s
         }
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->outgoing_payload);
-        curl_setopt($ch, CURLOPT_URL, $this->url); 
-        curl_setopt($ch, CURLOPT_FAILONERROR, 1); 
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-        curl_setopt($ch, CURLOPT_VERBOSE, 1); 
-        $this->response = curl_exec($ch); 
+
+//        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->outgoing_payload);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,     $msg);
+        curl_setopt($ch, CURLOPT_URL,            $this->url);
+        curl_setopt($ch, CURLOPT_POST,           1);
+        curl_setopt($ch, CURLOPT_FAILONERROR,    1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_VERBOSE,        1);
+        $this->response = curl_exec($ch);
         curl_close($ch);
-        
+
         return $this->response;
     }
 } // end SOAP_Transport_HTTP
