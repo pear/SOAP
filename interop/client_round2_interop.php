@@ -244,7 +244,7 @@ class Interop_Client
             if (!$wire) $wire= $result['fault']['faultdetail'];
         }
         
-        $test_name = $soap_test->method_name;
+        $test_name = $soap_test->test_name;
         // add header info to the test name
         if ($soap_test->headers) {
             foreach ($soap_test->headers as $h) {
@@ -406,6 +406,8 @@ class Interop_Client
                 $soap->addHeader($header);
             }
         }
+        $soap->setEncoding($soap_test->encoding);
+        
         $return = $soap->call($soap_test->method_name,$soap_test->method_params, $namespace, $soapaction);
         
         if(!PEAR::isError($return)){
@@ -539,7 +541,7 @@ class Interop_Client
                 }
                 
                 // if we're looking for a specific method, skip unless we have it
-                if ($this->testMethod && $soap_test->method_name != $this->testMethod) continue;
+                if ($this->testMethod && !strstr($soap_test->test_name, $this->testMethod)) continue;
                 
                 // if we are skipping the rest of the tests (due to error) note a fault
                 if ($skipendpoint) {
@@ -617,7 +619,7 @@ class Interop_Client
     */
     function getMethodList($test = 'base') {
         // retreive the results and put them into the endpoint info
-        $sql = "select distinct(function) from results where class='$test'";
+        $sql = "select distinct(function) from results where class='$test' order by function";
         $results = $this->dbc->getAll($sql);
         $ar = array();
         foreach($results as $result) {

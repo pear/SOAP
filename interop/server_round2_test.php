@@ -87,7 +87,7 @@ $test = '<?xml version="1.0"?>
 <SOAP-ENV:Body>
 
 <ns7:echoString>
-<inputString xsi:type="xsd:string">blah</inputString>
+<inputString xsi:type="xsd:string"></inputString>
 </ns7:echoString>
 </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

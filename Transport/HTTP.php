@@ -75,6 +75,16 @@ class SOAP_Transport_HTTP extends SOAP_Base
     var $_userAgent = SOAP_LIBRARY_NAME;
 
     var $encoding = SOAP_DEFAULT_ENCODING;
+    
+    /**
+    * HTTP-Response Content-Type encoding
+    *
+    * we assume UTF-8 if no encoding is set
+    * @var  string
+    */
+    var $result_encoding = 'UTF-8';
+    
+    var $result_content_type;
     /**
     * SOAP_Transport_HTTP Constructor
     *
@@ -166,6 +176,27 @@ class SOAP_Transport_HTTP extends SOAP_Base
         return TRUE;
     }
     
+    function _parseEncoding($headers)
+    {
+        global $SOAP_Encodings;
+        
+        $h = stristr($headers,'Content-Type');
+        preg_match('/^Content-Type:\s*(.*)$/im',$h,$ct);
+        $this->result_content_type = str_replace("\r","",$ct[1]);
+        if (preg_match('/(.*?)(?:;\s?charset=)(.*)/i',$this->result_content_type,$m)) {
+            // strip the string of \r
+            $this->result_content_type = $m[1];
+            if (count($m) > 2) {
+                $enc = strtoupper(str_replace('"',"",$m[2]));
+                if (in_array($enc, $SOAP_Encodings)) {
+                    $this->result_encoding = $enc;
+                }
+            }
+        }
+        // deal with broken servers that don't set content type on faults
+        if (!$this->result_content_type) $this->result_content_type = 'text/xml';
+    }
+    
     /**
     * remove http headers from response
     *
@@ -177,10 +208,15 @@ class SOAP_Transport_HTTP extends SOAP_Base
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
             #$this->response = preg_replace("/[\r|\n]/", ' ', $match[2]);
             $this->response = $match[2];
-            // find the response error
+            // find the response error, some servers response with 500 for soap faults
             if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
                 $status[1] >= 400 && $status[1] < 500) {
                     $this->raiseSoapFault("HTTP Response $status[1] Not Found");
+                    return FALSE;
+            }
+            $this->_parseEncoding($match[1]);
+            if ($this->result_content_type != 'text/xml') {
+                    $this->raiseSoapFault($this->response);
                     return FALSE;
             }
             // if no content, return false

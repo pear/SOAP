@@ -62,9 +62,6 @@ class SOAP_Interop_Base {
 
     function echoString($inputString)
     {
-	if (!$inputString) {
-	    return generateFault("Empty Input", "No string detected.");
-	}
 	$returnSoapVal = new SOAP_Value("return","string",$inputString);
 	return $returnSoapVal;
     }

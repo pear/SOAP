@@ -183,7 +183,7 @@ class SOAP_Value extends SOAP_Base
     function addScalar($value, $type, $name = '')
     {
         if ($type == 'string') {
-            $this->value = htmlentities($value);
+            $this->value = htmlspecialchars($value);
         } else {
             $this->value = $value;
         }

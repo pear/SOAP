@@ -24,6 +24,7 @@ require_once 'SOAP/Value.php';
 
 class SOAP_Test {
     var $type = 'php';
+    var $test_name = NULL;
     var $method_name = NULL;
     var $method_params = NULL;
     var $expect = NULL;
@@ -33,9 +34,16 @@ class SOAP_Test {
     var $result = array();
     var $show = 1;
     var $debug = 0;
+    var $encoding = SOAP_DEFAULT_ENCODING;
     
     function SOAP_Test($methodname, $params, $expect = NULL) {
-        $this->method_name = $methodname;
+        if (strchr($methodname,'(')) {
+            preg_match('/(.*)\((.*)\)/',$methodname,$matches);
+            $this->test_name = $methodname;
+            $this->method_name = $matches[1];
+        } else {
+            $this->test_name = $this->method_name = $methodname;
+        }
         $this->method_params = $params;
         $this->expect = $expect;
         
@@ -71,7 +79,7 @@ class SOAP_Test {
             echo str_repeat("-",50)."<br>\n";
         }
         
-        echo "testing $this->method_name : ";
+        echo "testing $this->test_name : ";
         if ($this->headers) {
             foreach ($this->headers as $h) {
                 if (get_class($h) == 'soap_header') {
@@ -121,10 +129,18 @@ function make_2d($x, $y)
 //***********************************************************
 // Base echoString
 
-#$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => utf8_encode('ỗÈéóÒ₧⅜ỗỸ')));
-#$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string',utf8_encode('ỗÈéóÒ₧⅜ỗỸ'))));
-$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => "this is a test <hello>\n"));
-$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string',"this is a test <hello>\n")));
+$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => "hello world!"));
+$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string',"hello world!")));
+$soap_tests['base'][] = new SOAP_Test('echoString(null)', array('inputString' => ""));
+$soap_tests['base'][] = new SOAP_Test('echoString(null)', array('inputString' => new SOAP_Value('inputString','string',"")));
+$soap_tests['base'][] = new SOAP_Test('echoString(entities)', array('inputString' => "this is a test <hello>\n"));
+$soap_tests['base'][] = new SOAP_Test('echoString(entities)', array('inputString' => new SOAP_Value('inputString','string',"this is a test <hello>\n")));
+$test = new SOAP_Test('echoString(utf-8)', array('inputString' => utf8_encode('ỗÈéóÒ₧⅜ỗỸ')));
+$test->encoding = 'UTF-8';
+$soap_tests['base'][] = $test;
+$test = new SOAP_Test('echoString(utf-8)', array('inputString' => new SOAP_Value('inputString','string',utf8_encode('ỗÈéóÒ₧⅜ỗỸ'))));
+$test->encoding = 'UTF-8';
+$soap_tests['base'][] = $test;
 
 //***********************************************************
 // Base echoStringArray

@@ -70,6 +70,10 @@ class SOAP_Parser extends SOAP_Base
         $this->xml = $xml;
         $this->xml_encoding = $encoding;
 
+        // check the xml tag for encoding
+        if (preg_match('/<\?xml.*?encoding=(?:[\'|"])([\w\d-]*)?.*?(?:[\'|"])\?>/',$xml,$m)) {
+            $this->xml_encoding = strtoupper($m[1]);
+        }
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($this->xml)) {
@@ -88,7 +92,8 @@ class SOAP_Parser extends SOAP_Base
                 $this->raiseSoapFault($err,htmlspecialchars($this->xml));
             } else {
                 // build the response
-                $this->soapresponse = $this->buildResponse($this->root_struct[0]);
+                if (count($this->root_struct))
+                    $this->soapresponse = $this->buildResponse($this->root_struct[0]);
                 if (count($this->header_struct))
                     $this->soapheaders = $this->buildResponse($this->header_struct[0]);
             }

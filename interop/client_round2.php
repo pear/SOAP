@@ -33,7 +33,7 @@ $iop->useWSDL = 0;           // 1= do wsdl tests
 $iop->numServers = 0;        // 0 = all
 $iop->specificEndpoint = ''; // test only this endpoint
 $iop->testMethod = '';       // test only this method
-$iop->skipEndpointList = array(); // endpoints to skip
+$iop->skipEndpointList = array('SQLData SOAP Server'); // endpoints to skip
 $this->nosave = 0; // 1= disable saving results to database
 // debug output
 $iop->show = 1;

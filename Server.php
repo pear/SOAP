@@ -91,7 +91,7 @@ class SOAP_Server {
     * @var  string  XML-Encoding
     */
     var $xml_encoding = SOAP_DEFAULT_ENCODING;
-    
+    var $response_encoding = 'UTF-8';
     /**
     * 
     * @var  boolean
@@ -142,7 +142,7 @@ class SOAP_Server {
         if ($this->debug_flag) {
             $response->debug($this->debug_data);
         }
-        $payload = $response->serialize();
+        $payload = $response->serialize($this->response_encoding);
         // print headers
         if ($this->soapfault) {
             $header[] = "Status: 500 Internal Server Error\r\n";
@@ -151,7 +151,7 @@ class SOAP_Server {
         }
 
         $header[] = 'Server: ' . SOAP_LIBRARY_NAME . "\r\n";
-        $header[] = "Content-Type: text/xml; charset=$this->xml_encoding\r\n";
+        $header[] = "Content-Type: text/xml; charset=$this->response_encoding\r\n";
         $header[] = 'Content-Length: ' . strlen($payload) . "\r\n\r\n";
         reset($header);
         foreach ($header as $hdr) {
@@ -234,8 +234,8 @@ class SOAP_Server {
         }
 
         // get the character encoding of the incoming request
-        // treat as ISO-8859-1 if no encoding set
-        $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+        // treat incoming data as UTF-8 if no encoding set
+        $this->xml_encoding = 'UTF-8';
         if (strpos($_SERVER['CONTENT_TYPE'],'=')) {
             $enc = strtoupper(str_replace('"',"",substr(strstr($_SERVER['CONTENT_TYPE'],'='),1)));
             if (in_array($enc, $SOAP_Encodings)) {

@@ -45,6 +45,7 @@ class SOAP_Transport extends SOAP_Base
     var $transport = NULL;
     
     var $encoding = SOAP_DEFAULT_ENCODING;
+    var $result_encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP::Transport constructor
     *
@@ -91,7 +92,7 @@ class SOAP_Transport extends SOAP_Base
         if (PEAR::isError($response)) {
             return $this->raiseSoapFault($response);
         }
-        
+        $this->result_encoding = $this->transport->result_encoding;
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
         #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
         return $response;

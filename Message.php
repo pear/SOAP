@@ -108,7 +108,7 @@ class SOAP_Message extends SOAP_Base
     * @return string xml_soap_data
     * @access private
     */
-    function _makeEnvelope($header, $body)
+    function _makeEnvelope($header, $body, $encoding)
     {
         global $SOAP_namespaces;
 
@@ -117,7 +117,7 @@ class SOAP_Message extends SOAP_Base
         foreach ($SOAP_namespaces as $k => $v) {
             $ns_string .= " xmlns:$v=\"$k\"\r\n ";
         }
-        return "<?xml version=\"1.0\"?>\r\n\r\n<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\r\n$header$body</SOAP-ENV:Envelope>\r\n";
+        return "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\r\n$header$body</SOAP-ENV:Envelope>\r\n";
     }
 
     /**
@@ -156,11 +156,11 @@ class SOAP_Message extends SOAP_Base
     *
     * @access private
     */
-    function _createPayload()
+    function _createPayload($encoding)
     {
 	$body = $this->value?$this->_makeBody($this->value->serialize()):NULL;
 	$header = count($this->headers)?$this->_makeHeader():NULL;
-        $this->payload = $this->_makeEnvelope($header, $body);
+        $this->payload = $this->_makeEnvelope($header, $body, $encoding);
     }
     
     /**
@@ -169,10 +169,10 @@ class SOAP_Message extends SOAP_Base
     * @return string xml_soap_data
     * @access public
     */
-    function serialize()
+    function serialize($encoding = SOAP_DEFAULT_ENCODING)
     {
         if ($this->payload == '') {
-            $this->_createPayload();
+            $this->_createPayload($encoding);
             return $this->payload;
         }
         return $this->payload;

@@ -115,7 +115,8 @@ class SOAP_Client extends SOAP_Base
     
     function setEncoding($encoding)
     {
-        if (in_array($encoding, $SOAP_Encoding)) {
+        global $SOAP_Encodings;
+        if (in_array($encoding, $SOAP_Encodings)) {
             $this->encoding = $encoding;
             return NULL;
         }
@@ -229,7 +230,7 @@ class SOAP_Client extends SOAP_Base
         }
 
         // serialize the message
-        $soap_data = $this->soapmsg->serialize();
+        $soap_data = $this->soapmsg->serialize($this->encoding);
         $this->debug("soap_data " . $soap_data);
         if (PEAR::isError($soap_data)) {
             return $this->raiseSoapFault($soap_data);
@@ -267,7 +268,7 @@ class SOAP_Client extends SOAP_Base
 
         // parse the response
         #$return = $this->soapmsg->parseResponse($this->response);
-        $this->response = new SOAP_Parser($this->response);
+        $this->response = new SOAP_Parser($this->response, $soap_transport->result_encoding);
         if ($this->response->fault) {
             return $this->raiseSoapFault($this->response->fault);
         }
