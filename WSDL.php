@@ -693,7 +693,7 @@ class SOAP_WSDL_Cache extends SOAP_Base
         if (!$md5_wsdl) {
             // is it a local file?
             // this section should be replace by curl at some point
-            if (!preg_match('/^(http|file):\/\//',$wsdl_fname)) {
+            if (!preg_match('/^(http[s]|file):\/\//',$wsdl_fname)) {
                 if (!file_exists($wsdl_fname)) {
                     return $this->_raiseSoapFault("Unable to read local WSDL $wsdl_fname", $wsdl_fname);
                 }
