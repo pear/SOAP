@@ -154,6 +154,8 @@ class SOAP_Client extends SOAP_Base
                     return $this->raiseSoapFault($this->portName);
                 }
             }
+            $namespace = $this->wsdl->getNamespace($this->portName, $method);
+
             // get endpoint
             $this->endpoint = $this->wsdl->getEndpoint($this->portName);
             if (PEAR::isError($this->endpoint)) {
@@ -172,8 +174,6 @@ class SOAP_Client extends SOAP_Base
             $nparams = array();
             if (count($opData['input']['parts']) > 0) {
                 $i = 0;
-                // XXX this seems very wrong, we should be creating SOAP_Value
-                // classes at this point, setting the correct type defined by the wsdl
                 foreach ($opData['input']['parts'] as $name => $type) {
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
@@ -184,12 +184,13 @@ class SOAP_Client extends SOAP_Base
                     if (gettype($nparams[$name]) != 'object' &&
                         get_class($nparams[$name]) != 'soap_value') {
                         // type is a qname likely, split it apart, and get the type namespace from wsdl
-                        $type_namespace = NULL;
-                        if ($qname = split(':', $type)) {
-                            $type_namespace = $this->wsdl->namespaces[$qname[0]];
-                            $type = $qname[1];
-                        }
-                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], $type_namespace, $type_namespace, $this->wsdl);
+                        $qname = new QName($type);
+                        if ($qname->ns) 
+                            $type_namespace = $this->wsdl->namespaces[$qname->ns];
+                        else
+                            $type_namespace = NULL;
+                        $type = $qname->name;
+                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], $namespace, $type_namespace, $this->wsdl);
                     }
                 }
             }
@@ -198,15 +199,6 @@ class SOAP_Client extends SOAP_Base
         
         
         $this->debug("soapAction: $soapAction");
-        // get namespace
-        if (!$namespace && $this->endpointType == 'wsdl') {
-            $namespace = $this->wsdl->getNamespace($this->portName, $method);
-            #if ($this->endpointType != 'wsdl') {
-            #    //die('method call requires namespace if wsdl is not available!');
-            #} elseif (!$namespace = $this->wsdl->getNamespace($this->portName,$method)) {
-            #    //die("no namespace found in wsdl for operation: $method!");
-            #}
-        }
         $this->debug("namespace: $namespace");
         
         // make message

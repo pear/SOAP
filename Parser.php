@@ -275,9 +275,10 @@ class SOAP_Parser
                 $this->namespaces[substr(strrchr($key,':'),1)] = $value;
 
                 // set method namespace
-                if ($name == $this->curent_root_struct_name) {
-                    $this->methodNamespace = $value;
-                }
+                # XXX unused???
+                #if ($name == $this->curent_root_struct_name) {
+                #    $this->methodNamespace = $value;
+                #}
             // if it's a type declaration, set type
             } elseif (preg_match('/:type$/i',$key)) {
                 $type = substr(strrchr($value,':'),1);

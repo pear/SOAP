@@ -36,8 +36,8 @@ $parm = 'php'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
-$testfunc = 'echoStructArray'; // test a single function
-$specificendpoint = 'Apache SOAP 2.2'; //"http://63.142.188.184:1122/"; // endpoint url
+#$testfunc = 'echoStructArray'; // test a single function
+#$specificendpoint = 'WASP for C++'; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
 $skip = array();
 
@@ -47,6 +47,10 @@ if ($localonly) {
             'endpointURL' => 'http://127.0.0.1/soap/interop.php',
             'name' => $SOAP_LibraryName);
 } elseif ($usebuiltin) {
+    $endpoints['ASP.NET Web Services'] = array(
+            'endpointURL' => 'http://www.mssoapinterop.org/asmx/simple.asmx',
+            'wsdlURL' => 'http://www.mssoapinterop.org/asmx/simple.asmx?wsdl',
+            'name' => 'ASP.NET Web Services');
     $endpoints['4s4c'] = array(
             'endpointURL' => 'http://soap.4s4c.com/ilab/soap.asp',
             'wsdlURL' => 'http://www.pocketsoap.com/services/ilab.wsdl',

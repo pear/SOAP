@@ -102,6 +102,8 @@ class SOAP_Transport extends SOAP_Base
             return $this->raiseSoapFault($response);
         }
         
+        $this->debug("OUTGOING: ".$this->transport->outgoing_payload);
+        $this->debug("INCOMING: ".$this->transport->incoming_payload);
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
         #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
         return $response;

@@ -157,7 +157,4 @@ $SOAP_namespaces = array(
 $SOAP_xmlEntities = array('quot' => '"','amp' => '&',
 	'lt' => '<','gt' => '>','apos' => "'");
     
-// WARNING: does not follow naming conventions
-// will be set by SOAP::Message.php
-$methodNamespace = 'http://testuri.org'
 ?>

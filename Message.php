@@ -72,17 +72,9 @@ class SOAP_Message extends SOAP_Base
     * @param array of string $new_namespaces    soap data (in xml)
     *
     * @access public
-    * @global $methodNamespace. $SOAP_namespaced
     */
     function SOAP_Message($method, $params, $method_namespace = 'http://testuri.org', $new_namespaces = NULL, $wsdl = NULL)
     {
-        // globalize method namespace
-        global $methodNamespace;
-        // WARNING: use of undefined global variable
-        
-        // WARNING: setting global variable
-        $methodNamespace = $method_namespace;
-
         parent::SOAP_Base('Message');
         // make method struct
         $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $wsdl);

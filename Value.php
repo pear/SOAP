@@ -105,6 +105,12 @@ class SOAP_Value extends SOAP_Base
     * @var  
     */
     var $wsdl;
+
+    /**
+    *
+    * @var string
+    */
+    var $arrayType = '';
     
     /**
     *
@@ -115,42 +121,37 @@ class SOAP_Value extends SOAP_Base
     * @param    mixed
     * @param    mixed
     * @param    mixed
-    * @global   $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace
+    * @global   $SOAP_typemap, $SOAP_namespaces
     */
-    function SOAP_Value($name = '', $type = false, $value = -1, $namespace = NULL, $type_namespace = NULL, $wsdl = NULL)
+    function SOAP_Value($name = '', $type = false, $value = -1, $methodNamespace = NULL, $type_namespace = NULL, $wsdl = NULL)
     {
-        global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace;
-        // WARNING: soapTypes seems to be missing in globals.php ?!
-        // WARNING: methodNamespace seems to be missing in globals.php ?!
-        
+        global $SOAP_typemap, $SOAP_namespaces;
         parent::SOAP_Base('Value');
         // detect type if not passed
         
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
 
-        // WARNING: soapTypes seems to be missing in globals.php !?
-        $this->soapTypes = $soapTypes;
         $this->name = $name;
         $this->wsdl = $wsdl;
         $this->type = $this->_getSoapType($value, $type);
 
         #$this->debug("Entering SOAP_Value - name: '$name' type: '$type' value: $value");
         
-        if ($namespace) {
-            $this->namespace = $namespace;
+        if ($methodNamespace) {
+            $this->namespace = $methodNamespace;
 
-            if (!isset($SOAP_namespaces[$namespace])) {
-                $SOAP_namespaces[$namespace] = 'ns' . (count($SOAP_namespaces) + 1);
+            if (!isset($SOAP_namespaces[$methodNamespace])) {
+                $SOAP_namespaces[$methodNamespace] = 'ns' . (count($SOAP_namespaces) + 1);
             }
 
-            $this->prefix = $SOAP_namespaces[$namespace];
+            $this->prefix = $SOAP_namespaces[$methodNamespace];
         }
         
         // get type prefix
         if (strpos($type , ':') !== false) {
-        
-            $this->type = substr(strrchr($type , ':'), 1, strlen(strrchr($type, ':')));
-            $this->type_prefix = substr($type, 0, strpos($type, ':'));
+            $qname = new QName($type);
+            $this->type = $qname->name;
+            $this->type_prefix = $qname->ns;
             
         } elseif ($type_namespace) {
         
@@ -165,10 +166,8 @@ class SOAP_Value extends SOAP_Base
             // try to get type prefix from typeMap
             if ($ns = $this->verifyType($this->type)) {
                 $this->type_prefix = $SOAP_namespaces[$ns];
-            } else {
+            } else if ($methodNamespace) {
                 // else default to method namespace
-                // WARNING: $methodNamespace is not defined in globals.php!
-                // WARNING: undefined index ?
                 $this->type_prefix = $SOAP_namespaces[$methodNamespace];
             }
         }
@@ -241,9 +240,9 @@ class SOAP_Value extends SOAP_Base
                     $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
-                    $type = '';
-                    $type = $this->_getSoapType($v, $type);
-                    $new_val =  new SOAP_Value('item', $type, $v);
+                    #$type = $this->arrayType;
+                    #$type = $this->_getSoapType($v, $type);
+                    $new_val =  new SOAP_Value('item', $this->arrayType, $v);
                     $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
@@ -351,13 +350,15 @@ class SOAP_Value extends SOAP_Base
         $xml = '';
 
         switch ($soapval->type_code) {
-        case 3:
+        case VALUE_STRUCT:
             // struct
             $this->debug('got a struct');
 
-            if ($soapval->prefix && $soapval->type_prefix) {
-                $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">\n";
-            } elseif ($soapval->type_prefix) {
+            # XXX we should be able to do this, but ASP.Net fails if we do
+            #if ($soapval->prefix && $soapval->type_prefix) {
+            #    $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">\n";
+            #} else
+            if ($soapval->type_prefix) {
                 $xml .= "<$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">\n";
             } elseif ($soapval->prefix) {
                 $xml .= "<$soapval->prefix:$soapval->name>\n";
@@ -369,14 +370,16 @@ class SOAP_Value extends SOAP_Base
                     $xml .= $this->serializeval($v);
                 }
             }
-            if ($soapval->prefix) {
+            if ($soapval->type_prefix) {
+                $xml .= "</$soapval->name>\n";
+            } else if ($soapval->prefix) {
                 $xml .= "</$soapval->prefix:$soapval->name>\n";
             } else {
                 $xml .= "</$soapval->name>\n";
             }
             break;
             
-        case 2:
+        case VALUE_ARRAY:
             // array
             $offset = '';
 
@@ -412,14 +415,18 @@ class SOAP_Value extends SOAP_Base
             $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
             break;
             
-        case 1:
-            if ($soapval->prefix && $soapval->type_prefix) {
-                $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->prefix:$soapval->name>\n";
-            } elseif ($soapval->type_prefix) {
+        case VALUE_SCALAR:
+            # XXX we should be able to do this, but ASP.Net fails if we do
+            #if ($soapval->prefix && $soapval->type_prefix) {
+            #    $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->prefix:$soapval->name>\n";
+            #} else
+            if ($soapval->type_prefix) {
                 $xml .= "<$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->name>\n";
-            } elseif ($soapval->prefix) {
-                $xml .= "<$soapval->prefix:$soapval->name>$soapval->value</$soapval->prefix:$soapval->name>\n";
-            } elseif ($soapval->type) {
+            # XXX we should be able to do this, but ASP.Net fails if we do
+            #} elseif ($soapval->prefix) {
+            #    $xml .= "<$soapval->prefix:$soapval->name>$soapval->value</$soapval->prefix:$soapval->name>\n";
+            } else
+            if ($soapval->type) {
                 $xml .= "<$soapval->name xsi:type=\"$soapval->type\">$soapval->value</$soapval->name>\n";
             } else {
                 $xml .= "<$soapval->name>$soapval->value</$soapval->name>\n";
@@ -562,10 +569,17 @@ class SOAP_Value extends SOAP_Base
     function _getSoapType(&$value, &$type) {
     
         $doconvert = FALSE;
-        #if (!$type && $this->wsdl && $this->name) {
-        #    # look up the name in the wsdl
-        #    print "WSDL";
-        #}
+        if ($this->wsdl) {
+            # see if it's a complex type so we can deal properly with SOAPENC:arrayType
+            if (!$type && $this->name) {
+                # look up the name in the wsdl
+                $this->debug("SOAP_VALUE no type for $this->name!");
+            } else if ($type) {
+                if (array_key_exists($type, $this->wsdl->complexTypes)) {
+                    $this->arrayType = $this->wsdl->complexTypes[$type]['arrayType'];
+                }
+            }
+        }
         if (!$type || !$this->verifyType($type)) {
             if (is_object($value)) {
                 # allows for creating special classes to handle soap types
