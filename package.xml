@@ -22,12 +22,15 @@
     <version>0.7.2</version>
     <date>2003-04-01</date>
     <notes>
-      Minor bug fixes over the 0.7.1 release.
+      New DISCO support for WSDL generation
+      New TCP Client/Server Protocol implementation
+      Many fixes and patches.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php"/>
         <file role="php" name="Client.php"/>
+        <file role="php" name="Disco.php"/>
         <file role="php" name="Fault.php"/>
         <file role="php" name="Parser.php"/>
         <file role="php" name="Server.php"/>
@@ -35,12 +38,18 @@
         <file role="php" name="Value.php"/>
         <file role="php" name="WSDL.php"/>
         <dir name="example" role="doc"> 
+          <file role="doc" name="attachment.php"/>
           <file role="doc" name="stockquote.php"/>
+          <file role="doc" name="disco_server.php"/>
           <file role="doc" name="server.php"/>
+          <file role="doc" name="example_server.php"/>
           <file role="doc" name="client.php"/>
           <file role="doc" name="smtp.php"/>
           <file role="doc" name="email_server.php"/>
           <file role="doc" name="email_gateway.php"/>
+          <file role="doc" name="tcp_client.php"/>
+          <file role="doc" name="tcp_server.php"/>
+          <file role="doc" name="tcp-daemon.pl"/>
         </dir>
         <dir name="tools"> 
           <file role="php" name="genproxy.php"/>
@@ -48,10 +57,12 @@
         <dir name="Transport"> 
           <file role="php" name="HTTP.php"/>
           <file role="php" name="SMTP.php"/>
+          <file role="php" name="TCP.php"/>
         </dir>
         <dir name="Server"> 
           <file role="php" name="Email.php"/>
           <file role="php" name="Email_Gateway.php"/>
+          <file role="php" name="TCP.php"/>
         </dir>
         <dir name="Type"> 
           <file role="php" name="dateTime.php"/>
