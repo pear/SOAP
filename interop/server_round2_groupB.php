@@ -53,7 +53,7 @@ class SOAP_Interop_GroupB {
     function echoSimpleTypesAsStruct($string, $int, $float)
     {
 	# convert a input into struct
-	$ret = new SOAP_Value('return','Struct',
+	$ret = new SOAP_Value('return','{http://soapinterop.org/xsd}SOAPStruct',
 		array( #push struct elements into one soap value
 		    new SOAP_Value('varString','string',$string),
 		    new SOAP_Value('varInt','int',(int)$int),
@@ -71,7 +71,7 @@ class SOAP_Interop_GroupB {
     function echo2DStringArray($ary)
     {
 	$ret = new SOAP_Value('return','Array',$ary);
-	$ret->flattenArray = TRUE;
+	$ret->options['flatten'] = TRUE;
 	return $ret;
     }
 

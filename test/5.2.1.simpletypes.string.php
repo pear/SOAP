@@ -1,5 +1,7 @@
 <?php
 require_once("SOAP/test/test.utility.php");
+require_once("SOAP/Base.php");
+$soap_base = new SOAP_Base();
 $prefix = "5.2.1 String";
 
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
@@ -24,7 +26,7 @@ if (string_compare($expect, $val)) {
 # serialize a soap value
 $expect = '<inputString xsi:type="xsd:string">hello world</inputString>';
 $v =  new SOAP_Value("inputString","string","hello world");
-$val = $v->serialize();
+$val = $v->serialize($soap_base);
 if (string_compare($expect, $val)) {
     print "$prefix Serialize Type OK\n";
 } else {
@@ -32,7 +34,7 @@ if (string_compare($expect, $val)) {
 }
 # serialize a soap value with unknown type
 $expect = "hello world";
-$val = $v->decode();
+$val = $soap_base->decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize known SOAP_Value OK\n";
 } else {
@@ -42,7 +44,7 @@ if (string_compare($expect, $val)) {
 # serialize a soap value with unknown type
 $expect = '<inputString xsi:type="xsd:string">hello world</inputString>';
 $v =  new SOAP_Value("inputString","","hello world");
-$val = $v->serialize();
+$val = $v->serialize($soap_base);
 if (string_compare($expect, $val)) {
     print "$prefix Serialize Unknown Type OK\n";
 } else {
@@ -51,7 +53,7 @@ if (string_compare($expect, $val)) {
 
 # serialize a soap value with unknown type
 $expect = "hello world";
-$val = $v->decode();
+$val = $soap_base->decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize Unknown SOAP_Value OK\n";
 } else {

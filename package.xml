@@ -19,7 +19,7 @@
   <license>PHP License</license>
   <release>
     <state>devel</state>
-    <version>0.6</version>
+    <version>0.6.1</version>
     <date>2002-02-18</date>
     <notes>
       This is the initial independent PEAR release.
@@ -29,9 +29,6 @@
         <file role="php" name="Base.php"/>
         <file role="php" name="Client.php"/>
         <file role="php" name="Fault.php"/>
-        <file role="php" name="globals.php"/>
-        <file role="php" name="Header.php"/>
-        <file role="php" name="Message.php"/>
         <file role="php" name="Parser.php"/>
         <file role="php" name="Server.php"/>
         <file role="php" name="Transport.php"/>
@@ -94,6 +91,8 @@
       <dep type="php" rel="ge" version="4.1"/>
       <dep type="ext" rel="has">bcmath</dep>
       <dep type="ext" rel="has">pcre</dep>
+      <dep type="pkg" rel="has">Mime</dep>
+      <dep type="pkg" rel="ge" version="0.1">Net_DIME</dep>
     </deps>
   </release>
 </package>

@@ -27,7 +27,7 @@ require_once 'server_round2_base.php';
 require_once 'server_round2_groupB.php';
 require_once 'server_round2_groupC.php';
 
-$server->service($HTTP_RAW_POST_DATA);
+$server->service(isset($HTTP_RAW_POST_DATA)?$HTTP_RAW_POST_DATA:NULL);
 #echo "Content-Length is {$_SERVER['CONTENT_LENGTH']}\n\n";
 #echo "<!---\n\nlen:".strlen($HTTP_RAW_POST_DATA)."\n\n";
 #echo "[$HTTP_RAW_POST_DATA";

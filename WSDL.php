@@ -21,7 +21,6 @@
 //
 require_once 'SOAP/Base.php';
 require_once 'SOAP/Fault.php';
-require_once 'SOAP/globals.php';
 
 DEFINE("WSDL_CACHE_MAX_AGE",12*60*60);
 DEFINE("WSDL_CACHE_USE",0); // set to zero to turn off caching
@@ -374,8 +373,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
     
     // start-element handler
     function startElement($parser, $name, $attrs) {
-        global $SOAP_XMLSchema;
-        
         // get element prefix
         $qname = new QName($name);
         if ($qname->ns) {
@@ -476,7 +473,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                             $vq = new QName($v);
                             $this->wsdl->complexTypes[$this->schema][$this->currentElement][$q->name] = $vq->name;
                             if ($q->name == 'arrayType') {
-                                $this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] = $vq->name;
+                                $this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] = $v;
                                 $this->wsdl->complexTypes[$this->schema][$this->currentElement]['namespace'] = $vq->ns;
                             }
                         }
@@ -609,7 +606,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                         strcasecmp($value,SOAP_SCHEMA)==0) {
                         $this->soapns[] = strtolower($qn->name);
                     } else
-                    if (in_array($value, $SOAP_XMLSchema)) {
+                    if (in_array($value, $this->_XMLSchema)) {
                         $this->wsdl->xsd = $value;
                     }
                 }

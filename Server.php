@@ -20,14 +20,10 @@
 // $Id$
 //
 
-require_once 'SOAP/globals.php';
+require_once 'SOAP/Base.php';
 require_once 'SOAP/Fault.php';
 require_once 'SOAP/Parser.php';
-require_once 'SOAP/Message.php';
 require_once 'SOAP/Value.php';
-
-// make errors handle properly in windows
-#error_reporting(2039);
 
 $soap_server_fault = NULL;
 function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
@@ -49,7 +45,8 @@ function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
 * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_Server {
+class SOAP_Server extends SOAP_Base
+{
 
     /**
     *
@@ -92,17 +89,17 @@ class SOAP_Server {
     
     function SOAP_Server() {
         ini_set('track_errors',1);
+        parent::SOAP_Base('Server');
     }
     
     function _getContentEncoding($content_type)
     {
-        global $SOAP_Encodings;
         // get the character encoding of the incoming request
         // treat incoming data as UTF-8 if no encoding set
         $this->xml_encoding = 'UTF-8';
-        if (!$test && strpos($content_type,'=')) {
+        if (strpos($content_type,'=')) {
             $enc = strtoupper(str_replace('"',"",substr(strstr($content_type,'='),1)));
-            if (!in_array($enc, $SOAP_Encodings)) {
+            if (!in_array($enc, $this->_encodings)) {
                 return FALSE;
             }
             $this->xml_encoding = $enc;
@@ -110,60 +107,104 @@ class SOAP_Server {
         return TRUE;
     }
     
+    
     // parses request and posts response
     function service($data, $endpoint = '', $test = FALSE)
     {
-        global $_ENV, $_SERVER;
+        $response = NULL;
+        $attachments = array();
+        $headers = array();
+        $useEncoding = 'DIME';
         // figure out our endpoint
         $this->endpoint = $endpoint;
-        if (!$this->endpoint) {
+        if (!$test && !$this->endpoint) {
             // we'll try to build our endpoint
             $this->endpoint = 'http://'.$_SERVER['SERVER_NAME'];
             if ($_SERVER['SERVER_PORT']) $this->endpoint .= ':'.$_SERVER['SERVER_PORT'];
-            $this->endpoint .= $PHP_SELF;
+            $this->endpoint .= $_SERVER['SCRIPT_NAME'];
         }
 
         // get the character encoding of the incoming request
         // treat incoming data as UTF-8 if no encoding set
-        if (!$this->_getContentEncoding($_SERVER['CONTENT_TYPE'])) {
-            $this->xml_encoding = SOAP_DEFAULT_ENCODING;
-            // an encoding we don't understand, return a fault
-            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
-            $response = $this->getFaultMessage();                
+        if (isset($_SERVER['CONTENT_TYPE'])) {
+            if (strcasecmp($_SERVER['CONTENT_TYPE'],'application/dime')==0) {
+                $this->decodeDIMEMessage($data,$headers,$attachments);
+                $useEncoding = 'DIME';
+            } else if (stristr($_SERVER['CONTENT_TYPE'],'multipart/related')) {
+                // this is a mime message, lets decode it.
+                $data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
+                $this->decodeMimeMessage($data,$headers,$attachments);
+                $useEncoding = 'Mime';
+            }
+            if (!isset($headers['content-type'])) {
+                $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
+            }
+            if (!$this->soapfault &&
+                !$this->_getContentEncoding($headers['content-type'])) {
+                $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+                // an encoding we don't understand, return a fault
+                $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+            }
         }
         
         // if this is not a POST with Content-Type text/xml, try to return a WSDL file
-        if (!$response  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
-            strncmp($_SERVER['CONTENT_TYPE'],'text/xml',8) != 0)) {
+        if (!$this->soapfault  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
+            strncmp($headers['content-type'],'text/xml',8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
-                $this->makeFault('Server',"Invalid SOAP request, must be POST with content-type: text/xml");
-                $response = $this->getFaultMessage();
+                $this->makeFault('Server',"Invalid SOAP request, must be POST with content-type: text/xml, got: {$headers['content-type']}");
         }
         
-        if (!$response) {
+        if (!$this->soapfault) {
             // $response is a soap_msg object
-            $response = $this->parseRequest($data);
+            $soap_msg = $this->parseRequest($data, $attachments);
+            
+            // handle Mime or DIME encoding
+            // XXX DIME Encoding should move to the transport, do it here for now
+            // and for ease of getting it done
+            if (count($this->attachments)) {
+                if ($useEncoding == 'Mime') {
+                    $soap_msg = $this->_makeMimeMessage($soap_msg);
+                } else {
+                    // default is dime
+                    $soap_msg = $this->_makeDIMEMessage($soap_msg);
+                    $header['Content-Type'] = 'application/dime';
+                }
+                if (PEAR::isError($soap_msg)) {
+                    return $this->raiseSoapFault($soap_msg);
+                }
+            }
+            
+            if (is_array($soap_msg)) {
+                $response = $soap_msg['body'];
+                if (count($soap_msg['headers'])) {
+                    $header = $soap_msg['headers'];
+                }
+            } else {
+                $response = $soap_msg;
+            }
         }
         
-        $payload = $response->serialize($this->response_encoding);
-        // print headers
         if ($this->soapfault) {
-            #$header[] = "Status: 500 Internal Server Error\r\n";
-            $header[] = "HTTP/1.1 500 Soap Fault\r\n";
+            $hdrs = "HTTP/1.1 500 Soap Fault\r\n";
+            $response = $this->getFaultMessage();
         } else {
-            #$header[] = "Status: 200 OK\r\n";
-            $header[] = "HTTP/1.1 200 OK\r\n";
+           $hdrs = "HTTP/1.1 200 OK\r\n";
+        }
+        header($hdrs);
+
+        $header['Server'] = SOAP_LIBRARY_NAME;
+        if (!isset($header['Content-Type']))
+            $header['Content-Type'] = "text/xml; charset=$this->response_encoding";
+        $header['Content-Length'] = strlen($response);
+        
+        reset($header);
+        foreach ($header as $k => $v) {
+            header("$k: $v");
+            $hdrs .= "$k: $v\r\n";
         }
 
-        $header[] = 'Server: ' . SOAP_LIBRARY_NAME . "\r\n";
-        $header[] = "Content-Type: text/xml; charset=$this->response_encoding\r\n";
-        $header[] = 'Content-Length: ' . strlen($payload) . "\r\n\r\n";
-        reset($header);
-        foreach ($header as $hdr) {
-            header($hdr);
-        }
-        $this->response = join("\n", $header) . $payload;
-        print $payload;
+        $this->response = $hdrs . "\r\n" . $response;
+        print $response;
     }
     
     function callMethod($methodname, &$args) {
@@ -195,8 +236,7 @@ class SOAP_Server {
     // create soap_val object w/ return values from method, use method signature to determine type
     function buildResult(&$method_response, &$return_type, $return_name='return', $namespace = '')
     {
-        $class = get_class($method_response) ;
-        if ($class == 'soap_value' || $class == 'soap_header') {
+        if (gettype($method_response) == 'object' && is_a($method_response,'soap_value')) {
             $return_val = array($method_response);
         } else {
             if (is_array($return_type) && is_array($method_response)) {
@@ -204,10 +244,11 @@ class SOAP_Server {
 
                 foreach ($return_type as $key => $type) {
                     if (is_numeric($key)) $key = 'item';
-                    if (get_class($method_response[$i]) == 'soap_value') {
+                    if (is_a($method_response[$i],'soap_value')) {
                         $return_val[] = $method_response[$i++];
                     } else {
-                        $return_val[] = new SOAP_Value($key,$type,$method_response[$i++],$namespace);
+                        $qn = new QName($key, $namespace);
+                        $return_val[] = new SOAP_Value($qn->fqn(),$type,$method_response[$i++]);
                     }
                 }
             } else {
@@ -217,38 +258,22 @@ class SOAP_Server {
                     $values = array_values($return_type);
                     $return_type = $values[0];
                 }
-                $return_val = array(new SOAP_Value($return_name,$return_type,$method_response, $namespace));
+                $qn = new QName($return_name, $namespace);
+                $return_val = array(new SOAP_Value($qn->fqn(),$return_type,$method_response));
             }
         }
         return $return_val;
     }
     
-    function parseRequest($data='')
+    function parseRequest($data='', $attachments=NULL)
     {
-        global $_ENV, $_SERVER, $SOAP_Encodings;
-        
-
-
-        $this->request = $dump."\r\n\r\n".$data;
         // parse response, get soap parser obj
-        $parser = new SOAP_Parser($data,$this->xml_encoding);
+        $parser = new SOAP_Parser($data,$this->xml_encoding,$attachments);
         // if fault occurred during message parsing
         if ($parser->fault) {
-            $this->soapfault = $parser->fault->message();
-            #$this->makeFault('Server',"error in msg parsing:\n".$fault->serialize."\n\n<pre>$data</pre>\n\n");
-            return $parser->fault->message();
+            $this->soapfault = $parser->fault;
+            return NULL;
         }
-
-        /* set namespaces
-        if ($parser->namespaces['xsd'] != '') {
-            //print 'got '.$parser->namespaces['xsd'];
-            global $SOAP_namespaces;
-            $this->XMLSchemaVersion = $parser->namespaces['xsd'];
-            $tmpNS = array_flip($SOAP_namespaces);
-            $tmpNS['xsd'] = $this->XMLSchemaVersion;
-            $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
-            $SOAP_namespaces = array_flip($tmpNS);
-        }*/
 
         //*******************************************************
         // handle message headers
@@ -257,9 +282,9 @@ class SOAP_Server {
         $header_results = array();
 
         if ($request_headers) {
-            if (get_class($request_headers) != 'soap_value') {
+            if (!is_a($request_headers,'soap_value')) {
                 $this->makeFault('Server',"parser did not return SOAP_Value object: $request_headers");
-                return $this->getFaultMessage();
+                return NULL;
             }
             if ($request_headers->value) {
             // handle headers now
@@ -274,7 +299,7 @@ class SOAP_Server {
                 
                 if (!$f_exists && $header_val->mustunderstand && $myactor) {
                     $this->makeFault('Server',"I don't understand header $header_val->name.");
-                    return $this->getFaultMessage();
+                    return NULL;
                 }
                 
                 // we only handle the header if it's for us
@@ -283,13 +308,12 @@ class SOAP_Server {
                 if ($isok) {
                     # call our header now!
                     $header_method = $header_val->name;
-                    $header_data = array($header_val->decode());
+                    $header_data = array($this->decode($header_val));
                     // if there are parameters to pass
                     $hr = $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
-                    if (get_class($hr) == 'soap_message' &&
-                        stristr($hr->value->name,'fault')) {
-                            return $hr;
+                    if (is_a($hr,'soap_value') && stristr($hr->value->name,'fault')) {
+                        return $this->_makeEnvelope($hr, NULL, $this->response_encoding);
                     }
                     $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
                 }
@@ -308,63 +332,42 @@ class SOAP_Server {
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname)) {
             $this->makeFault('Server',"method '$this->methodname' not defined in service");
-            return $this->getFaultMessage();
+            return NULL;
         }
 
         if (!$request_val = $parser->getResponse()) {
-            return $this->getFaultMessage();
+            return NULL;
         }
-        if (get_class($request_val) != 'soap_value') {
+        if (!is_a($request_val,'soap_value')) {
             $this->makeFault('Server',"parser did not return SOAP_Value object: $request_val");
-            return $this->getFaultMessage();
+            return NULL;
         }
         
         // verify that SOAP_Value objects in request match the methods signature
         if (!$this->verifyMethod($request_val)) {
             // verifyMethod creates the fault
-            return $this->getFaultMessage();
+            return NULL;
         }
         
         // need to set special error detection inside the value class
         // so as to differentiate between no params passed, and an error decoding
-        $request_data = $request_val->decode();
+        $request_data = $this->decode($request_val);
 
         $method_response = $this->callMethod($this->methodname, $request_data);
 
-        // if return val is SOAP_Message
-        if (get_class($method_response) == 'soap_message') {
-            return $method_response;
-        }
-        
         // get the method result
         if (is_null($method_response))
             $return_val = NULL;
         else
             $return_val = $this->buildResult($method_response, $this->return_type);
         
-        // response object is a soap_msg object
-        $return_msg =  new SOAP_Message();
-        
-        // add response headers
-        if (count($header_results) > 0) {
-            foreach($header_results as $hr) {
-                $return_msg->addHeader($hr);
-            }
-        }
-        
-        $return_msg->method($this->methodname.'Response',$return_val,$this->method_namespace);
-
-        if ($this->debug_flag) {
-            $return_msg->debug_flag = true;
-        }
-
-        return $return_msg;
+        $qn = new QName($this->methodname.'Response',$this->method_namespace);
+        $methodValue = new SOAP_Value($qn->fqn(), 'Struct', $return_val);
+        return $this->_makeEnvelope($methodValue, $header_results, $this->response_encoding);
     }
     
     function verifyMethod($request)
     {
-        global $SOAP_typemap;
-
         //return true;
         $params = $request->value;
 
@@ -401,8 +404,8 @@ class SOAP_Server {
                         // this allows using plain php variables to work (ie. stuff like Decimal would fail otherwise)
                         // we only error if the types exist in our type maps, and they differ
                         if (strcasecmp($sig_t[$i],$p[$i])!=0 &&
-                            (isset($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]]) &&
-                            strcasecmp($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])!=0)) {
+                            (isset($this->_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]]) &&
+                            strcasecmp($this->_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$this->_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])!=0)) {
 
                             $param = $params[$i];
                             $this->makeFault('Client',"soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])));
@@ -481,7 +484,7 @@ class SOAP_Server {
     {
         if (!function_exists($methodname)) {
             $this->makeFault('Server',"error mapping function\n");
-            return $this->getFaultMessage();
+            return FALSE;
         }
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;

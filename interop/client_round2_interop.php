@@ -25,7 +25,7 @@ require_once 'SOAP/test/test.utility.php';
 
 error_reporting(E_ALL ^ E_NOTICE);
 
-class Interop_Client
+class Interop_Client extends SOAP_Base
 {
     // database DNS
     var $DSN = 'mysql://user@localhost/interop';
@@ -90,6 +90,7 @@ class Interop_Client
         // retreive endpoints from the endpoint server
         $endpointArray = $soapclient->call("GetEndpointInfo",array("groupName"=>$test),"http://soapinterop.org/info/","http://soapinterop.org/info/");
         if (PEAR::isError($endpointArray)) {
+            print $soapclient->wire;
             print_r($endpointArray);
             return;
         }
@@ -250,12 +251,13 @@ class Interop_Client
             foreach ($soap_test->headers as $h) {
                 $destination = 0;
                 if (get_class($h) == 'soap_header') {
-                    if ($h->actor == 'http://schemas.xmlsoap.org/soap/actor/next') $destination = 1;
-                    $test_name .= ":{$h->name},$destination,{$h->mustunderstand}";
+                    if ($h->attributes['SOAP-ENV:actor'] == 'http://schemas.xmlsoap.org/soap/actor/next') $destination = 1;
+                    $test_name .= ":{$h->name},$destination,{$h->attributes['SOAP-ENV:mustUnderstand']}";
                 } else {
-                    if (!$h[4] || $h[4] == 'http://schemas.xmlsoap.org/soap/actor/next') $destination = 1;
-                    if (!$h[3]) $h[3] = 0;
-                    $test_name .= ":$h[0],$destination,".(int)$h[3];
+                    if (!$h[3] || $h[3] == 'http://schemas.xmlsoap.org/soap/actor/next') $destination = 1;
+                    if (!$h[2]) $h[2] = 0;
+                    $qn = new QName($h[0]);
+                    $test_name .= ":{$qn->name},$destination,".(int)$h[2];
                 }
             }
         }
@@ -300,7 +302,7 @@ class Interop_Client
         if (gettype($soapval) == "object" &&
             (strcasecmp(get_class($soapval),"SOAP_Value") == 0 ||
              strcasecmp(get_class($soapval),"SOAP_Header") == 0)) {
-            $val = $soapval->decode();
+            $val = $this->decode($soapval);
         } else {
             $val = $soapval;
         }
@@ -433,7 +435,9 @@ class Interop_Client
                     $expect = $soap_test->headers_expect[$header->name];
                     $header_result[$header->name] = array();
                     // XXX need to fix need_result to identify the actor correctly
-                    $need_result = $hresult || ($header->actor == 'http://schemas.xmlsoap.org/soap/actor/next' && $header->mustunderstand);
+                    $need_result = $hresult ||
+                        ($header->attributes['SOAP-ENV:actor'] == 'http://schemas.xmlsoap.org/soap/actor/next'
+                         && $header->attributes['SOAP-ENV:mustUnderstand']);
                     if ($expect) {
                         $hresult = $soap->headers[key($expect)];
                         $ok = !$need_result || $this->compareResult($hresult ,$expect[key($expect)]);
@@ -555,8 +559,8 @@ class Interop_Client
                     foreach ($soap_test->headers as $header) {
                         if (get_class($header) == 'soap_header') {
                             if ($header->name == $m[2]) {
-                                $gotit = $header->actor == ($m[3]?SOAP_TEST_ACTOR_NEXT:SOAP_TEST_ACTOR_OTHER);
-                                $gotit = $gotit && $header->mustunderstand == $m[4];
+                                $gotit = $header->attributes['SOAP-ENV:actor'] == ($m[3]?SOAP_TEST_ACTOR_NEXT:SOAP_TEST_ACTOR_OTHER);
+                                $gotit = $gotit && $header->attributes['SOAP-ENV:mustUnderstand'] == $m[4];
                             }
                         } else {
                             if ($header[0] == $m[2]) {

@@ -19,7 +19,7 @@
 // $Id$
 //
 require_once 'SOAP/Server.php';
-require_once 'SOAP/Header.php';
+require_once 'SOAP/Value.php';
 
 class SOAP_Interop_GroupC {
     var $method_namespace = 'http://soapinterop.org/echoheader/';

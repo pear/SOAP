@@ -20,7 +20,6 @@
 // $Id$
 //
 require_once('PEAR.php');
-require_once('SOAP/Message.php');
 
 /**
  * SOAP_Fault
@@ -70,17 +69,15 @@ class SOAP_Fault extends PEAR_Error
      */
     function message()
     {
-        $msg = new SOAP_Message();
-        $msg->method('Fault',
-                array(
+        $msg = new SOAP_Base();
+        $params = array(
                     new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code),
                     new SOAP_Value('faultstring', 'string', $this->message),
                     new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix),
                     new SOAP_Value('detail', 'string', $this->userinfo)
-                ),
-                SOAP_ENVELOP
-            );
-        return $msg;
+                );
+        $methodValue = new SOAP_Value('{'.SOAP_ENVELOP.'}Fault', 'Struct', $params);
+        return $msg->_makeEnvelope($methodValue);
     }
     
     /**

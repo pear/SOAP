@@ -37,7 +37,7 @@ $iop->skipEndpointList = array(); // endpoints to skip
 $this->nosave = 0; // 1= disable saving results to database
 // debug output
 $iop->show = 1;
-$iop->debug = 0;
+$iop->debug = 1;
 $iop->showFaults = 0; // used in result table output
 
 #$iop->doTest();  // run a single set of tests using above options

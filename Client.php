@@ -23,7 +23,6 @@
 require_once 'SOAP/Value.php';
 require_once 'SOAP/Base.php';
 require_once 'SOAP/Transport.php';
-require_once 'SOAP/Message.php';
 require_once 'SOAP/WSDL.php';
 require_once 'SOAP/Fault.php';
 
@@ -105,6 +104,8 @@ class SOAP_Client extends SOAP_Base
     * @var  string  Contains the character encoding used for XML parser, etc.
     */
     var $encoding = SOAP_DEFAULT_ENCODING;
+    
+    var $headers = NULL;
     /**
     * SOAP_Client constructor
     *
@@ -142,8 +143,7 @@ class SOAP_Client extends SOAP_Base
     */
     function setEncoding($encoding)
     {
-        global $SOAP_Encodings;
-        if (in_array($encoding, $SOAP_Encodings)) {
+        if (in_array($encoding, $this->_encodings)) {
             $this->encoding = $encoding;
             return NULL;
         }
@@ -162,17 +162,14 @@ class SOAP_Client extends SOAP_Base
     */
     function addHeader($soap_value)
     {
-        if (!$this->soapmsg) {
-            soap_reset_namespaces();
-            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
-        }
         # add a new header to the message
-        if (get_class($soap_value) == 'soap_header') {
-            $this->soapmsg->addHeader($soap_value);
+        if (is_a($soap_value,'soap_header')) {
+            #$this->soapmsg->addHeader($soap_value);
+            $this->headers[] = $soap_value;
         } else if (gettype($soap_value) == 'array') {
             // name, value, namespace, mustunderstand, actor
-            $h = new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3], $soap_value[4]);
-            $this->soapmsg->addHeader($h);
+            $h = new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3]);
+            $this->headers[] = $h;
         } else {
             $this->raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
@@ -211,15 +208,10 @@ class SOAP_Client extends SOAP_Base
         $this->fault = null;
         $options = array();
         
-        // make message
-        if (!$this->soapmsg) {
-            soap_reset_namespaces();
-            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
-        }
-        
         if (gettype($namespace) == 'array') {
             $options = $namespace;
-            $namespace = $options['namespace'];
+            if (isset($options['namespace'])) $namespace = $options['namespace'];
+            else $namespace = false;
         } else {
             // we'll place soapaction into our array for usage in the transport
             $options['soapaction'] = $soapAction;
@@ -264,16 +256,17 @@ class SOAP_Client extends SOAP_Base
                         $nparams[$name] = current($params);
                         next($params);
                     }
-                    if (gettype($nparams[$name]) != 'object' &&
-                        get_class($nparams[$name]) != 'soap_value') {
+                    if (gettype($nparams[$name]) != 'object' ||
+                        !is_a($nparams[$name],'soap_value')) {
                         // type is a qname likely, split it apart, and get the type namespace from wsdl
                         $qname = new QName($type);
                         if ($qname->ns) 
                             $type_namespace = $this->wsdl->namespaces[$qname->ns];
                         else
                             $type_namespace = NULL;
+                        $qname->namespace = $type_namespace;
                         $type = $qname->name;
-                        $nparams[$name] = new SOAP_Value($name, $qname->name, $nparams[$name], NULL, $type_namespace, $this->wsdl);
+                        $nparams[$name] = new SOAP_Value($name, $qname->fqn(), $nparams[$name]);
                     }
                 }
             }
@@ -282,21 +275,50 @@ class SOAP_Client extends SOAP_Base
             $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
         
-        $this->soapmsg->method($method, $params, $namespace);
-        if ($this->soapmsg->fault) {
-            return $this->raiseSoapFault($this->soapmsg->fault);
-        }
-
         // serialize the message
-        $soap_data = $this->soapmsg->serialize($this->encoding);
+        $mqname = new QName($method, $namespace);
+        $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
+        $soap_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding);
 
-        if (PEAR::isError($soap_data)) {
-            return $this->raiseSoapFault($soap_data);
+        if (PEAR::isError($soap_msg)) {
+            return $this->raiseSoapFault($soap_msg);
+        }
+        
+        // handle Mime or DIME encoding
+        // XXX DIME Encoding should move to the transport, do it here for now
+        // and for ease of getting it done
+        if (count($this->attachments)) {
+            if (isset($options['Mime'])) {
+                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->encoding);
+            } else {
+                // default is dime
+                $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->encoding);
+                $options['headers']['Content-Type'] = 'application/dime';
+            }
+            if (PEAR::isError($soap_msg)) {
+                return $this->raiseSoapFault($soap_msg);
+            }
         }
         
         // instantiate client
-        $dbg = "calling server at '$this->endpoint'...";
-        
+        if (is_array($soap_msg)) {
+            $soap_data = $soap_msg['body'];
+            if (count($soap_msg['headers'])) {
+                if (isset($options['headers'])) {
+                    $options['headers'] = array_merge($options['headers'],$soap_msg['headers']);
+                } else {
+                    $options['headers'] = $soap_msg['headers'];
+                }
+            }
+        } else {
+            $soap_data = $soap_msg;
+        }
+        #$f = fopen('/tmp/dime.data','wb+');
+        #if ($f) {
+        #    fwrite($f,$soap_data);
+        #    fclose($f);
+        #    return;
+        #}
         $soap_transport = new SOAP_Transport($this->endpoint, $this->encoding);
         
         if ($soap_transport->fault) {
@@ -319,7 +341,7 @@ class SOAP_Client extends SOAP_Base
         }
 
         // parse the response
-        $this->response = new SOAP_Parser($this->response, $soap_transport->result_encoding);
+        $this->response = new SOAP_Parser($this->response, $soap_transport->result_encoding,$soap_transport->transport->attachments);
         if ($this->response->fault) {
             return $this->raiseSoapFault($this->response->fault);
         }
@@ -327,20 +349,20 @@ class SOAP_Client extends SOAP_Base
         $return = $this->response->getResponse();
         $headers = $this->response->getHeaders();
         if ($headers) {
-            $this->headers = $headers->decode();
+            $this->headers = $this->decode($headers);
         }
         
-        $this->soapmsg = NULL;        
+        #$this->soapmsg = NULL;        
         
         // check for valid response
         if (PEAR::isError($return)) {
             return $this->raiseSoapFault($return);
-        } else if (strcasecmp(get_class($return), 'SOAP_Value') != 0) {
+        } else if (!is_a($return,'soap_value')) {
             return $this->raiseSoapFault("didn't get SOAP_Value object back from client");
         }
 
         // decode to native php datatype
-        $returnArray = $return->decode();
+        $returnArray = $this->decode($return);
         // fault?
         if (PEAR::isError($returnArray)) {
             return $this->raiseSoapFault($returnArray);
@@ -364,25 +386,6 @@ class SOAP_Client extends SOAP_Base
         return $returnArray;
     }
 
-    /**
-    * setSchemaVersion
-    *
-    * sets the schema version used in the soap message
-    *
-    * @param string (see globals.php)
-    *
-    * @access private
-    */
-    function setSchemaVersion($schemaVersion)
-    {
-        global $SOAP_namespaces;
-        $this->XMLSchemaVersion = $schemaVersion;
-        $tmpNS = array_flip($SOAP_namespaces);
-        $tmpNS['xsd'] = $this->XMLSchemaVersion;
-        $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
-        $SOAP_namespaces = array_flip($tmpNS);
-    }
-    
     /**
     * SOAP_Client::__call
     *

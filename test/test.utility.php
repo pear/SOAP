@@ -1,7 +1,6 @@
 <?php
 require_once("SOAP/Parser.php");
 require_once("SOAP/Value.php");
-require_once("SOAP/Message.php");
 
 function number_compare($f1, $f2)
 {
@@ -10,7 +9,7 @@ function number_compare($f1, $f2)
     preg_match('/.*?\.(.*)/',$f2,$m2);
     #print_r($m1);
     # always use at least 2 digits of precision
-    $d = max(min(strlen($m1[1]),strlen($m2[1])),2);
+    $d = max(min(strlen(count($m1)?$m1[1]:'0'),strlen(count($m2)?$m2[1]:'0')),2);
     $f1 = round($f1, $d);
     $f2 = round($f2, $d);
     return bccomp($f1, $f2, $d) == 0;
@@ -71,7 +70,7 @@ function parseMessage($msg)
         return $response->fault->getFault();
     }
     $return = $response->getResponse();
-    $v = $return->decode();
+    $v = $response->decode($return);
     if (gettype($v) == 'array' && count($v)==1) {
         return array_shift($v);
     }

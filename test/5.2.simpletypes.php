@@ -1,6 +1,9 @@
 <?php
+require_once("SOAP/Base.php");
 require_once("SOAP/test/test.utility.php");
 require_once("SOAP/Fault.php");
+$soap_base = new SOAP_Base();
+
 $prefix = "5.2 Simple Types";
 
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
@@ -55,7 +58,8 @@ $v =  new SOAP_Value("inputStruct","Struct",array(
         new SOAP_Value("displacement","negativeInteger",-450),
         new SOAP_Value("color","string","Blue")
         ));
-$val = $v->serialize();
+
+$val = $v->serialize($soap_base);
 if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val))) {
     print "$prefix Serialize Type OK\n";
 } else {
@@ -64,7 +68,7 @@ if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val)))
 
 # deserialize a soap value
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
-$val = $v->decode();
+$val = $soap_base->decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize known SOAP_Value OK\n";
 } else {
@@ -80,7 +84,7 @@ $expect = '<inputString>
 </inputString>
 ';
 $v =  new SOAP_Value("inputString","Struct",array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue'));
-$val = $v->serialize();
+$val = $v->serialize($soap_base);
 if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val))) {
     print "$prefix Serialize Unknown Type OK\n";
 } else {
@@ -89,8 +93,8 @@ if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val)))
 
 # serialize a soap value with unknown type
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
-$val = $v->decode();
-if (string_compare($expect, $val)) {
+$val = $soap_base->decode($v);
+if (array_compare($expect, $val)) {
     print "$prefix Deserialize Unknown SOAP_Value OK\n";
 } else {
     print "$prefix Deserialize Unknown SOAP_Value FAILED\n";

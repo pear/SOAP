@@ -45,6 +45,49 @@ require_once 'SOAP/Transport.php';
 * @author   Shane Caraveo <shane@php.net> 
 */
 class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
+    /**
+    * remove http headers from response
+    *
+    * TODO: use PEAR email classes
+    *
+    * @return boolean
+    * @access private
+    */
+    function _parseEmail(&$data)
+    {
+        if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $data, $match)) {
+            
+            if (preg_match_all('/^(.*?):\s+(.*)$/m', $match[1], $matches)) {
+                $hc = count($matches[0]);
+                for ($i = 0; $i < $hc; $i++) {
+                    $this->headers[strtolower($matches[1][$i])] = trim($matches[2][$i]);
+                }
+            }
+
+            if (!stristr($this->headers['content-type'],'text/xml')) {
+                    $this->makeFault('Client','Invalid Content Type');
+                    return FALSE;
+            }
+            
+            if (strcasecmp($this->headers['content-transfer-encoding'],'base64')==0) {
+                // join lines back together
+                $enctext = preg_replace("/[\r|\n]/", '', $match[2]);
+                $this->request = base64_decode($enctext);
+            } else if (strcasecmp($this->headers['content-transfer-encoding'],'quoted-printable')==0) {
+                $this->request = $match[2];
+            } else {
+                $this->makeFault('Client','Invalid Content-Transfer-Encoding');
+                return FALSE;
+            }
+            
+            // if no content, return false
+            return strlen($this->request) > 0;
+        }
+        $this->makeFault('Client','Invalid Email Format');
+        return FALSE;
+    }
+
+
     function service(&$data, $gateway, $endpoint = '', $send_response = TRUE, $dump = FALSE)
     {
         $this->endpoint = $endpoint;
@@ -75,6 +118,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         // send the message
         if (!$response) {
             $options['soapaction'] = $this->headers['soapaction'];
+            $options['headers']['Content-Type'] = $this->headers['content-type'];
             $response = $soap_transport->send($this->request, $options);
             if ($soap_transport->fault) {
                 $fault = $soap_transport->fault->message();

@@ -113,13 +113,12 @@ class SOAP_Interop_Base {
 
     function echoStruct($inputStruct)
     {
-	return new SOAP_Value('return','SOAPStruct',
+	return new SOAP_Value('return','{http://soapinterop.org/xsd}SOAPStruct',
 			      array(
 				  new SOAP_Value('varInt','int',$inputStruct['varInt']),
 				  new SOAP_Value('varFloat','float',$inputStruct['varFloat']),
 				  new SOAP_Value('varString','string',$inputStruct['varString'])
-				   ),
-			      'http://soapinterop.org/xsd');
+				   ));
     }
 
     function echoStructArray($inputStructArray)
@@ -127,13 +126,12 @@ class SOAP_Interop_Base {
 	$ra = array();
 	if ($inputStructArray) {
 	foreach($inputStructArray as $struct) {
-	    $ra[] = new SOAP_Value('item','SOAPStruct',
+	    $ra[] = new SOAP_Value('item','{http://soapinterop.org/xsd}SOAPStruct',
 			      array(
 				  new SOAP_Value('varInt','int',$struct['varInt']),
 				  new SOAP_Value('varFloat','float',$struct['varFloat']),
 				  new SOAP_Value('varString','string',$struct['varString'])
-				   ),
-			      'http://soapinterop.org/xsd');
+				   ));
 	}
 	}
 	return $ra;
@@ -173,6 +171,11 @@ class SOAP_Interop_Base {
     function echoBoolean($boolean)
     {
 	return new SOAP_Value('return','boolean',$boolean);
+    }
+    
+    function echoMimeAttachment($stuff)
+    {
+        return new SOAP_Attachment('return','application/octet-stream',NULL,$stuff);
     }
 }
 

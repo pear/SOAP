@@ -27,7 +27,6 @@
 //  ability to define smtp options (encoding, from, etc.)
 //
 
-require_once 'SOAP/globals.php';
 require_once 'SOAP/Message.php';
 require_once 'SOAP/Base.php';
 
@@ -88,50 +87,57 @@ class SOAP_Transport_SMTP extends SOAP_Base
         if (!$options || !array_key_exists('from',$options)) {
             return $this->raiseSoapFault("No FROM address to send message with");
         }
-        $headers = "From: {$options['from']}\n".
-                            "X-Mailer: $this->_userAgent\n".
-                            "MIME-Version: 1.0\n".
-                            "Content-Disposition: inline\n".
-                            "Content-Type: text/xml; charset=\"$this->encoding\"\n";
         
-        if (array_key_exists('transfer-encoding', $options)) {
-            if (strcasecmp($options['transfer-encoding'],'quoted-printable')==0) {
-                $headers .="Content-Transfer-Encoding: {$options['transfer-encoding']}\n";
-                $out = &$msg;
-            } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
+        $headers = array();
+        $headers['From'] = $options['from'];
+        $headers['X-Mailer'] = $this->_userAgent;
+        $headers['MIME-Version'] = '1.0';
+        if (array_key_exists('soapaction', $options)) {
+            $headers['Soapaction'] = "\"{$options['soapaction']}\"";
+        }
+        
+        if (isset($options['headers']))
+            $headers = array_merge($headers, $options['headers']);
+        
+        // if the content type is already set, we assume that Mime encoding
+        // is already done
+        if (!isset($headers['Content-Type'])) {
+            // do an inline Mime encoding
+            $headers['Content-Disposition'] = 'inline';
+            $headers['Content-Type'] = "text/xml; charset=\"$this->encoding\"";
+            if (array_key_exists('transfer-encoding', $options)) {
+                if (strcasecmp($options['transfer-encoding'],'quoted-printable')==0) {
+                    $headers .="Content-Transfer-Encoding: {$options['transfer-encoding']}\n";
+                    $out = &$msg;
+                } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
+                    $headers .="Content-Transfer-Encoding: base64\n";
+                    $out = chunk_split(base64_encode($msg));
+                } else {
+                    return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
+                }
+            } else {
+                // default to base64
                 $headers .="Content-Transfer-Encoding: base64\n";
                 $out = chunk_split(base64_encode($msg));
-            } else {
-                return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
             }
-        } else {
-            // default to base64
-            $headers .="Content-Transfer-Encoding: base64\n";
-            $out = chunk_split(base64_encode($msg));
-        }
-                            
-        if (array_key_exists('soapaction', $options)) {
-            "Soapaction: \"{$options['soapaction']}\"\n";
         }
         
-        if (array_key_exists('headers', $options)) {
-            foreach ($options['headers'] as $key => $value) {
-                $headers .= "$key: $value\n";
-            }
+        foreach ($headers as $key => $value) {
+            $header_text .= "$key: $value\n";
         }
         
         $subject = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
         
-        $this->outgoing_payload = $headers."\n\n".$this->outgoing_payload;
+        $this->outgoing_payload = $header_text."\n\n".$this->outgoing_payload;
         # we want to return a proper XML message
-        $result = mail($this->urlparts['path'], $subject, $out, $headers);
+        $result = mail($this->urlparts['path'], $subject, $out, $header_text);
 
         if ($result) {
             $val = new SOAP_Value('return','boolean',TRUE);
         } else {
             $val = new SOAP_Value('Fault','Struct',array(
-                new SOAP_Value('faultcode','string','SOAP-ENV:Transport:SMTP'),
-                new SOAP_Value('faultstring','string',"couldn't send message to $action")
+                new SOAP_Value('faultcode','QName','SOAP-ENV:Client'),
+                new SOAP_Value('faultstring','string',"couldn't send SMTP message to $action")
                 ));
         }
 

@@ -19,9 +19,8 @@
 // $Id$
 //
 
-require_once 'SOAP/globals.php';
 require_once 'SOAP/Base.php';
-
+require_once 'Net_DIME/DIME.php';
 /**
 *  HTTP Transport for SOAP
 *
@@ -38,7 +37,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     *
     * @var  string
     */
-    var $credentials = '';
+    var $headers = array();
     
     /**
     *
@@ -116,13 +115,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return $this->fault;
         }
         
-        if ($timeout) 
+        if (isset($options['timeout'])) 
             $this->timeout = (int)$options['timeout'];
     
         if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0) {
-            return $this->_sendHTTP($msg, $options['soapaction']);
+            return $this->_sendHTTP($msg, $options);
         } else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) {
-            return $this->_sendHTTPS($msg, $options['soapaction']);
+            return $this->_sendHTTPS($msg, $options);
         }
         
         return $this->raiseSoapFault('Invalid url scheme '.$this->url);
@@ -140,7 +139,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     */
     function setCredentials($username, $password)
     {
-        $this->credentials = 'Authorization: Basic ' . base64_encode($username . ':' . $password) . "\r\n";
+        $this->headers['Authorization'] = 'Basic ' . base64_encode($username . ':' . $password);
     }
     
     // private members
@@ -178,8 +177,6 @@ class SOAP_Transport_HTTP extends SOAP_Base
     
     function _parseEncoding($headers)
     {
-        global $SOAP_Encodings;
-        
         $h = stristr($headers,'Content-Type');
         preg_match('/^Content-Type:\s*(.*)$/im',$h,$ct);
         $this->result_content_type = str_replace("\r","",$ct[1]);
@@ -188,7 +185,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             $this->result_content_type = $m[1];
             if (count($m) > 2) {
                 $enc = strtoupper(str_replace('"',"",$m[2]));
-                if (in_array($enc, $SOAP_Encodings)) {
+                if (in_array($enc, $this->_encodings)) {
                     $this->result_encoding = $enc;
                 }
             }
@@ -215,9 +212,16 @@ class SOAP_Transport_HTTP extends SOAP_Base
                     return FALSE;
             }
             $this->_parseEncoding($match[1]);
-            if ($this->result_content_type != 'text/xml') {
-                    $this->raiseSoapFault($this->response);
-                    return FALSE;
+            if ($this->result_content_type == 'application/dime') {
+                // XXX quick hack insertion of DIME
+                $this->decodeDIMEMessage($this->response,$this->headers,$this->attachments);
+                $this->result_content_type = $this->headers['content-type'];
+            } else if (stristr($this->result_content_type,'multipart/related')) {
+                $this->response = $this->incoming_payload;
+                $this->decodeMimeMessage($this->response,$this->headers,$this->attachments);
+            } else if ($this->result_content_type != 'text/xml') {
+                $this->raiseSoapFault($this->response);
+                return FALSE;
             }
             // if no content, return false
             return strlen($this->response) > 0;
@@ -232,19 +236,27 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @return string outgoing_payload
     * @access private
     */
-    function &_getRequest(&$msg, $action)
+    function &_getRequest(&$msg, $options)
     {
+        $action = isset($options['soapaction'])?$options['soapaction']:'';
         $fullpath = $this->urlparts['path'].
-                        ($this->urlparts['query']?'?'.$this->urlparts['query']:'').
-                        ($this->urlparts['fragment']?'#'.$this->urlparts['fragment']:'');
+                        (isset($this->urlparts['query'])?'?'.$this->urlparts['query']:'').
+                        (isset($this->urlparts['fragment'])?'#'.$this->urlparts['fragment']:'');
+        $this->headers['User-Agent'] = $this->_userAgent;
+        $this->headers['Host'] = $this->urlparts['host'];
+        $this->headers['Content-Type'] = "text/xml; charset=$this->encoding";
+        $this->headers['Content-Length'] = strlen($msg);
+        $this->headers['SOAPAction'] = "\"$action\"";
+        if (isset($options['headers'])) {
+            $this->headers = array_merge($this->headers, $options['headers']);
+        }
+        $headers = '';
+        foreach ($this->headers as $k => $v) {
+            $headers .= "$k: $v\r\n";
+        }
         $this->outgoing_payload = 
                 "POST $fullpath HTTP/1.0\r\n".
-                "User-Agent: {$this->_userAgent}\r\n".
-                "Host: {$this->urlparts['host']}\r\n".
-                $this->credentials. 
-                "Content-Type: text/xml; charset=$this->encoding\r\n".
-                "Content-Length: ".strlen($msg)."\r\n".
-                "SOAPAction: \"$action\"\r\n\r\n".
+                $headers."\r\n".
                 $msg;
         return $this->outgoing_payload;
     }
@@ -258,9 +270,9 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @return string &$response   response data, minus http headers
     * @access private
     */
-    function &_sendHTTP(&$msg, $action = '')
+    function &_sendHTTP(&$msg, $options)
     {
-        $this->_getRequest($msg, $action);
+        $this->_getRequest($msg, $options);
         
         // send
         if ($this->timeout > 0) {
@@ -298,7 +310,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @return string &$response   response data, minus http headers
     * @access private
     */
-    function &_sendHTTPS(&$msg, $action)
+    function &_sendHTTPS(&$msg, $options)
     {
         /* NOTE This function uses the CURL functions
         *  Your php must be compiled with CURL
@@ -307,7 +319,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return $this->raiseSoapFault('CURL Extension is required for HTTPS');
         }
         
-        $this->_getRequest($msg, $action);
+        $this->_getRequest($msg, $options);
         
         $ch = curl_init(); 
         if ($this->timeout) {
