@@ -19,20 +19,11 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.7.0</version>
-    <date>2002-07-06</date>
+    <version>0.7.1</version>
+    <date>2002-11-11</date>
     <notes>
-      Includes minor API changes from 0.6.2, and some possible minor incompabitibilities with .6.2.
-      Supports HTTP Proxy (SOAP_Client constructor 
-      takes 4th param of type array, SOAP_WSDL
-      constructor takes 2nd param of type array, see HTTP_Request
-      docs for proxy parameters).
-      Client now returns objects instead of associative arrays
-      Improved WSDL proxy generation.
-      Server support for binding servers to wsdl (bind method)
-      Server support for document/literal servers
-      Interop tests are moved to SOAP_Interop module, available
-      via CVS only.  Interop now supports Round 3 Group D tests.
+      Minor PEAR package fixes to ease installation issues.
+      A couple minor bug fixes.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -68,28 +59,36 @@
           <file role="php" name="duration.php"/>
           <file role="php" name="hexBinary.php"/>
         </dir>
-        <dir name="test" role="test"> 
-          <file role="test" name="5.2.simpletypes.php"/>
-          <file role="test" name="5.2.1.simpletypes.string.php"/>
-          <file role="test" name="5.2.1.simpletypes.multiref.php"/>
-          <file role="test" name="all.php"/>
-          <file role="test" name="smtp.php"/>
-          <file role="test" name="test.utility.php"/>
-          <file role="test" name="xmethods.php"/>
-        </dir>
       </dir>
     </filelist>
     <deps>
       <dep type="php" rel="ge" version="4.1"/>
-      <dep type="ext" rel="has">bcmath</dep>
       <dep type="ext" rel="has">pcre</dep>
       <dep type="pkg" rel="has">Mail_Mime</dep>
       <dep type="pkg" rel="has">HTTP_Request</dep>
-      <dep type="pkg" rel="ge" version="1.0.5">Net_URL</dep>
-      <dep type="pkg" rel="ge" version="0.1">Net_DIME</dep>
+      <dep type="pkg" rel="ge" version="1.0.4">Net_URL</dep>
+      <dep type="pkg" rel="has">Net_DIME</dep>
     </deps>
   </release>
   <changelog>
+  <release>
+    <state>beta</state>
+    <version>0.7.0</version>
+    <date>2002-07-06</date>
+    <notes>
+      Includes minor API changes from 0.6.2, and some possible minor incompabitibilities with .6.2.
+      Supports HTTP Proxy (SOAP_Client constructor 
+      takes 4th param of type array, SOAP_WSDL
+      constructor takes 2nd param of type array, see HTTP_Request
+      docs for proxy parameters).
+      Client now returns objects instead of associative arrays
+      Improved WSDL proxy generation.
+      Server support for binding servers to wsdl (bind method)
+      Server support for document/literal servers
+      Interop tests are moved to SOAP_Interop module, available
+      via CVS only.  Interop now supports Round 3 Group D tests.
+    </notes>
+  </release>    
   <release>
     <state>beta</state>
     <version>0.6.2</version>
