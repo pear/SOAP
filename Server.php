@@ -58,6 +58,8 @@ class SOAP_Server extends SOAP_Base
     var $dispatch_objects = array();
     var $soapobject = NULL;
     var $call_methodname = NULL;
+    var $callHandler = NULL;
+    var $callValidation = true;
     
     /**
     *
@@ -219,6 +221,9 @@ class SOAP_Server extends SOAP_Base
     function &callMethod($methodname, &$args) {
         global $soap_server_fault;
         unset($soap_server_fault);
+        if ($this->callHandler) {
+            return @call_user_func_array($this->callHandler,array($methodname,$args));
+        }
         set_error_handler('SOAP_ServerErrorHandler');
         if ($args) {
             // call method with parameters
@@ -447,6 +452,7 @@ class SOAP_Server extends SOAP_Base
 
     function verifyMethod($request)
     {
+        if (!$this->callValidation) return TRUE;
         //return true;
         $params = $request->value;
 
@@ -533,7 +539,7 @@ class SOAP_Server extends SOAP_Base
     function validateMethod($methodname, $namespace = NULL)
     {
         unset($this->soapobject);
-        
+        if (!$this->callValidation) return TRUE;
         # no soap access to private functions
         if ($methodname[0] == '_') return FALSE;
         
@@ -600,6 +606,11 @@ class SOAP_Server extends SOAP_Base
         $this->dispatch_map[$methodname]['alias'] = $alias;
         if ($namespace) $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
+    }
+    
+    function setCallHandler($callHandler, $validation=true) {
+        $this->callHandler = $callHandler;
+        $this->callValidation = $validation;
     }
     
     function bind($wsdlurl) {
