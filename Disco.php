@@ -107,8 +107,8 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                 $i++;
             }
         }
-
-        $this->_wsdl['definitions']['types']['xsd:schema']=array();
+        $this->_wsdl['definitions']['types']['attr']['xmlns']='http://schemas.xmlsoap.org/wsdl/';
+        $this->_wsdl['definitions']['types']['schema']=array();
         # PORTTYPE-NAME
         $this->_portname = $this->_service_name . 'Port';
         $this->_wsdl['definitions']['portType']['attr']['name'] = $this->_portname;
@@ -155,18 +155,18 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
 
     function &_getSchema($namespace) {
         # SCHEMA
-        $c = count($this->_wsdl['definitions']['types']['xsd:schema']);
+        $c = count($this->_wsdl['definitions']['types']['schema']);
         for($i = 0; $i < $c; $i++) {
-            if ($this->_wsdl['definitions']['types']['xsd:schema'][$i]['attr']['targetNamespace'] == $namespace)
-                return $this->_wsdl['definitions']['types']['xsd:schema'][$i];
+            if ($this->_wsdl['definitions']['types']['schema'][$i]['attr']['targetNamespace'] == $namespace)
+                return $this->_wsdl['definitions']['types']['schema'][$i];
         }
         # don't have this namespace
         $schema = array();
         $schema['attr'] = array();
-        $schema['xsd:complexType'] = array();
+        $schema['complexType'] = array();
         $schema['attr']['xmlns'] = array_search('xsd',$this->namespaces);
         $schema['attr']['targetNamespace'] = $namespace;
-        $this->_wsdl['definitions']['types']['xsd:schema'][] =& $schema;
+        $this->_wsdl['definitions']['types']['schema'][] =& $schema;
         return $schema;
     }
     
@@ -179,23 +179,23 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                 $typens = 'tns';
             }
             $schema =& $this->_getSchema(array_search($typens,$this->namespaces));
-            if (!$this->_ifComplexTypeExists($schema['xsd:complexType'], $type)) {
-                $ctype =& $schema['xsd:complexType'][];
+            if (!$this->_ifComplexTypeExists($schema['complexType'], $type)) {
+                $ctype =& $schema['complexType'][];
                 $ctype['attr']['name'] = $type;
                 foreach ($_type_def as $_varname => $_vartype) {
                     if (!is_int($_varname)) {
                         list($_vartypens,$_vartype) = $this->_getTypeNs($_vartype);
-                        $ctype['xsd:all']['attr'] = '';
-                        $el =& $ctype['xsd:all']['xsd:element'][];
+                        $ctype['all']['attr'] = '';
+                        $el =& $ctype['all']['element'][];
                         $el['attr']['name'] = $_varname;
                         $el['attr']['type'] = $_vartypens . ':' . $_vartype;
                     } else {
-                        $ctype['xsd:complexContent']['attr'] = '';
-                        $ctype['xsd:complexContent']['xsd:restriction']['attr']['base'] = 'soapenc:Array';
+                        $ctype['complexContent']['attr'] = '';
+                        $ctype['complexContent']['restriction']['attr']['base'] = 'soapenc:Array';
                         foreach ($_vartype as $array_var => $array_type) {
                             list($_vartypens,$_vartype) = $this->_getTypeNs($array_type);
-                            $ctype['xsd:complexContent']['xsd:restriction']['xsd:attribute']['attr']['ref'] = 'soapenc:arrayType';
-                            $ctype['xsd:complexContent']['xsd:restriction']['xsd:attribute']['attr']['wsdl:arrayType'] = $_vartypens . ':' . $_vartype . '[]';
+                            $ctype['complexContent']['restriction']['attribute']['attr']['ref'] = 'soapenc:arrayType';
+                            $ctype['complexContent']['restriction']['attribute']['attr']['wsdl:arrayType'] = $_vartypens . ':' . $_vartype . '[]';
                         }
                     }
                 }
