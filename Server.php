@@ -335,7 +335,7 @@ class SOAP_Server extends SOAP_Base
                     $hr =& $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
                     if (PEAR::isError($hr)) {
-                        $this->_raiseSoapFault($method_response);
+                        $this->_raiseSoapFault($hr);
                         return null;
                     }
                     $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
