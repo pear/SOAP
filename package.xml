@@ -25,51 +25,10 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.8RC1</version>
-    <date>2003-08-17</date>
+    <version>0.8RC3</version>
+    <date>2003-xx-xx</date>
     <notes>
-    * timeout reporting on HTTP transmission (now returns an error)
-    * typo in WSDL.php on a variable test
-    * better error reporting of HTTP response
-    * series of patches from Chris Coe, l=list of improvements follows
-    * the new class SOAP_WSDL_ObjectParser does for class
-objects what SOAP_WSDL_Parser does for WSDL files; it parses all the
-information from any __dispatch_maps and __typedefs present into the array
-structures in SOAP_WSDL. This enables type information to be correctly
-serialised in SOAP server responses, using the already existing method
-getSchemaType
-    * namespace prefixes are no longer stored in lower-case
-(strtolower()-ed) in array keys or values.
-    * In Base.php and Server.php, the SOAP-ENC:arrayType attribute of
-arrays that are user-defined array types in a WSDL file or __typedef, which are
-themselves contained in one or more other user-defined array types, are now
-serialised in such a way that does not cause a runtime exception in .NET SOAP
-clients (SOAP_Base::_serialiseValue and SOAP_Server::getSchemaType were changed
-and SOAP_Server::_getDeepestArrayType was added).
-    * In WSDL.php, the WSDL-file parsing function parse() was renamed to
-parseURL(). A new function parseObject() was added which takes a single object
-or array of objects to parse into WSDL array data, a target namespace for the
-types, a WSDL service name and an optional WSDL service documentation string.
-    * the constructor of SOAP_WSDL was changed so that if a URL to a WSDL
-file is NOT supplied, no attempt is made to parse it or set the service name.
-Previously, creating an instance of SOAP_WSDL with no parameters would cause an
-'unable to read local WSDL file' fault to be generated.
-    *  Server.php, the addObjectWSDL() function was added. This takes
-the same parameters as SOAP_WSDL::parseObject and is an interface to that
-function. If no associated SOAP_WSDL object exists when this function is
-called,
-one is created; otherwise, objects' data is added to the existing SOAP_WSDL
-object. SOAP_Server::bind was renamed to SOAP_Server::bindWSDL().
-    * In Server.php, addObjectMap() was given two extra, optional
-parameters - a WSDL service name and description (the name defaults to
-'Default'),
-and will call addObjectWSDL() automatically when called. Therefore the same
-syntax used to create SOAP_Servers now can continue to be used, yet the WSDL
-information will be created automatically.
-    * In Base.php, a comparison in _multiArrayType was changed to enable
-multi-dimensional arrays where one or more of the dimensions have a single
-element to be correctly serialised.
-    * Interop tests should be much better
+* DIME related issues (and maybe others) were fixed
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
