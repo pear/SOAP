@@ -103,86 +103,10 @@
   <changelog>
   <release>
     <state>beta</state>
-    <version>0.7.5</version>
-    <date>2003-07-21</date>
+    <version>0.8RC3</version>
+    <date>2003-xx-xx</date>
     <notes>
-      * http protocol was not recognised in WSDL.php (Michele Manzato, Freddy Vulto)
-      * optional parameters to specify cache use and liftime in WDSL
-        (suggested by Michele Manzato). Constants are kept for Backward Compatibility
-      * Error handling in Server::callMethod (patch by Pavel Marenyuk)
-      * Conformance to standard, removing the trailing slash for HTTP binding
-      (many people reported this)
-      * Left out old 0.7.3 version number in 0.7.4
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.7.4</version>
-    <date>2003-06-30</date>
-    <notes>
-      Fixes when behind a proxy.
-      Other bugfixes.
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.7.3</version>
-    <date>2003-05-18</date>
-    <notes>
-    Several bugfixes.
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.7.2</version>
-    <date>2003-04-01</date>
-    <notes>
-      New DISCO support for WSDL generation (Dmitri Vinogradov).
-      New TCP Client/Server Protocol implementation (Shane Hanna).
-      New method alias support for server classes (ie. use php keywords as soap function names).
-      New method call overloading (SOAP_Server::setCallHandler)
-      New cookie support for HTTP soap clients.
-      Better support for alternate transport layers.
-      Many fixes and patches.
-
-      Incompatibility note: The client call method now expects the second
-      argument to a reference.
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.7.1</version>
-    <date>2002-12-01</date>
-    <notes>
-      Minor bug fixes over the 0.7.0 release.
-      Support for the overload extension is currently
-      dissabled until futher work can be done.
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.7.0</version>
-    <date>2002-07-06</date>
-    <notes>
-      Includes minor API changes from 0.6.2, and some possible minor incompabitibilities with .6.2.
-      Supports HTTP Proxy (SOAP_Client constructor
-      takes 4th param of type array, SOAP_WSDL
-      constructor takes 2nd param of type array, see HTTP_Request
-      docs for proxy parameters).
-      Client now returns objects instead of associative arrays
-      Improved WSDL proxy generation.
-      Server support for binding servers to wsdl (bind method)
-      Server support for document/literal servers
-      Interop tests are moved to SOAP_Interop module, available
-      via CVS only.  Interop now supports Round 3 Group D tests.
-    </notes>
-  </release>
-  <release>
-    <state>beta</state>
-    <version>0.6.2</version>
-    <date>2002-07-06</date>
-    <notes>
-      This is the initial independent PEAR release.
+*
     </notes>
   </release>
   </changelog>
