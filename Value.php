@@ -482,12 +482,9 @@ class SOAP_Value extends SOAP_Base
                 $counter = 1;
                 foreach ($soapval->value as $item) {
                     if (isset($return[$item->name])) {
-                        if (!is_array($return[$item->name])) {
-                            $val = $return[$item->name];
-                            $return[$item->name] = array();
-                            $return[$item->name][] = $val;
-                        }
-                        $return[$item->name][] = $this->decode($item);
+                        // this is realy an array, we need to redirect
+                        $soapval->type_code = SOAP_VALUE_ARRAY;
+                        return $soapval->decode();
                     } else {
                         $return[$item->name] = $this->decode($item);
                     }

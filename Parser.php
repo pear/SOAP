@@ -349,6 +349,14 @@ class SOAP_Parser
         // XXX check on integrating wsdl validation here
         if ($this->message[$pos]['type'] == '') {
             if ($this->message[$pos]['children'] != '') {
+                /* this is slow, need to look at some faster method
+                $children = explode('|',$this->message[$pos]['children']);
+                if (count($children) > 2 &&
+                    $this->message[$children[1]]['name'] == $this->message[$children[2]]['name']) {
+                    $this->message[$pos]['type'] = 'Array';
+                } else { 
+                    $this->message[$pos]['type'] = 'Struct';
+                }*/
                 $this->message[$pos]['type'] = 'Struct';
             } else {
                 $parent = $this->message[$pos]['parent'];
