@@ -25,11 +25,9 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.8</version>
-    <date>2003-??-??</date>
+    <version>0.8RC1</version>
+    <date>2003-08-17</date>
     <notes>
-    * WARNING: it is not recommended to not use the CVS version for purposes
-      other than testing.
     * timeout reporting on HTTP transmission (now returns an error)
     * typo in WSDL.php on a variable test
     * better error reporting of HTTP response
@@ -71,6 +69,7 @@ information will be created automatically.
     * In Base.php, a comparison in _multiArrayType was changed to enable
 multi-dimensional arrays where one or more of the dimensions have a single
 element to be correctly serialised.
+    * Interop tests should be much better
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
