@@ -26,7 +26,7 @@ $val = parseMessage($msg);
 if (array_compare($expect, $val)) {
     print "$prefix Deserialize Message OK\n";
 } else {
-    print "$prefix Deserialize Message FAILED extected $expect, got $val\n";
+    print "$prefix Deserialize Message FAILED expected $expect, got $val\n";
 }
 
 // parse null value
