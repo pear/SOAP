@@ -25,8 +25,11 @@
       New DISCO support for WSDL generation (Dmitri Vinogradov).
       New TCP Client/Server Protocol implementation (Shane Hanna).
       New method alias support for server classes (ie. use php keywords as soap function names).
+      New method call overloading (SOAP_Server::setCallHandler)
       New cookie support for HTTP soap clients.
+      Better support for alternate transport layers.
       Many fixes and patches.
+      
       Incompatibility note: The client call method now expects the second
       argument to a reference.  
     </notes>
@@ -43,19 +46,24 @@
         <file role="php" name="WSDL.php"/>
         <dir name="example" role="doc"> 
           <file role="doc" name="attachment.php"/>
-          <file role="doc" name="stockquote.php"/>
+          <file role="doc" name="client.php"/>
+          <file role="doc" name="com_client.php"/>
           <file role="doc" name="disco_server.php"/>
-          <file role="doc" name="server.php"/>
+          <file role="doc" name="email_client.php"/>
+          <file role="doc" name="email_gateway.php"/>
+          <file role="doc" name="email_pop_gateway.php"/>
+          <file role="doc" name="email_pop_server.php"/>
+          <file role="doc" name="email_server.php"/>
           <file role="doc" name="example_server.php"/>
           <file role="doc" name="example_types.php"/>
-          <file role="doc" name="client.php"/>
+          <file role="doc" name="server.php"/>
+          <file role="doc" name="server2.php"/>
           <file role="doc" name="smtp.php"/>
-          <file role="doc" name="email_server.php"/>
-          <file role="doc" name="email_gateway.php"/>
+          <file role="doc" name="stockquote.php"/>
           <file role="doc" name="tcp_client.php"/>
-          <file role="doc" name="tcp_server.php"/>
           <file role="doc" name="tcp_daemon.pl"/>
-          <file role="doc" name="wsdl_client.pl"/>
+          <file role="doc" name="tcp_server.php"/>
+          <file role="doc" name="wsdl_client.php"/>
           <dir name="amazon"> 
             <file role="doc" name="amazon.php"/>
             <file role="doc" name="amazon_soap.php"/>
