@@ -20,6 +20,7 @@
 //
 
 require_once 'SOAP/Server.php';
+require_once 'SOAP/Client.php';
 require_once 'SOAP/Transport.php';
 require_once 'Mail/mimeDecode.php';
 /**
@@ -94,6 +95,38 @@ class SOAP_Server_Email extends SOAP_Server {
         return FALSE;
     }
 
+    function client(&$data)
+    {
+        $attachments = array();
+
+        # if neither matches, we'll just try it anyway
+        if (stristr($data,'Content-Type: application/dime')) {
+            $this->decodeDIMEMessage($data,$this->headers,$attachments);
+            $useEncoding = 'DIME';
+        } else if (stristr($data,'MIME-Version:')) {
+            // this is a mime message, lets decode it.
+            #$data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
+            $this->decodeMimeMessage($data,$this->headers,$attachments);
+            $useEncoding = 'Mime';
+        } else {
+            // the old fallback, but decodeMimeMessage handles things fine.
+            $this->_parseEmail($data);
+        }
+        
+        // get the character encoding of the incoming request
+        // treat incoming data as UTF-8 if no encoding set
+        if (!$this->soapfault && !$this->_getContentEncoding($this->headers['content-type'])) {
+            $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+            // an encoding we don't understand, return a fault
+            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+        }
+        
+        if ($this->soapfault) {
+            return $this->soapfault->getFault();
+        }
+        $client = new SOAP_Client(NULL);
+        return $client->parseResponse($data, $this->xml_encoding, $this->attachments);
+    }
     
     function service(&$data, $endpoint = '', $send_response = TRUE, $dump = FALSE)
     {

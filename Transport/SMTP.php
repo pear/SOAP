@@ -28,6 +28,7 @@
 //
 
 require_once 'SOAP/Base.php';
+require_once 'Mail/smtp.php';
 
 /**
 *  SMTP Transport for SOAP
@@ -51,7 +52,9 @@ class SOAP_Transport_SMTP extends SOAP_Base
     var $incoming_payload = '';
     var $_userAgent = SOAP_LIBRARY_NAME;
     var $encoding = SOAP_DEFAULT_ENCODING;
-
+    var $host = '127.0.0.1';
+    var $port = 25;
+    var $auth = NULL;
     /**
     * SOAP_Transport_SMTP Constructor
     *
@@ -87,10 +90,18 @@ class SOAP_Transport_SMTP extends SOAP_Base
             return $this->raiseSoapFault("No FROM address to send message with");
         }
         
+        if (isset($options['host'])) $this->host = $options['host'];
+        if (isset($options['port'])) $this->port = $options['port'];
+        if (isset($options['auth'])) $this->auth = $options['auth'];
+        if (isset($options['username'])) $this->username = $options['username'];
+        if (isset($options['password'])) $this->password = $options['password'];
+        
         $headers = array();
         $headers['From'] = $options['from'];
         $headers['X-Mailer'] = $this->_userAgent;
         $headers['MIME-Version'] = '1.0';
+        $headers['Message-ID'] = md5(time()).'.soap@'.$this->host;
+        $headers['To'] = $this->urlparts['path'];
         if (array_key_exists('soapaction', $options)) {
             $headers['Soapaction'] = "\"{$options['soapaction']}\"";
         }
@@ -123,22 +134,31 @@ class SOAP_Transport_SMTP extends SOAP_Base
             }
         }
         
+        $headers['Subject'] = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
+        
         foreach ($headers as $key => $value) {
             $header_text .= "$key: $value\n";
         }
-        
-        $subject = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
-        
         $this->outgoing_payload = $header_text."\r\n".$this->outgoing_payload;
         # we want to return a proper XML message
-        $result = mail($this->urlparts['path'], $subject, $out, $header_text);
+        
+        $mailer_params = array(
+            'host' => $this->host,
+            'port' => $this->port,
+            'username' => $this->username,
+            'password' => $this->password,
+            'auth' => $this->auth
+        );
+        $mailer = new Mail_smtp($mailer_params);
+        $result = $mailer->send($this->urlparts['path'], $headers, $out);
+        #$result = mail($this->urlparts['path'], $headers['Subject'], $out, $header_text);
 
-        if ($result) {
-            $val = new SOAP_Value('return','boolean',TRUE);
+        if (!PEAR::isError($result)) {
+            $val = new SOAP_Value('Message-ID','string',$headers['Message-ID']);
         } else {
             $val = new SOAP_Value('Fault','Struct',array(
                 new SOAP_Value('faultcode','QName','SOAP-ENV:Client'),
-                new SOAP_Value('faultstring','string',"couldn't send SMTP message to $action")
+                new SOAP_Value('faultstring','string',"couldn't send SMTP message to {$this->urlparts['path']}")
                 ));
         }
 

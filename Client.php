@@ -326,7 +326,7 @@ class SOAP_Client extends SOAP_Base
         }
         
         // send the message
-        $this->response = $soap_transport->send($soap_data, $options);
+        $response = $soap_transport->send($soap_data, $options);
 
         // save the wire information for debugging
         $this->wire = "OUTGOING:\n\n".
@@ -337,11 +337,15 @@ class SOAP_Client extends SOAP_Base
         $this->xml = $soap_transport->transport->incoming_payload;
         
         if ($soap_transport->fault) {
-            return $this->raiseSoapFault($this->response);
+            return $this->raiseSoapFault($response);
         }
-
+        return $this->parseResponse($response, $soap_transport->result_encoding,$soap_transport->transport->attachments);
+    }
+    
+    function parseResponse($response, $encoding, $attachments)
+    {
         // parse the response
-        $this->response = new SOAP_Parser($this->response, $soap_transport->result_encoding,$soap_transport->transport->attachments);
+        $this->response = new SOAP_Parser($response, $encoding, $attachments);
         if ($this->response->fault) {
             return $this->raiseSoapFault($this->response->fault);
         }

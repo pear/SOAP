@@ -44,13 +44,26 @@ require_once 'SOAP/Transport.php';
 * @package  SOAP::Server
 * @author   Shane Caraveo <shane@php.net> 
 */
-class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
-
-    function service(&$data, $gateway, $endpoint = '', $send_response = TRUE, $dump = FALSE)
+class SOAP_Server_Email_Gateway extends SOAP_Server_Email
+{
+    var $gateway = NULL;
+    var $dump = FALSE;
+    
+    function SOAP_Server_Email_Gateway($gateway = '', $send_response = TRUE, $dump=FALSE)
+    {
+        parent::SOAP_Server();
+        $this->send_response = $send_response;
+        $this->gateway = $gateway;
+        $this->dump = $dump;
+    }
+    
+    function service(&$data, $gateway='', $endpoint = '', $send_response = TRUE, $dump = FALSE)
     {
         $this->endpoint = $endpoint;
         $response = '';
         $useEncoding='Mime';
+        $options = array();
+        if (!$gateway) $gateway = $this->gateway;
         
         // we have a full set of headers, need to find the first blank line
         $this->_parseEmail($data);
@@ -72,7 +85,11 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         if (!$response) {
             $options['soapaction'] = $this->headers['soapaction'];
             $options['headers']['Content-Type'] = $this->headers['content-type'];
+            
             $response = $soap_transport->send($data, $options);
+            if (isset($this->headers['mime-version']))
+                $options['headers']['MIME-Version'] = $this->headers['mime-version'];
+            
             if ($soap_transport->fault) {
                 $response = $soap_transport->fault->message();
             } else {
@@ -82,10 +99,11 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
                 if (count($this->attachments)) {
                     if ($useEncoding == 'Mime') {
                         $soap_msg = $this->_makeMimeMessage($response);
+                        $options['headers']['MIME-Version'] = '1.0';
                     } else {
                         // default is dime
                         $soap_msg = $this->_makeDIMEMessage($response);
-                        $header['Content-Type'] = 'application/dime';
+                        $options['headers']['Content-Type'] = 'application/dime';
                     }
                     if (PEAR::isError($soap_msg)) {
                         return $this->raiseSoapFault($soap_msg);
@@ -105,7 +123,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         }
         
         if ($this->send_response) {        
-            if ($dump) {
+            if ($this->dump || $dump) {
                 print $response;
             } else {
                 $from = array_key_exists('reply-to',$this->headers) ? $this->headers['reply-to']:$this->headers['from'];
