@@ -587,13 +587,12 @@ class SOAP_Value extends SOAP_Base
                 # this may return a different type that we process below
                 $value = $value->toSOAP();
             } elseif (isArray($value)) {
+                $type = 'Array';
                 foreach ($value as $k => $v) {
-                    if (preg_match("/^[0-9]+$/",$k)) {
-                        $type = 'Array';
-                    } else {
+                    if (!preg_match("/^[0-9]+$/",$k)) {
                         $type = 'Struct';
+                        break;
                     }
-                    break;
                 }
             } elseif (isInt($value)) {
                 $type = 'int';
