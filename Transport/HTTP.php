@@ -249,6 +249,10 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         $this->result_headers = array();
         $headers = split("\r?\n", $headers);
         foreach ($headers as $value) {
+            if (strpos($value,':') === false) {
+                $this->result_headers[0]=$value;
+                continue;
+            }
             list($name,$value) = split(':',$value);
             $headername = strtolower($name);
             $headervalue = trim($value);

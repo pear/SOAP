@@ -54,7 +54,7 @@ class SOAP_Transport
         }
         $transport_include = 'SOAP/Transport/'.$transport_type.'.php';
         $res = @include_once($transport_include);
-        if(!res && !in_array($transport_include, get_included_files())) {
+        if(!$res && !in_array($transport_include, get_included_files())) {
             return SOAP_Base_Object::_raiseSoapFault("No Transport for {$urlparts['scheme']}");
         }
         $transport_class = "SOAP_Transport_$transport_type";

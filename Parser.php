@@ -464,7 +464,8 @@ class SOAP_Parser extends SOAP_Base
      */
     function &getResponse()
     {
-        if ($this->root_struct[0]) {
+        if (isset($this->root_struct[0]) &&
+            $this->root_struct[0]) {
             return $this->buildResponse($this->root_struct[0]);
         }
         return $this->_raiseSoapFault("couldn't build response");
@@ -481,7 +482,8 @@ class SOAP_Parser extends SOAP_Base
      */
     function &getHeaders()
     {
-        if ($this->header_struct[0]) {
+        if (isset($this->header_struct[0]) &&
+            $this->header_struct[0]) {
             return $this->buildResponse($this->header_struct[0]);
         }
         // we don't fault if there are no headers
