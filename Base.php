@@ -400,7 +400,7 @@ class SOAP_Base extends SOAP_Base_Object
     function _serializeValue(&$value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array(), $artype='')
     {
         $namespaces = array();
-        $arrayType = $xmlout_value = NULL;
+        $arrayType = $array_depth = $xmlout_value = null;
         $typePrefix = $elPrefix = $xmlout_offset = $xmlout_arrayType = $xmlout_type = $xmlns = '';
         $ptype = $array_type_ns = '';
 
@@ -409,13 +409,14 @@ class SOAP_Base extends SOAP_Base_Object
         }
 
         if ($this->_wsdl)
-            list($ptype,$arrayType,$array_type_ns) = $this->_wsdl->getSchemaType($type, $name, $typeNamespace);
+            list($ptype, $arrayType, $array_type_ns, $array_depth)
+                    = $this->_wsdl->getSchemaType($type, $name, $typeNamespace);
 
         if (!$arrayType) $arrayType = $artype;
         if (!$ptype) $ptype = $this->_getType($value);
         if (!$type) $type = $ptype;
 
-        if (strcasecmp($ptype,'Struct')==0 || strcasecmp($type,'Struct')==0) {
+        if (strcasecmp($ptype,'Struct') == 0 || strcasecmp($type,'Struct') == 0) {
             // struct
             $vars = NULL;
             if (is_object($value)) {
@@ -501,7 +502,14 @@ class SOAP_Base extends SOAP_Base_Object
                 if ($array_type_prefix)
                     $arrayType = $array_type_prefix.':'.$arrayType;
             }
-            $xmlout_arrayType = " SOAP-ENC:arrayType=\"".$arrayType."[$ar_size]\"";
+
+            $xmlout_arrayType = " SOAP-ENC:arrayType=\"" . $arrayType;
+            if ($array_depth != null) {
+                for ($i = 0; $i < $array_depth; $i++) {
+                    $xmlout_arrayType .= '[]';
+                }
+            }
+            $xmlout_arrayType .= "[$ar_size]\"";
         } else if ($this->_isSoapValue($value)) {
             $xmlout_value =& $value->serialize($this);
         } else if ($type == 'string') {
@@ -647,7 +655,7 @@ class SOAP_Base extends SOAP_Base_Object
     function _multiArrayType(&$value, &$type, &$size, &$xml)
     {
         $sz = count($value);
-        if ($sz > 1) {
+        if (is_array($value)) {
             // seems we have a multi dimensional array, figure it out if we do
             $c = count($value);
             for ($i=0; $i<$c; $i++) {
@@ -979,24 +987,30 @@ class SOAP_Base extends SOAP_Base_Object
         global $SOAP_options;
         if (!isset($SOAP_options['DIME'])) {
             $this->_raiseSoapFault('DIME Unsupported, install PEAR::Net::DIME','','','Server');
+            return;
         }
 
         // XXX this SHOULD be moved to the transport layer, e.g. PHP  itself
         // should handle parsing DIME ;)
         $dime =& new Net_DIME_Message();
-        $dime->decodeData($data);
-        if (strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0 ||
-            strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0) {
-            $this->_raiseSoapFault('Dime record 1 is not a SOAP envelop!','','','Server');
-        } else {
+        $err = $dime->decodeData($data);
+        if ( PEAR::isError($err) ) {
+            $this->_raiseSoapFault('Failed to decode the DIME message!','','','Server');
+            return;
+        }
+        if (strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0) {
+            $this->_raiseSoapFault('DIME record 1 is not a SOAP envelop!','','','Server');
+            return;
+        }
+
             $data = $dime->parts[0]['data'];
             $headers['content-type'] = 'text/xml'; // fake it for now
             $c = count($dime->parts);
             for ($i = 0; $i < $c; $i++) {
                 $part =& $dime->parts[$i];
                 // XXX we need to handle URI's better
-                $attachments['cid:'.$part['id']] = $part['data'];
-            }
+            $id = strncmp( $part['id'], 'cid:', 4 ) ? 'cid:'.$part['id'] : $part['id'];
+            $attachments[$id] = $part['data'];
         }
     }
 

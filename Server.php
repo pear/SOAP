@@ -586,7 +586,7 @@ class SOAP_Server extends SOAP_Base
         return FALSE;
     }
 
-    function addObjectMap(&$obj, $namespace = null)
+    function addObjectMap(&$obj, $namespace = null, $service_name = 'Default', $service_desc = '')
     {
         if (!$namespace) {
             if (isset($obj->namespace)) {
@@ -601,6 +601,10 @@ class SOAP_Server extends SOAP_Base
             $this->dispatch_objects[$namespace] = array();
         }
         $this->dispatch_objects[$namespace][] =& $obj;
+
+        // Create internal WSDL structures for object
+        $this->addObjectWSDL($obj, $namespace, $service_name, $service_desc);
+
         return true;
     }
 
@@ -623,9 +627,35 @@ class SOAP_Server extends SOAP_Base
         $this->callValidation = $validation;
     }
 
+    /**
+     * @deprecated use bindWSDL from now on
+     */
     function bind($wsdlurl) {
+        $this->bindWSDL($bindWSDL);
+    }
+
+    /**
+     * @param  string a url to a WSDL resource
+     * @return void
+     */
+    function bindWSDL($wsdl_url) {
         // instantiate wsdl class
-        $this->_wsdl =& new SOAP_WSDL($wsdlurl);
+        $this->_wsdl =& new SOAP_WSDL($wsdl_url);
+        if ($this->_wsdl->fault) {
+            $this->_raiseSoapFault($this->_wsdl->fault);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    function addObjectWSDL(&$wsdl_obj, $targetNamespace, $service_name, $service_desc = '') {
+        if (!isset($this->_wsdl)) {
+            $this->_wsdl =& new SOAP_WSDL;
+        }
+
+        $this->_wsdl->parseObject($wsdl_obj, $targetNamespace, $service_name, $service_desc);
+
         if ($this->_wsdl->fault) {
             $this->_raiseSoapFault($this->_wsdl->fault);
         }
