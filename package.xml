@@ -40,6 +40,9 @@
         <dir name="example" role="doc"> 
           <file role="doc" name="stockquote.php"/>
         </dir>
+        <dir name="tools"> 
+          <file role="php" name="genproxy.php"/>
+        </dir>
         <dir name="Transport"> 
           <file role="php" name="HTTP.php"/>
           <file role="php" name="SMTP.php"/>
