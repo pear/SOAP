@@ -237,6 +237,11 @@ class SOAP_Base extends PEAR
     * @var  boolean  defines if we use section 5 encoding, or false if this is literal
     */
     var $section5 = TRUE;
+
+    // handle type to class mapping 
+    var $_auto_translation = false;
+    var $_type_translation = array();
+    
     
     /**
     * Constructor
@@ -653,7 +658,21 @@ class SOAP_Base extends PEAR
             return $soapval;
         } else if (is_array($soapval->value)) {
             if ($SOAP_OBJECT_STRUCT && $soapval->type != 'Array') {
-                $return = new stdClass();
+                $classname = 'stdClass';
+                if (isset($this->_type_translation[$soapval->tqn->fqn()])) {
+                    // this will force an error in php if the
+                    // class does not exist
+                    $classname = $this->_type_translation[$soapval->tqn->fqn()];
+                } else if (isset($this->_type_translation[$soapval->type])) {
+                    // this will force an error in php if the
+                    // class does not exist
+                    $classname = $this->_type_translation[$soapval->type];
+                } else if ($this->_auto_translation) {
+                    if (class_exists($soapval->type)) {
+                        $classname = $soapval->type;
+                    }
+                }
+                $return = new $classname;
             } else {
                 $return = array();
             }
@@ -886,6 +905,14 @@ class SOAP_Base extends PEAR
         }
     }
     
+    function __set_type_translation($type, $class=NULL)
+    {
+        $tq = new QName($type);
+        if (!$class) {
+            $class = $tq->name;
+        }
+        $this->_type_translation[$type]=$class;
+    }
 }
 
 /**
@@ -940,5 +967,6 @@ class QName
         }
         return $this->name;
     }
+    
 }
 ?>
