@@ -91,7 +91,8 @@ define('SCHEMA_DISCO',              'http://schemas.xmlsoap.org/disco/');
 define('SCHEMA_DISCO_SCL',          'http://schemas.xmlsoap.org/disco/scl/');
 
 define('SCHEMA_SOAP',               'http://schemas.xmlsoap.org/wsdl/soap/');
-define('SCHEMA_HTTP',               'http://schemas.xmlsoap.org/wsdl/http/');
+define('SCHEMA_SOAP_HTTP',          'http://schemas.xmlsoap.org/soap/http/');
+define('SCHEMA_WSDL_HTTP',          'http://schemas.xmlsoap.org/wsdl/http/');
 define('SCHEMA_MIME',               'http://schemas.xmlsoap.org/wsdl/mime/');
 define('SCHEMA_WSDL',               'http://schemas.xmlsoap.org/wsdl/');
 define('SCHEMA_DIME',               'http://schemas.xmlsoap.org/ws/2002/04/dime/wsdl/');

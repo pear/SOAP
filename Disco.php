@@ -118,7 +118,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
         $this->_wsdl['definitions']['binding']['attr']['name'] = $this->_bindingname;
         $this->_wsdl['definitions']['binding']['attr']['type'] = 'tns:' . $this->_portname;
         $this->_wsdl['definitions']['binding']['soap:binding']['attr']['style'] = 'rpc';
-        $this->_wsdl['definitions']['binding']['soap:binding']['attr']['transport'] = SCHEMA_HTTP;
+        $this->_wsdl['definitions']['binding']['soap:binding']['attr']['transport'] = SCHEMA_SOAP_HTTP;
 
         # SERVICE
         $this->_wsdl['definitions']['service']['attr']['name'] = $this->_service_name . 'Service';

@@ -475,7 +475,7 @@ class SOAP_Server extends SOAP_Base
         
         // if we aliased the soap method name to a php function,
         // change the call_method so we do the right thing.
-        if (array_key_exists('alias',$map)) {
+        if (array_key_exists('alias',$map) && !empty($map['alias'])) {
             $this->call_methodname = $map['alias'];
         }
         

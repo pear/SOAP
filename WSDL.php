@@ -1070,7 +1070,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     break;                    
                 }
                 break;
-            case SCHEMA_HTTP:
+            case SCHEMA_WSDL_HTTP:
                 switch($qname->name) {
                 case 'binding':
                     // sect 4.4
@@ -1165,7 +1165,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 // what TYPE of port is it?  SOAP or HTTP?
                 $ns = $qname->ns?$this->wsdl->namespaces[strtolower($qname->ns)]:SCHEMA_WSDL;
                 switch($ns) {
-                case SCHEMA_HTTP:
+                case SCHEMA_WSDL_HTTP:
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='http';
                     break;
                 case SCHEMA_SOAP:

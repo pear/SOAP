@@ -96,13 +96,6 @@ class SOAP_Client extends SOAP_Base
     var $__options = array('trace'=>0);
 
     /**
-     * Available categories when using options
-     *
-     * @var array
-     */
-    var $__optionCategories = array('curl');
-
-    /**
      * encoding
      *
      * @var  string  Contains the character encoding used for XML parser, etc.
@@ -295,21 +288,18 @@ class SOAP_Client extends SOAP_Base
      * $soapclient->setopt('curl', CURLOPT_VERBOSE, 1)
      * to affect an option when using SSL connections
      *
-     * The category has to be a registered one.
-     *
      * @access public
      * @param  string  $category  category to which the option applies
      * @param  string  $option    option name
      * @param  string  $value     option value
      * @return void
-     * @see    SOAP_Client::__optionCategories
      */
     function setOpt($category, $option, $value=NULL)
     {
         if ($value) {
-            if (in_array($category, $this->__optionCategories)) {
-                $this->__options[$category][$option] = $value;
-            }
+            if (!isset($this->__options[$category]))
+                $this->__options[$category] = array();
+            $this->__options[$category][$option] = $value;
         } else {
             $this->__options[$category] = $option;
         }
