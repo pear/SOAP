@@ -107,10 +107,9 @@ class SOAP_Server {
         
         // if this is not a POST with Content-Type text/xml, try to return a WSDL file
         if (!$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
-            (strncmp($_SERVER['CONTENT_LENGTH'], 'text/xml', 8) != 0) && 
-            strncmp($_ENV['HTTP_CONTENT_TYPE'], 'text/xml', 8) != 0)) {
+            strncmp($_SERVER['CONTENT_TYPE'], 'text/xml', 8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
-                $this->makeFault('Server',"Invalid SOAP request");
+                $this->makeFault('Server',"Invalid SOAP request, must be POST with content-type: text/xml");
                 $response = $this->getFaultMessage();
         } else {
             // $response is a soap_msg object
