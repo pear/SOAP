@@ -15,7 +15,7 @@ class test_SchemaSimpleSerialize extends PHPUnit_Framework_TestCase {
         if (!$expected) $expected = $value;
         
         $doc = new DOMDocument;
-        $node = SchemaSimple::domSerialize($doc,'test',$value,true);
+        $node = SchemaSimple::domSerialize($doc, 'test', null, $value,true);
         $doc->appendChild($node);
         $xml = $doc->saveXML();
         $xml = preg_replace('/\n|\r/','',$xml);

@@ -15,7 +15,7 @@ class test_SchemaSimpleRoundtrip extends PHPUnit_Framework_TestCase {
         if (!$expected) $expected = $value;
 
         $doc = new DOMDocument;
-        $node = SchemaSimple::domSerialize($doc,'test',$value,true);
+        $node = SchemaSimple::domSerialize($doc, 'test', null, $value, true);
         $nodetype = $node->attributes['xsi:type']->nodeValue;
         $this->assertEquals($type, $nodetype);
         $val = SchemaSimple::domDeserialize($node);

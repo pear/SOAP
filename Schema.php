@@ -220,7 +220,11 @@ class SchemaSimple {
                 $type = $var->getTypeName();
                 $typeNS = $var->getTypeNamespace();
                 $typePrefix = Namespace_Registry::register($typeNS);
-                $doc->documentElement->setAttribute("xmlns:$typePrefix",$typeNS);
+                if ($doc->documentElement) {
+                    $doc->documentElement->setAttribute("xmlns:$typePrefix",$typeNS);
+                } else {
+                    $val->setAttribute("xmlns:$typePrefix",$typeNS);
+                }
                 $vartype = "$typePrefix:$type";
             }
             if (method_exists($var, 'toString')) {

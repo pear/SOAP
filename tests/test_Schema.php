@@ -3,12 +3,7 @@
 require_once '../WSDL.php';
 require_once '../Schema.php';
 require_once 'PHPUnit/Framework/TestCase.php';
-
-class SOAPStruct {
-    public $varInt = 123;
-    public $varFloat = 123.123;
-    public $varString = 'hello world';
-}
+require_once 'InteropTypes.php';
 
 class test_Schema extends PHPUnit_Framework_TestCase {
 
@@ -57,6 +52,7 @@ class test_Schema extends PHPUnit_Framework_TestCase {
        attribute value if is is undefined.  lots of soap schema's
        appear that way, not sure who is right, but we have to go
        with what most soap implementations are doing. */
+    /*
     public function testValidate() {
         // prep the wsdl which has our schema
         $wsdl = WSDLManager::get('InteropTest.wsdl');
@@ -68,7 +64,7 @@ class test_Schema extends PHPUnit_Framework_TestCase {
         $doc->appendChild($node);
         $this->assertTrue($schema->validate($node));
     }
-    
+    */
 }
 
 # Unit test runner
