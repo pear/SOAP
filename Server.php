@@ -219,7 +219,7 @@ class SOAP_Server extends SOAP_Base
         set_error_handler("SOAP_ServerErrorHandler");
         if ($args) {
             // call method with parameters
-            if (is_object($this->soapobject)) {
+            if (isset($this->soapobject) && is_object($this->soapobject)) {
                 $ret = @call_user_func_array(array(&$this->soapobject, $methodname),$args);
             } else {
                 $ret = @call_user_func_array($methodname,$args);
