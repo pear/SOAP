@@ -135,16 +135,22 @@ class QName
 {
     var $name = '';
     var $ns = '';
+    #var $arrayInfo = '';
+    
     function QName($name) {
         $s = split(':',$name);
         $s = array_reverse($s);
         $this->name = $s[0];
         $this->ns = $s[1];
-        if (strpos($this->name, '[') != false) {
-            # XXX need to re-examine this logic later
-            # chop off []
-            $this->name = substr($this->name, 0, strlen($this->name)-2);
-        }
+        
+        # a little more magic than should be in a qname
+        #$p = strpos($this->name, '[');
+        #if ($p) {
+        #    # XXX need to re-examine this logic later
+        #    # chop off []
+        #    $this->arrayInfo = substr($this->name, $p);
+        #    $this->name = substr($this->name, 0, $p);
+        #}
     }
 }
 ?>

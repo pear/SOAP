@@ -37,7 +37,7 @@ error_reporting(2039);
 *
 * @const    SOAP_DEBUG
 */
-define('SOAP_DEBUG', true);
+define('SOAP_DEBUG', false);
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
@@ -71,22 +71,8 @@ define('SOAP_ENVELOP',              'http://schemas.xmlsoap.org/soap/envelope/')
 define('SOAP_INTEROPORG',           'http://soapinterop.org/xsd');
 
 $SOAP_XMLSchema = array(SOAP_XML_SCHEMA_VERSION, SOAP_XML_SCHEMA_1999);
+
 // load types into typemap array
-/*
-$SOAP_typemap['http://www.w3.org/2001/XMLSchema'] = array(
-	'string','boolean','float','double','decimal','duration','dateTime','time',
-	'date','gYearMonth','gYear','gMonthDay','gDay','gMonth','hexBinary','base64Binary',
-	// derived datatypes
-	'normalizedString','token','language','NMTOKEN','NMTOKENS','Name','NCName','ID',
-	'IDREF','IDREFS','ENTITY','ENTITIES','integer','nonPositiveInteger',
-	'negativeInteger','long','int','short','byte','nonNegativeInteger',
-	'unsignedLong','unsignedInt','unsignedShort','unsignedByte','positiveInteger');
-$SOAP_typemap['http://www.w3.org/1999/XMLSchema'] = array(
-	'i4','int','boolean','string','double','float','dateTime',
-	'timeInstant','base64Binary','base64','ur-type');
-$SOAP_typemap[SOAP_INTEROPORG] = array('SOAPStruct');
-$SOAP_typemap[SOAP_SCHEMA_ENCODING] = array('base64','array','Array');
-*/
 $SOAP_typemap[SOAP_XML_SCHEMA_VERSION] = array(
 	'string' => 'string',
         'boolean' => 'boolean',

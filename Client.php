@@ -105,7 +105,9 @@ class SOAP_Client extends SOAP_Base
     */
     var $wsdl = NULL;
     
+    var $wire = NULL;
     
+    var $soapmsg = NULL;        
     /**
     * SOAP_Client constructor
     *
@@ -128,6 +130,22 @@ class SOAP_Client extends SOAP_Base
             if ($this->wsdl->fault) {
                 $this->raiseSoapFault($this->wsdl->fault);
             }
+        }
+    }
+    
+    function addHeader($soap_value)
+    {
+        if (!$this->soapmsg)
+            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
+        # add a new header to the message
+        if (get_class($soap_value) == 'soap_header') {
+            $this->soapmsg->addHeader($soap_value);
+        } else if (gettype($soap_value) == 'array') {
+            // name, value, namespace, mustunderstand, actor
+            $h = new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3], $soap_value[4]);
+            $this->soapmsg->addHeader($h);
+        } else {
+            $this->raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
     }
     
@@ -195,7 +213,7 @@ class SOAP_Client extends SOAP_Base
                         else
                             $type_namespace = NULL;
                         $type = $qname->name;
-                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], $namespace, $type_namespace, $this->wsdl);
+                        $nparams[$name] = new SOAP_Value($name, $qname->name, $nparams[$name], NULL, $type_namespace, $this->wsdl);
                     }
                 }
             }
@@ -207,13 +225,15 @@ class SOAP_Client extends SOAP_Base
         $this->debug("namespace: $namespace");
         
         // make message
-        $soapmsg = new SOAP_Message($method, $params, $namespace, NULL, $this->wsdl);
-        if ($soapmsg->fault) {
-            return $this->raiseSoapFault($soapmsg->fault);
+        if (!$this->soapmsg)
+            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
+        $this->soapmsg->method($method, $params, $namespace);
+        if ($this->soapmsg->fault) {
+            return $this->raiseSoapFault($this->soapmsg->fault);
         }
 
         // serialize the message
-        $soap_data = $soapmsg->serialize();
+        $soap_data = $this->soapmsg->serialize();
         $this->debug("soap_data " . $soap_data);
         if (PEAR::isError($soap_data)) {
             return $this->raiseSoapFault($soap_data);
@@ -224,6 +244,7 @@ class SOAP_Client extends SOAP_Base
         $dbg = "calling server at '$this->endpoint'...";
         
         $soap_transport = new SOAP_Transport($this->endpoint, $this->debug_flag);
+        
         if ($soap_transport->fault) {
             return $this->raiseSoapFault($soap_transport->fault);
         }
@@ -236,12 +257,30 @@ class SOAP_Client extends SOAP_Base
        
         // send the message
         $this->response = $soap_transport->send($soap_data, $soapAction);
+
+        // save the wire information for debugging
+        $this->wire = "OUTGOING:\n\n".
+            $soap_transport->transport->outgoing_payload.
+            "\n\nINCOMING\n\n".
+            preg_replace("/>/",">\n",$soap_transport->transport->incoming_payload);
+        $this->debug($this->wire);
+        
         if ($soap_transport->fault) {
             return $this->raiseSoapFault($this->response);
         }
 
         // parse the response
-        $return = $soapmsg->parseResponse($this->response);
+        #$return = $this->soapmsg->parseResponse($this->response);
+        $this->response = new SOAP_Parser($this->response);
+        // return array of parameters
+        $return = $this->response->getResponse();
+        $headers = $this->response->getHeaders();
+        if ($headers) {
+            $this->headers = $headers->decode();
+        }
+        
+        $this->soapmsg = NULL;        
+        
         $this->debug($soap_transport->debug_data);
         $this->debug($dbg . 'sent message successfully and got a(n) ' . gettype($return) . ' back');
 

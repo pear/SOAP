@@ -189,6 +189,9 @@ class SOAP_Transport_HTTP extends SOAP_Base
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
             $this->response = preg_replace("/[\r|\n]/", '', $match[2]);
+            // find the response error
+            //if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
+            //    $status[1] != 200) return FALSE;
             // if no content, return false
             return strlen($this->response) > 0;
         }
@@ -235,7 +238,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             $fp = fsockopen($this->urlparts['host'], $this->urlparts['port'], $this->errno, $this->errmsg);
         }
         if (!$fp) {
-            $this->errmsg = "Unable to connect to {$this->urlparts['host']}:{$this->urlparts['port']}";
+            $this->errmsg = "Connect Error to {$this->urlparts['host']}:{$this->urlparts['port']}";
             return $this->raiseSoapFault($this->errmsg);
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {

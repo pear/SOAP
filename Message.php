@@ -24,6 +24,7 @@ require_once 'SOAP/globals.php';
 require_once 'SOAP/Base.php';
 require_once 'SOAP/Parser.php';
 require_once 'SOAP/Value.php';
+require_once 'SOAP/Header.php';
 
 /**
 *  SOAP Message Class
@@ -61,6 +62,8 @@ class SOAP_Message extends SOAP_Base
     */
     var $value = '';
     
+    var $headers = array();
+    
     /**
     * SOAP::Message constructor
     *
@@ -73,26 +76,31 @@ class SOAP_Message extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Message($method, $params, $method_namespace = 'http://testuri.org', $new_namespaces = NULL, $wsdl = NULL)
+    function SOAP_Message($new_namespaces = NULL, $wsdl = NULL)
     {
+        $this->debug_data = "entering SOAP_Message()\n";
         parent::SOAP_Base('Message');
-        // make method struct
-        $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $wsdl);
-
+	$this->wsdl = $wsdl;
         if (is_array($new_namespaces)) {
             global $SOAP_namespaces;
-
             $i = count($SOAP_namespaces);
-
             foreach ($new_namespaces as $v) {
                 $SOAP_namespaces[$v] = 'ns' . $i++;
             }
-
             $this->namespaces = $SOAP_namespaces;
         }
+    }
 
-
-        $this->debug_data = 'entering SOAP_Message() with SOAP_Value ' . $this->value->name . "\n";
+    function addHeader($soap_value)
+    {
+	$this->headers[] = $soap_value;
+    }
+    
+    function method($method, $params, $method_namespace = NULL)
+    {
+        // make method struct
+        $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $wsdl);
+        $this->debug_data = 'SOAP_Message() with method SOAP_Value ' . $this->value->name . "\n";
     }
     
     /**
@@ -102,7 +110,7 @@ class SOAP_Message extends SOAP_Base
     * @return string xml_soap_data
     * @access private
     */
-    function _makeEnvelope($payload)
+    function _makeEnvelope($header, $body)
     {
         global $SOAP_namespaces;
 
@@ -112,8 +120,27 @@ class SOAP_Message extends SOAP_Base
             $ns_string .= "xmlns:$v=\"$k\"\n ";
         }
         return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\n" .
-                   $payload .
+		   $header .
+                   $body .
                    "</SOAP-ENV:Envelope>\n";
+    }
+
+    /**
+    * wraps the soap Header
+    *
+    * @param string $payload       soap data (in xml)
+    *
+    * @return string xml_soap_data
+    * @access private
+    */
+    function _makeHeader()
+    {
+	$payload = '';
+	foreach ($this->headers as $header) {
+	    $payload .= $header->serialize();
+	}
+	if (!$payload) return NULL;
+        return "<SOAP-ENV:Header>\n" . $payload . "</SOAP-ENV:Header>\n";
     }
     
     /**
@@ -136,8 +163,9 @@ class SOAP_Message extends SOAP_Base
     */
     function _createPayload()
     {
-        $value = $this->value;
-        $payload = $this->_makeEnvelope($this->_makeBody($value->serialize()));
+	$body = $this->value?$this->_makeBody($this->value->serialize()):NULL;
+	$header = count($this->headers)?$this->_makeHeader():NULL;
+        $payload = $this->_makeEnvelope($header, $body);
         $this->debug($value->debug_data);
         $payload = "<?xml version=\"1.0\"?>\n\n" . $payload;
         if ($this->debug_flag) {

@@ -93,7 +93,7 @@ class SOAP_Value extends SOAP_Base
     * @var  string
     */
     var $namespace = '';
-    
+    var $type_namespace = '';
     /**
     *
     * @var  string
@@ -133,7 +133,8 @@ class SOAP_Value extends SOAP_Base
 
         $this->name = $name;
         $this->wsdl = $wsdl;
-        $this->type = $this->_getSoapType($value, $type);
+        $this->type_namespace = $type_namespace;
+        $this->type = $this->_getSoapType($value, $type, $name, $type_namespace);
 
         #$this->debug("Entering SOAP_Value - name: '$name' type: '$type' value: $value");
         
@@ -152,7 +153,7 @@ class SOAP_Value extends SOAP_Base
             $qname = new QName($type);
             $this->type = $qname->name;
             $this->type_prefix = $qname->ns;
-            
+
         } elseif ($type_namespace) {
         
             if (!isset($SOAP_namespaces[$type_namespace])) {
@@ -241,7 +242,7 @@ class SOAP_Value extends SOAP_Base
                 // else make obj and serialize
                 } else {
                     #$type = $this->arrayType;
-                    #$type = $this->_getSoapType($v, $type);
+                    $type = $this->_getSoapType($v, $type, $k);
                     $new_val =  new SOAP_Value('item', $this->arrayType, $v);
                     $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
@@ -268,7 +269,7 @@ class SOAP_Value extends SOAP_Base
                 // else make obj and serialize
                 } else {
                     $type = NULL;
-                    $type = $this->_getSoapType($v, $type);
+                    $type = $this->_getSoapType($v, $type, $k);
                     $new_val = new SOAP_Value($k, $type, $v);
                     $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
@@ -321,7 +322,7 @@ class SOAP_Value extends SOAP_Base
             } else {
                 foreach ($value as $array_val) {
                     #$array_types[$array_val->type] = 1;
-                    $xml .= $this->serializeval($array_val);
+                    $xml .= $array_val->serialize();
                 }
             }
         }
@@ -345,62 +346,54 @@ class SOAP_Value extends SOAP_Base
 
         if (is_int($soapval->name)) {
             $soapval->name = 'item';
+            $soapval->prefix = '';
         }
         
-        $xml = '';
+        if ($soapval->prefix && $soapval->type_prefix) {
+            $xmlout_name = "$soapval->prefix:$soapval->name";
+            $xmlout_type = "$soapval->type_prefix:$soapval->type";
+        } else
+        if ($soapval->type_prefix) {
+            $xmlout_name = $soapval->name;
+            $xmlout_type = "$soapval->type_prefix:$soapval->type";
+        } elseif ($soapval->prefix) {
+            $xmlout_name = "$soapval->prefix:$soapval->name";
+        } else {
+            $xmlout_name = $soapval->name;
+        }
+        $xmlout_value = '';
+        $xmlout_offset = '';
 
         switch ($soapval->type_code) {
         case SOAP_VALUE_STRUCT:
             // struct
-            $this->debug('got a struct');
-
-            # XXX we should be able to do this, but ASP.Net fails if we do
-            #if ($soapval->prefix && $soapval->type_prefix) {
-            #    $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">\n";
-            #} else
-            if ($soapval->type_prefix) {
-                $xml .= "<$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">\n";
-            } elseif ($soapval->prefix) {
-                $xml .= "<$soapval->prefix:$soapval->name>\n";
-            } else {
-                $xml .= "<$soapval->name>\n";
-            }
             if (is_array($soapval->value)) {
                 foreach ($soapval->value as $k => $v) {
-                    $xml .= $this->serializeval($v);
+                    $xmlout_value .= $v->serialize($v);
                 }
-            }
-            if ($soapval->type_prefix) {
-                $xml .= "</$soapval->name>\n";
-            } else if ($soapval->prefix) {
-                $xml .= "</$soapval->prefix:$soapval->name>\n";
-            } else {
-                $xml .= "</$soapval->name>\n";
             }
             break;
             
         case SOAP_VALUE_ARRAY:
             // array
-            $offset = '';
-
+            $xmlout_type = 'SOAP-ENC:Array';
             // XXX this will be slow on larger array's.  We can probably move this
             // out to an external helper function.  Basicly, it flattens array's to allow us
             // to serialize multi-dimensional array's
-            $numtypes = $this->_getArrayType($soapval->value, $array_type, $ar_size, $xml);
+            $numtypes = $this->_getArrayType($soapval->value, $array_type, $ar_size, $xmlout_value);
             #$numtypes = 0;
             $array_type_prefix = '';
             if ($numtypes != 1) {
-                $xml ='';
                 foreach ($soapval->value as $array_val) {
                     $array_types[$array_val->type] = 1;
-                    $xml .= $this->serializeval($array_val);
+                    $xmlout_value .= $array_val->serialize();
                 }
 
                 $ar_size = count($soapval->value);
                 $numtypes = count($array_types);
                 $array_type = $array_val->type;
                 $array_type_prefix = $array_val->type_prefix;
-                $offset = " SOAP-ENC:offset=\"[0]\"";
+                $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
             }
             if ($numtypes > 1) {
                 $array_type = 'xsd:ur-type';
@@ -411,30 +404,21 @@ class SOAP_Value extends SOAP_Base
                     $array_type = $array_type_prefix . ':' . $array_type;
                 }
             }
-            
-            $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
+            $xmlout_arrayType = " SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"";
             break;
             
         case SOAP_VALUE_SCALAR:
-            # XXX we should be able to do this, but ASP.Net fails if we do
-            #if ($soapval->prefix && $soapval->type_prefix) {
-            #    $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->prefix:$soapval->name>\n";
-            #} else
-            if ($soapval->type_prefix) {
-                $xml .= "<$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->name>\n";
-            # XXX we should be able to do this, but ASP.Net fails if we do
-            #} elseif ($soapval->prefix) {
-            #    $xml .= "<$soapval->prefix:$soapval->name>$soapval->value</$soapval->prefix:$soapval->name>\n";
-            } else
-            if ($soapval->type) {
-                $xml .= "<$soapval->name xsi:type=\"$soapval->type\">$soapval->value</$soapval->name>\n";
-            } else {
-                $xml .= "<$soapval->name>$soapval->value</$soapval->name>\n";
-            }
+            $xmlout_value = $soapval->value;
             break;
         default:
             break;
         }
+        
+        if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
+        $xml = "\n<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
+            $this->xmlout_extra.">".
+            $xmlout_value."</$xmlout_name>\n";
+        
         return $xml;
     }
     
@@ -570,32 +554,44 @@ class SOAP_Value extends SOAP_Base
     * @return   string  type  - soap type
     * @access   private
     */
-    function _getSoapType(&$value, &$type) {
+    function _getSoapType(&$value, &$type, $name, $type_namespace='') {
     
         $doconvert = FALSE;
-        if (0 && $this->wsdl) {
+        if ($this->wsdl) {
             # see if it's a complex type so we can deal properly with SOAPENC:arrayType
-            if (!$type && $this->name) {
+            if (!$type && $name) {
                 # XXX TODO:
                 # look up the name in the wsdl and validate the type
-                $this->debug("SOAP_VALUE no type for $this->name!");
-            } else if ($type) {
+                $this->debug("SOAP_VALUE no type for $name!");
+                if ($this->type) {
+                    foreach ($this->wsdl->complexTypes as $types) {
+                        if (array_key_exists($this->type, $types) &&
+                            array_key_exists($name, $types[$this->type]['elements'])) {
+                            $type = $types[$this->type]['elements']['type'];
+                            return $type;
+                        }
+                    }
+                }
+            } else if ($type && $type_namespace) {
                 # XXX TODO:
                 # this code currently handles only one way of encoding array types in wsdl
                 # need to do a generalized function to figure out complex types
-                if (array_key_exists($type, $this->wsdl->complexTypes)) {
-                    if ($this->arrayType = $this->wsdl->complexTypes[$type]['arrayType']) {
+                $p = $this->wsdl->ns[$type_namespace];
+                if ($p &&
+                    array_key_exists($p, $this->wsdl->complexTypes) &&
+                    array_key_exists($type, $this->wsdl->complexTypes[$p])) {
+                    if ($this->arrayType = $this->wsdl->complexTypes[$p][$type]['arrayType']) {
                         $type = 'Array';
-                    } else if ($this->wsdl->complexTypes[$type]['order']=='sequence' &&
-                               array_key_exists('elements', $this->wsdl->complexTypes[$type])) {
-                        reset($this->wsdl->complexTypes[$type]['elements']);
+                    } else if ($this->wsdl->complexTypes[$p][$type]['order']=='sequence' &&
+                               array_key_exists('elements', $this->wsdl->complexTypes[$p][$type])) {
+                        reset($this->wsdl->complexTypes[$p][$type]['elements']);
                         # assume an array
-                        if (count($this->wsdl->complexTypes[$type]['elements']) == 1) {
-                            $arg = current($this->wsdl->complexTypes[$type]['elements']);
+                        if (count($this->wsdl->complexTypes[$p][$type]['elements']) == 1) {
+                            $arg = current($this->wsdl->complexTypes[$p][$type]['elements']);
                             $this->arrayType = $arg['type'];
                             $type = 'Array';
                         } else {
-                            foreach($this->wsdl->complexTypes[$type]['elements'] as $element) {
+                            foreach($this->wsdl->complexTypes[$p][$type]['elements'] as $element) {
                                 if ($element['name'] == $type) {
                                     $this->arrayType = $element['type'];
                                     $type = $element['type'];
@@ -603,13 +599,11 @@ class SOAP_Value extends SOAP_Base
                             }
                         }
                     }
+                    return $type;
                 }
             }
         }
         if (!$type || !$this->verifyType($type)) {
-            if ($type && $this->wsdl && array_key_exists($type, $this->wsdl->complexTypes)) {
-                # do nothing, this preserves our complex types 
-            } else
             if (is_object($value)) {
                 # allows for creating special classes to handle soap types
                 $type = get_class($value);
@@ -633,6 +627,7 @@ class SOAP_Value extends SOAP_Base
                 # idea what the type realy is, we have to try to figure it out
                 # this is the best we can do if the user did not use the SOAP_Value class
                 if ($type == 'string') $doconvert = TRUE;
+                elseif ($type == 'NULL') $type = '';
             }
         }
         # we have the type, handle any value munging we need

@@ -109,18 +109,29 @@ class SOAP_Server {
     
     var $result = 'successful'; // for logging interop results to db
 
+    var $endpoint = ''; // the uri to ME!
+    
     function SOAP_Server($debug = SOAP_DEBUG) {
         // turn on debugging?
         $this->debug_flag = $debug;
     }
     
     // parses request and posts response
-    function service($data)
+    function service($data, $endpoint = '', $test = FALSE)
     {
         global $_ENV, $_SERVER;
+        // figure out our endpoint
+        $this->endpoint = $endpoint;
+        if (!$this->endpoint) {
+            // we'll try to build our endpoint
+            $this->endpoint = 'http://'.$_SERVER['SERVER_NAME'];
+            if ($_SERVER['SERVER_PORT']) $this->endpoint .= ':'.$_SERVER['SERVER_PORT'];
+            $this->endpoint .= $PHP_SELF;
+        }
+        
         // if this is not a POST with Content-Type text/xml, try to return a WSDL file
-        if ($_SERVER['REQUEST_METHOD'] != 'POST' ||
-            strncmp($_ENV['HTTP_CONTENT_TYPE'], 'text/xml', 8) != 0) {
+        if (!$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
+            strncmp($_ENV['HTTP_CONTENT_TYPE'], 'text/xml', 8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
                 $this->makeFault('Server',"Invalid SOAP request");
                 $response = $this->fault();
@@ -156,6 +167,55 @@ class SOAP_Server {
         }
         $this->response = join("\n", $header) . $payload;
         print $payload;
+    }
+    
+    function callMethod($methodname, &$args) {
+        if ($args) {
+            // call method with parameters
+            $this->debug("calling '$methodname' with params");
+            if (is_object($this->soapobject)) {
+                return call_user_func_array(array(&$this->soapobject, $methodname),$args);
+            }
+            return call_user_func_array($methodname,$args);
+        }
+        
+        // call method w/ no parameters
+        $this->debug("calling $methodname w/ no params");
+        if (is_object($this->soapobject)) {
+            return call_user_func(array(&$this->soapobject, $methodname));
+        }
+        return call_user_func($methodname);
+    }
+    
+    // create soap_val object w/ return values from method, use method signature to determine type
+    function buildResult(&$method_response, &$return_type, $return_name='return', $namespace = '')
+    {
+        $class = get_class($method_response) ;
+        if ($class == 'soap_value' || $class == 'soap_header') {
+            $return_val = array($method_response);
+        } else {
+            $this->debug("creating new SOAP_Value to return, of type $return_type");
+            if (is_array($return_type) && is_array($method_response)) {
+                $i = 0;
+
+                foreach ($return_type as $key => $type) {
+                    if (is_numeric($key)) $key = 'item';
+                    $return_val[] = new SOAP_Value($key,$type,$method_response[$i++],$namespace);
+                }
+            } else {
+                if (is_array($return_type)) {
+                    $keys = array_keys($return_type);
+                    if (!is_numeric($keys[0])) $return_name = $keys[0];
+                    $values = array_values($return_type);
+                    $return_type = $values[0];
+                }
+                $return_val = array(new SOAP_Value($return_name,$return_type,$method_response, $namespace));
+            }
+        }
+        if ($this->debug_flag) {
+            $this->debug($return_val->debug_data);
+        }
+        return $return_val;
     }
     
     function parseRequest($data='')
@@ -196,138 +256,162 @@ class SOAP_Server {
             // return soapresp
             return $this->fault();
         // else successfully parsed request into SOAP_Value object
-        } else {
-            // evaluate message, getting back a SOAP_Value object
-            $this->debug('calling parser->getResponse()');
-            $this->methodname = $parser->root_struct_name[0];
-            $this->debug("method name: $this->methodname");
+        }
+        // parser debug
+        $this->debug($parser->debug_data);
 
-            // does method exist?
-            if (!$this->methodname || !$this->validateMethod($this->methodname)) {
-                // "method not found" fault here
-                $this->debug("method '$this->methodname' not found!");
-                $this->result = 'fault: method not found';
-                $this->makeFault('Server',"method '$this->methodname' not defined in service '$this->service'");
-                return $this->fault();
-            }
-            $this->debug("method '$this->methodname' exists");
+        /* set namespaces
+        if ($parser->namespaces['xsd'] != '') {
+            //print 'got '.$parser->namespaces['xsd'];
+            global $SOAP_namespaces;
+            $this->XMLSchemaVersion = $parser->namespaces['xsd'];
+            $tmpNS = array_flip($SOAP_namespaces);
+            $tmpNS['xsd'] = $this->XMLSchemaVersion;
+            $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
+            $SOAP_namespaces = array_flip($tmpNS);
+        }*/
 
+        //*******************************************************
+        // handle message headers
 
-            if (!$request_val = $parser->getResponse()) {
-                return $this->fault();
-            }
-            // parser debug
-            $this->debug($parser->debug_data);
+        $request_headers = $parser->getHeaders();
+        $header_results = array();
 
-            /* set namespaces
-            if ($parser->namespaces['xsd'] != '') {
-                //print 'got '.$parser->namespaces['xsd'];
-                global $SOAP_namespaces;
-                $this->XMLSchemaVersion = $parser->namespaces['xsd'];
-                $tmpNS = array_flip($SOAP_namespaces);
-                $tmpNS['xsd'] = $this->XMLSchemaVersion;
-                $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
-                $SOAP_namespaces = array_flip($tmpNS);
-            }*/
-
-            if (strcasecmp(get_class($request_val),'SOAP_Value')==0) {
-                // verify that SOAP_Value objects in request match the methods signature
-                if ($this->verifyMethod($request_val)) {
-                    $this->debug("request data - name: $request_val->name, type: $request_val->type, value: $request_val->value");
-                    // need to set special error detection inside the value class
-                    // so as to differentiate between no params passed, and an error decoding
-                    $request_data = $request_val->decode();
-                    $this->debug($request_val->debug_data);
-                    $this->debug("request data: $request_data");
-                    $this->debug("about to call method '$this->methodname'");
-
-                    // if there are parameters to pass
-                    if ($request_data) {
-                        // call method with parameters
-                        $this->debug("calling '$this->methodname' with params");
-                        if (is_object($this->soapobject)) {
-                            $method_response = call_user_func_array(array(&$this->soapobject, $this->methodname),$request_data);
-                        } else {
-                            $method_response = call_user_func_array($this->methodname,$request_data);
-                        }
-                    } else {
-                        // call method w/ no parameters
-                        $this->debug("calling $this->methodname w/ no params");
-                        if (is_object($this->soapobject)) {
-                            $method_response = call_user_func(array(&$this->soapobject, $this->methodname));
-                        } else {
-                            $method_response = call_user_func($this->methodname);
-                        }
-                    }
-
-                    $this->debug("done calling method: $this->methodname");
-
-                    // if return val is SOAP_Message
-                    if (strcasecmp(get_class($method_response),'SOAP_Message')==0) {
-                        if (eregi('fault',$method_response->value->name)) {
-                            $this->fault = true;
-                        }
-                        $return_msg = $method_response;
-                    } else {
-                        // if return val is SOAP_Value object
-                        if (strcasecmp(get_class($method_response),'SOAP_Value')==0) {
-                            $return_val = array($method_response);
-
-                        // create soap_val object w/ return values from method, use method signature to determine type
-                        } else {
-                            $this->debug("creating new SOAP_Value to return, of type $this->return_type");
-                            if (is_array($this->return_type) && is_array($method_response)) {
-                                $i = 0;
-
-                                foreach ($this->return_type as $key => $type) {
-                                    if (is_numeric($key)) $key = 'item';
-                                    $return_val[] = new SOAP_Value($key,$type,$method_response[$i++]);
-                                }
-                            } else {
-                                $return_name = 'return';
-                                if (is_array($this->return_type)) {
-                                    $keys = array_keys($this->return_type);
-                                    if (!is_numeric($keys[0])) $return_name = $keys[0];
-                                    $values = array_values($this->return_type);
-                                    $this->return_type = $values[0];
-                                }
-                                $return_val = array(new SOAP_Value($return_name,$this->return_type,$method_response));
-                            }
-                        }
-                        if ($this->debug_flag) {
-                            $this->debug($return_val->debug_data);
-                        }
-
-                        $this->debug("creating return soap_msg object: ".$this->methodname.'Response');
-                        // response object is a soap_msg object
-                        $return_msg =  new SOAP_Message($this->methodname.'Response',$return_val,"$this->service");
-                    }
-
-                    if ($this->debug_flag) {
-                        $return_msg->debug_flag = true;
-                    }
-
-                    $this->result = 'successful';
-
-                    return $return_msg;
-                } else {
-                    // debug
-                    $this->debug('ERROR: request not verified against method signature');
-                    $this->result = 'fault: request failed validation against method signature';
-
-                    // return soapresp
-                    return $this->fault();
-                }
-            } else {
+        if ($request_headers) {
+            if (get_class($request_headers) != 'soap_value') {
                 // debug
-                $this->debug("ERROR: parser did not return SOAP_Value object: $request_val ".get_class($request_val));
-                $this->result = "fault: parser did not return SOAP_Value object: $request_val";
+                $this->debug("ERROR: parser did not return SOAP_Value object: $request_headers ".get_class($request_headers));
+                $this->result = "fault: parser did not return SOAP_Value object: $request_headers";
 
                 // return fault
-                $this->makeFault('Server',"parser did not return SOAP_Value object: $request_val");
+                $this->makeFault('Server',"parser did not return SOAP_Value object: $request_headers");
                 return $this->fault();
             }
+            if ($request_headers->value) {
+            // handle headers now
+            foreach ($request_headers->value as $header_val) {
+                $f_exists = $this->validateMethod($header_val->name);
+                $myactor = (
+                    $header_val->actor == 'http://schemas.xmlsoap.org/soap/actor/next' ||
+                    $header_val->actor == $this->endpoint);
+                
+                if (!$f_exists && $header_val->mustunderstand && $myactor) {
+                    $this->makeFault('Server',"I don't understand header $header_val->name.");
+                    return $this->fault();
+                }
+                
+                // we only handle the header if it's for us
+                $isok = $f_exists && $myactor;
+                
+                if ($isok) {
+                    # call our header now!
+                    $header_method = $header_val->name;
+                    $header_data = array($header_val->decode());
+                    // if there are parameters to pass
+                    $hr = $this->callMethod($header_method, $header_data);
+                    # if they return a fault, then it's all over!
+                    if (strcasecmp(get_class($hr),'SOAP_Message')==0) {
+                        if (eregi('fault',$hr->value->name)) {
+                            $this->fault = true;
+                            return $hr;
+                        }
+                        # hmm, they returned a soap_message, we have to
+                        # de-messagize it so we can append stuff.
+                    }
+                    $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
+                }
+            }
+            }
         }
+
+        //*******************************************************
+        // handle the method call
+        
+        // evaluate message, getting back a SOAP_Value object
+        $this->debug('calling parser->getResponse()');
+        $this->methodname = $parser->root_struct_name[0];
+        $this->debug("method name: $this->methodname");
+
+        // does method exist?
+        if (!$this->methodname || !$this->validateMethod($this->methodname)) {
+            // "method not found" fault here
+            $this->debug("method '$this->methodname' not found!");
+            $this->result = 'fault: method not found';
+            $this->makeFault('Server',"method '$this->methodname' not defined in service '$this->service'");
+            return $this->fault();
+        }
+        $this->debug("method '$this->methodname' exists");
+
+
+        if (!$request_val = $parser->getResponse()) {
+            return $this->fault();
+        }
+        if (strcasecmp(get_class($request_val),'SOAP_Value') != 0) {
+            // debug
+            $this->debug("ERROR: parser did not return SOAP_Value object: $request_val ".get_class($request_val));
+            $this->result = "fault: parser did not return SOAP_Value object: $request_val";
+
+            // return fault
+            $this->makeFault('Server',"parser did not return SOAP_Value object: $request_val");
+            return $this->fault();
+        }
+        
+        // verify that SOAP_Value objects in request match the methods signature
+        if (!$this->verifyMethod($request_val)) {
+            // debug
+            $this->debug('ERROR: request not verified against method signature');
+            $this->result = 'fault: request failed validation against method signature';
+
+            // return soapresp
+            return $this->fault();
+        }
+        
+        $this->debug("request data - name: $request_val->name, type: $request_val->type, value: $request_val->value");
+        // need to set special error detection inside the value class
+        // so as to differentiate between no params passed, and an error decoding
+        $request_data = $request_val->decode();
+        $this->debug($request_val->debug_data);
+        $this->debug("request data: $request_data");
+        $this->debug("about to call method '$this->methodname'");
+
+        $method_response = $this->callMethod($this->methodname, $request_data);
+
+        $this->debug("done calling method: $this->methodname");
+
+        // if return val is SOAP_Message
+        if (strcasecmp(get_class($method_response),'SOAP_Message')==0) {
+            // XXX this needs to be done better
+            if (stristr($method_response->value->name,'fault')) {
+                $this->fault = true;
+            }
+            return $method_response;
+        }
+        
+        // get the method result
+        $return_val = $this->buildResult($method_response, $this->return_type, $this->methodname);
+        
+
+        $this->debug("creating return soap_msg object: ".$this->methodname.'Response');
+        
+        // response object is a soap_msg object
+        $return_msg =  new SOAP_Message();
+        
+        // add response headers
+        if (count($header_results) > 0) {
+            foreach($header_results as $hr) {
+                $return_msg->addHeader($hr);
+            }
+        }
+        
+        $return_msg->method($this->methodname.'Response',$return_val,$this->service);
+
+        if ($this->debug_flag) {
+            $return_msg->debug_flag = true;
+        }
+
+        $this->result = 'successful';
+
+        return $return_msg;
     }
     
     function verifyMethod($request)
@@ -403,14 +487,14 @@ class SOAP_Server {
     }
     
     // get string return type from dispatch map
-    function getReturnType()
+    function getReturnType($methodname)
     {
-        if (is_array($this->dispatch_map[$this->methodname]['out'])) {
-            if (count($this->dispatch_map[$this->methodname]['out']) > 1) {
+        if (is_array($this->dispatch_map[$methodname]['out'])) {
+            if (count($this->dispatch_map[$methodname]['out']) > 1) {
                 $this->debug("got multiple return types from dispatch map: '$type'");
-                return $this->dispatch_map[$this->methodname]['out'];
+                return $this->dispatch_map[$methodname]['out'];
             }
-            $type = array_shift($this->dispatch_map[$this->methodname]['out']);
+            $type = array_shift($this->dispatch_map[$methodname]['out']);
             $this->debug("got return type from dispatch map: '$type'");
             return $type;
         }
@@ -462,7 +546,8 @@ class SOAP_Server {
     // set up a fault
     function fault()
     {
-        return new SOAP_Message('Fault',
+        $msg = new SOAP_Message();
+        $msg->method('Fault',
             array(
                 'faultcode' => $this->fault_code,
                 'faultstring' => $this->fault_str,
@@ -471,6 +556,7 @@ class SOAP_Server {
             ),
             'http://schemas.xmlsoap.org/soap/envelope/'
         );
+        return $msg;
     }
     
     function makeFault($fault_code, $fault_string)

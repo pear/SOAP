@@ -412,7 +412,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 $this->wsdl->complexTypes[$this->schema] = array();
             break;
             case 'complexType':
-                if ($parent_tag == 'schema') {
+                if ($parent_tag == 'schema' &&
+                    # XXX this check if funky, but there are wsdl's with redefinitions, need to find out why.
+                    !array_key_exists($attrs['name'], $this->wsdl->complexTypes[$this->schema])) {
+                        
                     $this->currentElement = $attrs['name'];
                     if ($attrs['base']) {
                         $qn = new QName($attrs['base']);
@@ -431,9 +434,12 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $attrs['namespace'] = $this->wsdl->namespaces[$qname->ns];
                 }
                 if ($parent_tag == 'schema') {
-                    $this->currentElement = $attrs['name'];
-                    $this->wsdl->complexTypes[$this->schema][$this->currentElement] = $attrs;
-                    $this->schemaStatus = 'complexType';
+                    # XXX this check if funky, but there are wsdl's with redefinitions, need to find out why.
+                    if (!array_key_exists($attrs['name'], $this->wsdl->complexTypes[$this->schema])) {
+                        $this->currentElement = $attrs['name'];
+                        $this->wsdl->complexTypes[$this->schema][$this->currentElement] = $attrs;
+                        $this->schemaStatus = 'complexType';
+                    }
                 } else {
                     if ($this->wsdl->complexTypes[$this->schema][$this->currentElement]['order'] == 'sequence'
                         && $this->wsdl->complexTypes[$this->schema][$this->currentElement]['base'] == 'Array') {
