@@ -856,7 +856,8 @@ class SOAP_WSDL_Cache extends SOAP_Base
                 }
 
                 if (isset($proxy_params['proxy_user']) && isset($proxy_params['proxy_pass'])) {
-                    $rq->setBasicAuth($proxy_params['proxy_user'], $proxy_params['proxy_pass']);
+                    $rq->setProxy($proxy_params["proxy_host"],$proxy_params["proxy_port"],
+                                  $proxy_params["proxy_user"],$proxy_params["proxy_pass"]);
                 }
 
                 $result = $rq->sendRequest();
