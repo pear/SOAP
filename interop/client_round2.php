@@ -24,16 +24,16 @@ require_once 'SOAP/interop/client_round2_interop.php';
 
 $iop = new Interop_Client();
 // force a fetch of endpoints, this happens irregardless if no endpoints in database
-#$iop->fetchEndpoints();
+$iop->fetchEndpoints();
 
 // set some options
 $iop->currentTest = 'base';      // see $tests above
-$iop->paramType = 'soapval';     // 'php' or 'soapval'
+$iop->paramType = 'php';     // 'php' or 'soapval'
 $iop->useWSDL = 0;           // 1= do wsdl tests
 $iop->numServers = 0;        // 0 = all
 $iop->specificEndpoint = ''; // test only this endpoint
 $iop->testMethod = '';       // test only this method
-$iop->skipEndpointList = array('WASP for C++','MS SOAP ToolKit 2.0 Typed'); // endpoints to skip
+$iop->skipEndpointList = array(); // endpoints to skip
 $this->nosave = 0; // 1= disable saving results to database
 // debug output
 $iop->show = 1;

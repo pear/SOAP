@@ -34,11 +34,7 @@ class Interop_Client
     var $interopServer = "http://www.whitemesa.net/interopInfo";
     
     // our local endpoint, will always get added to the database for all tests
-    var $localEndpoint = array(
-                                'endpointName'=>'localhost',
-                                'endpointURL'=>'http://localhost/soap/server_round2.php',
-                                'wsdlURL'=>'http://localhost/soap/server_round2?wsdl'
-                              );
+    var $localEndpoint;
     
     // specify testing
     var $currentTest = 'base';      // see $tests above
@@ -70,6 +66,22 @@ class Interop_Client
             echo $this->dbc->getMessage();
             $this->dbc = NULL;
         }
+        // set up local endpoint
+        $this->localEndpoint['base'] = array(
+                                'endpointName'=>'localhost',
+                                'endpointURL'=>'http://localhost/soap/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap/interop.wsdl'
+                              );
+        $this->localEndpoint['GroupB'] = array(
+                                'endpointName'=>'localhost',
+                                'endpointURL'=>'http://localhost/soap/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap/interopB.wsdl'
+                              );
+        $this->localEndpoint['GroupC'] = array(
+                                'endpointName'=>'localhost',
+                                'endpointURL'=>'http://localhost/soap/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap/echoheadersvc.wsdl'
+                              );
     }
     
     function _fetchEndpoints(&$soapclient, $test) {
@@ -83,8 +95,8 @@ class Interop_Client
         }
         
         // add our local endpoint
-        if ($this->localEndpoint) {
-        array_push($endpointArray, $this->localEndpoint);
+        if ($this->localEndpoint[$test]) {
+        array_push($endpointArray, $this->localEndpoint[$test]);
         }
         
         if (!$endpointArray) return;
@@ -97,7 +109,7 @@ class Interop_Client
         if (is_object($res)) $res->free();
         // save new endpoints into database
         foreach($endpointArray as $k => $v){
-            if (array_key_exists($v['endpointName'],$endpointArray)) {
+            if (array_key_exists($v['endpointName'],$this->endpoints)) {
                 $res = $this->dbc->query("update endpoints set endpointURL='{$v['endpointURL']}', wsdlURL='{$v['wsdlURL']}', status=1 where id={$this->endpoints[$v['endpointName']]['id']}");
             } else {
                 $res = $this->dbc->query("insert into endpoints (endpointName,endpointURL,wsdlURL,class) values('{$v['endpointName']}','{$v['endpointURL']}','{$v['wsdlURL']}','$test')");

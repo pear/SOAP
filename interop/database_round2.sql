@@ -4,9 +4,9 @@
 # http://phpmyadmin.sourceforge.net/ (download page)
 #
 # Host: localhost
-# Generation Time: Mar 30, 2002 at 02:39 PM
+# Generation Time: Apr 08, 2002 at 08:32 PM
 # Server version: 3.23.49
-# PHP Version: 4.3.0-dev
+# PHP Version: 4.1.1
 # Database : `interop`
 # --------------------------------------------------------
 
@@ -42,6 +42,4 @@ CREATE TABLE results (
   wire text NOT NULL,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
-
-    
 
