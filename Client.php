@@ -322,7 +322,10 @@ class SOAP_Client extends SOAP_Base
             $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
             $soap_msg = $this->_makeEnvelope($methodValue, $this->headersOut, $this->encoding,$options);
         } else {
-            if ($options['input'] == 'parse') {
+            if (!$params) {
+                $mqname = new QName($method, $namespace);
+                $params = new SOAP_Value($mqname->fqn(), 'Struct', NULL);
+            } elseif ($options['input'] == 'parse') {
                 if (is_array($params)) {
                     $nparams = array();
                     foreach ($params as $n => $v) {
