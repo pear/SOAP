@@ -35,7 +35,6 @@ $GLOBALS['SOAP_OBJECT_STRUCT'] = TRUE;
 $GLOBALS['SOAP_RAW_CONVERT'] = FALSE;
 
 require_once 'PEAR.php';
-#require_once 'SOAP/Fault.php';
 require_once 'SOAP/Type/dateTime.php';
 require_once 'SOAP/Type/hexBinary.php';
 
@@ -191,7 +190,7 @@ class SOAP_Base_Object extends PEAR
      */
     function &_raiseSoapFault($str, $detail = '', $actorURI = '', $code = null, $mode = null, $options = null, $skipmsg = false)
     {
-        # pass through previous faults
+        // Pass through previous faults.
         $is_instance = isset($this);
         if (is_object($str)) {
             $fault =& $str;
@@ -661,7 +660,6 @@ class SOAP_Base extends SOAP_Base_Object
             break;
 
         case 'boolean':
-            #$value = $value?'true':'false';
             break;
 
         case 'double':
@@ -754,12 +752,13 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function _isHash(&$a)
     {
-        # XXX I realy dislike having to loop through this in php code,
-        # realy large arrays will be slow.  We need a C function to do this.
+        // XXX I realy dislike having to loop through this in PHP
+        // code, really large arrays will be slow.  We need a C
+        // function to do this.
         $names = array();
         $it = 0;
         foreach ($a as $k => $v) {
-            # checking the type is faster than regexp.
+            // checking the type is faster than regexp.
             $t = gettype($k);
             if ($t != 'integer') {
                 return TRUE;
@@ -780,9 +779,9 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     /**
-    *
-    * @param    mixed
-    */
+     *
+     * @param    mixed
+     */
     function &_decode(&$soapval)
     {
         global $SOAP_OBJECT_STRUCT;
@@ -881,7 +880,7 @@ class SOAP_Base extends SOAP_Base_Object
                 $soapval->value = FALSE;
             }
         } elseif ($soapval->type && array_key_exists($soapval->type, $this->_typemap[SOAP_XML_SCHEMA_VERSION])) {
-            # if we can, lets set php's variable type
+            // if we can, let's set php's variable type.
             settype($soapval->value, $this->_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
         }
         return $soapval->value;
