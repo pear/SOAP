@@ -79,8 +79,8 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 define('INF',   1.8e307); 
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_VERSION', '0.6.3');
-define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.3');
+define('SOAP_LIBRARY_VERSION', '0.7.0');
+define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.7.0');
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
 define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');

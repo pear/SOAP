@@ -19,17 +19,20 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.6.3</version>
+    <version>0.7.0</version>
     <date>2002-07-06</date>
     <notes>
-      Includes minor API changes from 0.6.2.
+      Includes minor API changes from 0.6.2, and some possible minor incompabitibilities with .6.2.
       Supports HTTP Proxy (SOAP_Client constructor 
       takes 4th param of type array, SOAP_WSDL
       constructor takes 2nd param of type array, see HTTP_Request
       docs for proxy parameters).
+      Client now returns objects instead of associative arrays
       Improved WSDL proxy generation.
+      Server support for binding servers to wsdl (bind method)
+      Server support for document/literal servers
       Interop tests are moved to SOAP_Interop module, available
-      via CVS only.
+      via CVS only.  Interop now supports Round 3 Group D tests.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
