@@ -27,11 +27,11 @@ $iop = new Interop_Client();
 #$iop->fetchEndpoints();
 
 // set some options
-$iop->currentTest = 'GroupC';      // see $tests above
+$iop->currentTest = 'base';      // see $tests above
 $iop->paramType = 'php';     // 'php' or 'soapval'
-$iop->useWSDL = 1;           // 1= do wsdl tests
+$iop->useWSDL = 0;           // 1= do wsdl tests
 $iop->numServers = 0;        // 0 = all
-$iop->specificEndpoint = 'PEAR SOAP'; // test only this endpoint
+$iop->specificEndpoint = ''; // test only this endpoint
 $iop->testMethod = '';       // test only this method
 $iop->skipEndpointList = array(); // endpoints to skip
 $this->nosave = 0; // 1= disable saving results to database
@@ -40,9 +40,9 @@ $iop->show = 1;
 $iop->debug = 0;
 $iop->showFaults = 0; // used in result table output
 
-$iop->doTest();  // run a single set of tests using above options
+#$iop->doTest();  // run a single set of tests using above options
 #$iop->doGroupTests(); // run a group of tests set in $currentTest
-#$iop->doTests();  // run all tests, ignore above options
+$iop->doTests();  // run all tests, ignore above options
 #$iop->outputTables();
 echo "done";
 
