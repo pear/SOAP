@@ -162,7 +162,7 @@ class SOAP_Client extends SOAP_Base
         $this->headersIn = NULL;
         $this->headersOut = NULL;
     }
-    
+
     /**
      * setEncoding
      *
@@ -238,12 +238,12 @@ class SOAP_Client extends SOAP_Base
         $this->__last_response = null;
         $this->wire = null;
         $this->xml = NULL;
-        
+
         $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
             return $this->_raiseSoapFault($soap_data);
         }
-        
+
         // __generate may have changed the endpoint if the wsdl has more
         // than one service, so we need to see if we need to generate
         // a new transport to hook to a different URI.  Since the transport
@@ -258,7 +258,7 @@ class SOAP_Client extends SOAP_Base
             }
         }
         $this->_soap_transport->encoding = $this->_encoding;
-        
+
         // send the message
         $transport_options = array_merge_recursive($this->__proxy_params, $this->__options);
         $this->xml =& $this->_soap_transport->send($soap_data, $transport_options);
@@ -330,7 +330,7 @@ class SOAP_Client extends SOAP_Base
         // case for the call.
         if ($this->_wsdl)
             $this->_wsdl->matchMethod($method);
-        
+
         $return_value =& $this->call($method, $args);
         return TRUE;
     }
@@ -416,7 +416,7 @@ class SOAP_Client extends SOAP_Base
                 $i = 0;
                 reset($params);
                 foreach ($opData['input']['parts'] as $name => $part) {
-                    $xmlns = $namespace;
+                    $xmlns = '';
                     $attrs = array();
                     // is the name actually a complex type?
                     if (isset($part['element'])) {
