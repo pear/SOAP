@@ -576,14 +576,16 @@ class SOAP_Transport_HTTP extends SOAP_Base
             curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s
         }
 
-        curl_setopt($ch, CURLOPT_POSTFIELDS,     $msg);
-        curl_setopt($ch, CURLOPT_URL,            $this->url);
-        curl_setopt($ch, CURLOPT_POST,           1);
-        curl_setopt($ch, CURLOPT_FAILONERROR,    0);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER,         1);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION,   1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,       $msg);
+        curl_setopt($ch, CURLOPT_URL,              $this->url);
+        curl_setopt($ch, CURLOPT_POST,             1);
+        curl_setopt($ch, CURLOPT_FAILONERROR,      0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION,   1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,   1);
+        curl_setopt($ch, CURLOPT_HEADER,           1);
+        if (defined('CURLOPT_HTTP_VERSION')) {
+            curl_setopt($ch, CURLOPT_HTTP_VERSION, 1);
+        }
 
         if (isset($options['curl'])) {
             foreach ($options['curl'] as $key => $val) {
