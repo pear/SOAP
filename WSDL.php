@@ -59,6 +59,7 @@ class SOAP_WSDL extends SOAP_Base
     var $services = array();
     var $service = '';
     var $uri = '';
+    var $docs = false;
 
     /**
      * Proxy parameters
@@ -84,23 +85,29 @@ class SOAP_WSDL extends SOAP_Base
     var $cacheMaxAge = null;
 
     /**
-     * SOAP_WSDL constructor
+     * SOAP_WSDL constructor.
      *
-     * @param string  endpoint_uri (URL to WSDL file)
-     * @param array   contains options for HTTP_Request class (see HTTP/Request.php)
-     * @param boolean use WSDL caching
-     * @param int     cache max lifetime (in seconds)
+     * @param string  $wsdl_uri     URL to WSDL file.
+     * @param array   $proxy        Contains options for HTTP_Request class (see HTTP/Request.php).
+     * @param boolean $cacheUse     Use WSDL caching. Defaults to false.
+     * @param integer $cacheMaxAge  Cache max lifetime (in seconds).
+     * @param boolean $docs         Parse documentation in the WSDL? Defaults to false.
+     *
      * @access public
      */
-    function SOAP_WSDL($wsdl_uri = false, $proxy = array(),
+    function SOAP_WSDL($wsdl_uri    = false,
+                       $proxy       = array(),
                        $cacheUse    = WSDL_CACHE_USE,
-                       $cacheMaxAge = WSDL_CACHE_MAX_AGE)
+                       $cacheMaxAge = WSDL_CACHE_MAX_AGE,
+                       $docs        = false)
     {
         parent::SOAP_Base('WSDL');
         $this->uri         = $wsdl_uri;
         $this->proxy       = $proxy;
         $this->cacheUse    = $cacheUse;
         $this->cacheMaxAge = $cacheMaxAge;
+        $this->docs        = $docs;
+
         if ($wsdl_uri) {
             $this->parseURL($wsdl_uri);
             reset($this->services);
@@ -127,12 +134,12 @@ class SOAP_WSDL extends SOAP_Base
      * Fill the WSDL array tree with data from a WSDL file
      *
      * @param  string
-     * @param  array  proxi related parameters
+     * @param  array  proxy related parameters
      * @return void
      */
     function parseURL($wsdl_uri, $proxy = array())
     {
-        $parser =& new SOAP_WSDL_Parser($wsdl_uri, $this);
+        $parser =& new SOAP_WSDL_Parser($wsdl_uri, $this, $this->docs);
 
         if ($parser->fault) {
             $this->_raiseSoapFault($parser->fault);
@@ -1607,7 +1614,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
     }
 
     /**
-     * element content handler
+     * Element content handler.
      */
     function characterData($parser, $data)
     {
@@ -1758,24 +1765,24 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                 break;
         }
 
-        // Build bindings from abstract data
+        // Build bindings from abstract data.
         if ($this->fault == null) {
             $this->_generateBindingsAndServices($targetNamespace, $service_name, $service_desc);
         }
     }
 
-    /** Initialise the SOAP_WSDL tree (destructive)
+    /**
+     * Initialise the SOAP_WSDL tree (destructive).
      *
-     * If the object has already been initialised, the only effect will be to
-     * change the tns namespace to the new service name
+     * If the object has already been initialised, the only effect
+     * will be to change the tns namespace to the new service name.
      *
      * @param  $service_name Name of the WSDL <service>
      * @access private
      */
     function _initialise($service_name)
     {
-        // Set up the basic namespaces that all WSDL definitions use
-
+        // Set up the basic namespaces that all WSDL definitions use.
         $this->wsdl->namespaces['wsdl'] = SCHEMA_WSDL;                                      // WSDL language
         $this->wsdl->namespaces['soap'] = SCHEMA_SOAP;                                      // WSDL SOAP bindings
         $this->wsdl->namespaces[$this->tnsPrefix] = 'urn:' . $service_name;                 // Target namespace
@@ -1786,15 +1793,17 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         unset($this->wsdl->ns['urn:' . $service_name]);
         $this->wsdl->ns += array_flip($this->wsdl->namespaces);
 
-        // Imports are not implemented in WSDL generation from classes
+        // Imports are not implemented in WSDL generation from classes.
         // *** <wsdl:import> ***
     }
 
-    /** Parser - takes a single object to add to tree (non-destructive)
+    /**
+     * Parser - takes a single object to add to tree
+     * (non-destructive).
      *
      * @param  $object Reference to the object to parse
      * @param  $service_name Name of the WSDL <service>
-     * @access private
+    * @access private
      */
     function _parse(&$object, $schemaNamespace, $service_name)
     {
@@ -1858,8 +1867,8 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
             }
         }
 
-        // Create an empty element array with the target namespace prefix,
-        // to match the results of WSDL parsing
+        // Create an empty element array with the target namespace
+        // prefix, to match the results of WSDL parsing.
 
         $this->wsdl->elements[$schPrefix] = array();
 
@@ -1909,8 +1918,9 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         // encompasses all of the operations available.
         // *** <wsdl:portType> ***
 
-        if (!isset($this->wsdl->portTypes[$service_name . 'Port']))
+        if (!isset($this->wsdl->portTypes[$service_name . 'Port'])) {
             $this->wsdl->portTypes[$service_name . 'Port'] = array();
+        }
         $thisPortType =& $this->wsdl->portTypes[$service_name . 'Port'];
 
         foreach ($object->__dispatch_map as $operationName => $messages) {
@@ -1920,17 +1930,14 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                 switch ($messageType) {
                 case 'in':
                     $thisPortType[$operationName]['input'] = array(
-                            'message' => $operationName . 'Request',
-                            'namespace' => $this->tnsPrefix);
+                        'message' => $operationName . 'Request',
+                        'namespace' => $this->tnsPrefix);
                     break;
 
                 case 'out':
                     $thisPortType[$operationName]['output'] = array(
-                            'message' => $operationName . 'Response',
-                            'namespace' => $this->tnsPrefix);
-                    break;
-
-                default:
+                        'message' => $operationName . 'Response',
+                        'namespace' => $this->tnsPrefix);
                     break;
                 }
             }
@@ -1939,7 +1946,9 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         return true;
     }
 
-    /** Take all the abstract WSDL data and build concrete bindings and services (destructive)
+    /**
+     * Take all the abstract WSDL data and build concrete bindings and
+     * services (destructive).
      *
      * XXX Current implementation discards $service_desc.
      *
@@ -2017,12 +2026,14 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
 
     /**
      * This function is adapted from Dmitri V's implementation of
-     * DISCO/WSDL generation. It separates namespace from type name in a
-     * __typedef key and creates a new namespace entry in the WSDL structure
-     * if the namespace has not been used before. The namespace prefix and
-     * type name are returned. If no namespace is specified, xsd is assumed.
+     * DISCO/WSDL generation. It separates namespace from type name in
+     * a __typedef key and creates a new namespace entry in the WSDL
+     * structure if the namespace has not been used before. The
+     * namespace prefix and type name are returned. If no namespace is
+     * specified, xsd is assumed.
      *
-     * We will not need this function anymore once __typedef is eliminated.
+     * We will not need this function anymore once __typedef is
+     * eliminated.
      */
     function _getTypeNs($type)
     {
@@ -2038,6 +2049,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         } else {
             $typens = 'xsd';
         }
+
         return array($typens, $type);
     }
 

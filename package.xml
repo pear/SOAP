@@ -59,6 +59,9 @@
       - Avoid infinite loops when wsdl:import files create a circular
         dependency.
 
+      - Provide a mechanism in SOAP_WSDL to turn on documentation
+        parsing in SOAP_WSDL_Parser objects.
+
       - Pass $this->docs to child SOAP_WSDL_Parser objects.
     </notes>
     <filelist>
