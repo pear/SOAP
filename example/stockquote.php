@@ -38,7 +38,14 @@ unset($soapclient);
 
 print "\n<br><strong>non wsdl:</strong>";
 $soapclient = new SOAP_Client("http://services.xmethods.net:80/soap");
-$ret = $soapclient->call("getQuote",array("symbol"=>"ibm"),"urn:xmethods-delayed-quotes","urn:xmethods-delayed-quotes#getQuote");
+$namespace = "urn:xmethods-delayed-quotes";
+/**
+ * some soap servers require a Soapaction http header.  PEAR::SOAP does
+ * not use them in any way, other to send them if you supply them.
+ * soapaction is deprecated in later SOAP versions.
+ */
+$soapaction = "urn:xmethods-delayed-quotes#getQuote";
+$ret = $soapclient->call("getQuote",array("symbol"=>"ibm"),$namespace,$soapaction);
 print_r($ret);
 print "\n\n";
 unset($soapclient);
