@@ -68,19 +68,19 @@ class Interop_Client
         }
         // set up local endpoint
         $this->localEndpoint['base'] = array(
-                                'endpointName'=>'localhost',
-                                'endpointURL'=>'http://localhost/soap/server_round2.php',
-                                'wsdlURL'=>'http://localhost/soap/interop.wsdl'
+                                'endpointName'=>'PEAR SOAP',
+                                'endpointURL'=>'http://localhost/soap_interop/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap_interop/interop.wsdl'
                               );
         $this->localEndpoint['GroupB'] = array(
-                                'endpointName'=>'localhost',
-                                'endpointURL'=>'http://localhost/soap/server_round2.php',
-                                'wsdlURL'=>'http://localhost/soap/interopB.wsdl'
+                                'endpointName'=>'PEAR SOAP',
+                                'endpointURL'=>'http://localhost/soap_interop/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap_interop/interopB.wsdl'
                               );
         $this->localEndpoint['GroupC'] = array(
-                                'endpointName'=>'localhost',
-                                'endpointURL'=>'http://localhost/soap/server_round2.php',
-                                'wsdlURL'=>'http://localhost/soap/echoheadersvc.wsdl'
+                                'endpointName'=>'PEAR SOAP',
+                                'endpointURL'=>'http://localhost/soap_interop/server_round2.php',
+                                'wsdlURL'=>'http://localhost/soap_interop/echoheadersvc.wsdl'
                               );
     }
     
@@ -471,8 +471,8 @@ class Interop_Client
             } else {
                 $fault = array('faultcode'=>'RESULT',
                                'faultstring'=>'The returned result did not match what we expected to receive',
-                               'faultdetail'=>"SENT:\n".var_dump($soap_test->result['sent']).
-                                               "\n\nRECIEVED:\n".var_dump($soap_test->result['return']));
+                               'faultdetail'=>''/*"SENT:\n".var_export($soap_test->result['sent']).
+                                               "\n\nRECIEVED:\n".var_export($soap_test->result['return'])*/);
                 $soap_test->setResult(0,$fault['faultcode'],
                                   $soap->wire,
                                   $fault['faultstring'],
@@ -541,8 +541,29 @@ class Interop_Client
                 }
                 
                 // if we're looking for a specific method, skip unless we have it
-                if ($this->testMethod && !strstr($soap_test->test_name, $this->testMethod)) continue;
-                
+                if ($this->testMethod && !strstr($this->testMethod,$soap_test->test_name)) continue;
+                if ($this->testMethod && $this->currentTest == 'GroupC') {
+                    // we have to figure things out now
+                    if (!preg_match('/(.*):(.*),(\d),(\d)/',$this->testMethod, $m)) continue;
+                    
+                    // is the header in the headers list?
+                    $gotit = FALSE;
+                    foreach ($soap_test->headers as $header) {
+                        if (get_class($header) == 'soap_header') {
+                            if ($header->name == $m[2]) {
+                                $gotit = $header->actor == ($m[3]?SOAP_TEST_ACTOR_NEXT:SOAP_TEST_ACTOR_OTHER);
+                                $gotit = $gotit && $header->mustunderstand == $m[4];
+                            }
+                        } else {
+                            if ($header[0] == $m[2]) {
+                                $gotit = $gotit && $header[3] == ($m[3]?SOAP_TEST_ACTOR_NEXT:SOAP_TEST_ACTOR_OTHER);
+                                $gotit = $gotit && $header[4] == $m[4];
+                            }
+                        }
+                    }
+                    if (!$gotit) continue;
+                }
+            
                 // if we are skipping the rest of the tests (due to error) note a fault
                 if ($skipendpoint) {
                     $soap_test->setResult(0,$fault['faultcode'], '',

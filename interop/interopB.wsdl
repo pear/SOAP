@@ -6,7 +6,7 @@
 
 	<service name="interopLabB">
   		<port name="interopTestPortB" binding="tns:InteropTestSoapBindingB">
-    			<soap:address location="http://localhost/soap/server_round2.php"/>
+    			<soap:address location="http://localhost/soap_interop/server_round2.php"/>
   		</port>
 	</service>
 

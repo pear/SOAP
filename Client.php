@@ -260,6 +260,8 @@ class SOAP_Client extends SOAP_Base
             $soap_transport->transport->outgoing_payload.
             "\n\nINCOMING\n\n".
             preg_replace("/>/",">\n",$soap_transport->transport->incoming_payload);
+        // store the incoming xml for easy retreival by clients that want their own parsing
+        $this->xml = $soap_transport->transport->incoming_payload;
         $this->debug($this->wire);
         
         if ($soap_transport->fault) {

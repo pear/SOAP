@@ -53,7 +53,9 @@
           <file role="php" name="hexBinary.php"/>
         </dir>
         <dir name="interop" role="test"> 
+          <file role="test" name="index.php"/>
           <file role="test" name="client_round2.php"/>
+          <file role="test" name="client_round2_run.php"/>
           <file role="test" name="client_round2_interop.php"/>
           <file role="test" name="client_round2_params.php"/>
           <file role="test" name="client_round2_results.php"/>

@@ -8,7 +8,7 @@
 	<service name="interopLabEchoHeader">
 
   		<port name="interopPortEchoHdr" binding="tns:InteropEchoHeaderBinding">
-    			<soap:address location="http://localhost/soap/server_round2.php"/>
+    			<soap:address location="http://localhost/soap_interop/server_round2.php"/>
   		</port>
 
 	</service>

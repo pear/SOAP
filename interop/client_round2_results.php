@@ -46,27 +46,9 @@ TD.SMTP { background-color: Yellow; }
 
 <body bgcolor="White" text="Black">
 <h2 align="center">SOAP Client Interop Test Results: Round2</h2>
-<p>
-Notes:
-Tests are done both "Direct" and with "WSDL".  WSDL tests use the supplied interop WSDL
-to run the tests against.  The Direct method uses an internal prebuilt list of methods and parameters
-for the test.</p>
-<p>
-Tests are also run against two methods of generating method parameters.  The first, 'php', attempts
-to directly serialize PHP variables into soap values.  The second method, 'soapval', uses a SOAP_Value
-class to define what the type of the value is.  The second method is more interopable than the first
-by nature.
-</p>
-<p>
-More detail about errors (marked yellow or red) will follow each table.  If we have an HTTP error
-attempting to connect to the endpoint, we will mark all consecutive attempts as errors, and skip
-testing that endpoint.  This reduces the time it takes to run the tests if a server is unavailable.
-WSDLCACHE errors mean we cannot retreive the WSDL file specified for the endpoint.
-</p>
-<p>
-More information on Round 2 Interopability is available at
-<a href="http://www.whitemesa.com/interop.htm">http://www.whitemesa.com/interop.htm</a>.
-</p>
+
+<a href="index.php">Back to Interop Index</a><br>
+<p>&nbsp;</p>
 
 <?php
 $iop = new Interop_Client();
