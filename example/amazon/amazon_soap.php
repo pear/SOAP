@@ -21,10 +21,10 @@ class AmazonSearchService {
     function keywordSearchRequest($KeywordSearchRequest) {
         // KeywordSearchRequest is a ComplexType, refer to wsdl for more info
         $KeywordSearchRequest->devtag = $this->devtag;
-        $KeywordSearchRequest = new SOAP_Value('KeywordSearchRequest','{urn:PI/DevCentral/SoapService}KeywordRequest',$KeywordSearchRequest);
+        $KeywordSearchRequest =& new SOAP_Value('KeywordSearchRequest','{urn:PI/DevCentral/SoapService}KeywordRequest',$KeywordSearchRequest);
         //$KeywordRequest = new SOAP_Value('{urn:PI/DevCentral/SoapService}KeywordRequest',false,$KeywordRequest);
         return $this->client->call("KeywordSearchRequest", 
-                        array("KeywordSearchRequest"=>$KeywordSearchRequest), 
+                        $v = array("KeywordSearchRequest"=>$KeywordSearchRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -34,9 +34,9 @@ class AmazonSearchService {
     function BrowseNodeSearchRequest($BrowseNodeRequest) {
         // BrowseNodeSearchRequest is a ComplexType, refer to wsdl for more info
         $BrowseNodeRequest->devtag = $this->devtag;
-        $BrowseNodeRequest = new SOAP_Value('BrowseNodeSearchRequest','{urn:PI/DevCentral/SoapService}BrowseNodeRequest',$BrowseNodeRequest);
+        $BrowseNodeRequest =& new SOAP_Value('BrowseNodeSearchRequest','{urn:PI/DevCentral/SoapService}BrowseNodeRequest',$BrowseNodeRequest);
         return $this->client->call("BrowseNodeSearchRequest", 
-                        array("BrowseNodeSearchRequest"=>$BrowseNodeRequest), 
+                        $v = array("BrowseNodeSearchRequest"=>$BrowseNodeRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -46,9 +46,9 @@ class AmazonSearchService {
     function asinSearchRequest($AsinRequest) {
         // AsinSearchRequest is a ComplexType, refer to wsdl for more info
         $AsinRequest->devtag = $this->devtag;
-        $AsinRequest = new SOAP_Value('AsinSearchRequest','{urn:PI/DevCentral/SoapService}AsinRequest',$AsinRequest);
+        $AsinRequest =& new SOAP_Value('AsinSearchRequest','{urn:PI/DevCentral/SoapService}AsinRequest',$AsinRequest);
         return $this->client->call("AsinSearchRequest", 
-                        array("AsinSearchRequest"=>$AsinRequest), 
+                        $v = array("AsinSearchRequest"=>$AsinRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -57,9 +57,9 @@ class AmazonSearchService {
     function upcSearchRequest($UpcRequest) {
         // UpcSearchRequest is a ComplexType, refer to wsdl for more info
         $UpcRequest->devtag = $this->devtag;
-        $UpcRequest = new SOAP_Value('UpcSearchRequest','{urn:PI/DevCentral/SoapService}UpcRequest',$UpcRequest);
+        $UpcRequest =& new SOAP_Value('UpcSearchRequest','{urn:PI/DevCentral/SoapService}UpcRequest',$UpcRequest);
         return $this->client->call("UpcSearchRequest", 
-                        array("UpcSearchRequest"=>$UpcRequest), 
+                        $v = array("UpcSearchRequest"=>$UpcRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -69,9 +69,9 @@ class AmazonSearchService {
     function authorSearchRequest($AuthorRequest) {
         // AuthorSearchRequest is a ComplexType, refer to wsdl for more info
         $AuthorRequest->devtag = $this->devtag;
-        $AuthorRequest = new SOAP_Value('AuthorSearchRequest','{urn:PI/DevCentral/SoapService}AuthorRequest',$AuthorRequest);
+        $AuthorRequest =& new SOAP_Value('AuthorSearchRequest','{urn:PI/DevCentral/SoapService}AuthorRequest',$AuthorRequest);
         return $this->client->call("AuthorSearchRequest", 
-                        array("AuthorSearchRequest"=>$AuthorRequest), 
+                        $v = array("AuthorSearchRequest"=>$AuthorRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -81,9 +81,9 @@ class AmazonSearchService {
     function artistSearchRequest($ArtistRequest) {
         // ArtistSearchRequest is a ComplexType, refer to wsdl for more info
         $ArtistRequest->devtag = $this->devtag;
-        $ArtistRequest = new SOAP_Value('ArtistSearchRequest','{urn:PI/DevCentral/SoapService}ArtistRequest',$ArtistRequest);
+        $ArtistRequest =& new SOAP_Value('ArtistSearchRequest','{urn:PI/DevCentral/SoapService}ArtistRequest',$ArtistRequest);
         return $this->client->call("ArtistSearchRequest", 
-                        array("ArtistSearchRequest"=>$ArtistRequest), 
+                        $v = array("ArtistSearchRequest"=>$ArtistRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -93,9 +93,9 @@ class AmazonSearchService {
     function actorSearchRequest($ActorRequest) {
         // ActorSearchRequest is a ComplexType, refer to wsdl for more info
         $ActorRequest->devtag = $this->devtag;
-        $ActorRequest = new SOAP_Value('ActorSearchRequest','{urn:PI/DevCentral/SoapService}ActorRequest',$ActorRequest);
+        $ActorRequest =& new SOAP_Value('ActorSearchRequest','{urn:PI/DevCentral/SoapService}ActorRequest',$ActorRequest);
         return $this->client->call("ActorSearchRequest", 
-                        array("ActorSearchRequest"=>$ActorRequest), 
+                        $v = array("ActorSearchRequest"=>$ActorRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -104,9 +104,9 @@ class AmazonSearchService {
     function manufacturerSearchRequest($ManufacturerRequest) {
         // ManufacturerSearchRequest is a ComplexType, refer to wsdl for more info
         $ManufacturerRequest->devtag = $this->devtag;
-        $ManufacturerRequest = new SOAP_Value('ManufacturerSearchRequest','{urn:PI/DevCentral/SoapService}ManufacturerRequest',$ManufacturerRequest);
+        $ManufacturerRequest =& new SOAP_Value('ManufacturerSearchRequest','{urn:PI/DevCentral/SoapService}ManufacturerRequest',$ManufacturerRequest);
         return $this->client->call("ManufacturerSearchRequest", 
-                        array("ManufacturerSearchRequest"=>$ManufacturerRequest), 
+                        $v = array("ManufacturerSearchRequest"=>$ManufacturerRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -116,9 +116,9 @@ class AmazonSearchService {
     function directorSearchRequest($DirectorRequest) {
         // DirectorSearchRequest is a ComplexType, refer to wsdl for more info
         $DirectorRequest->devtag = $this->devtag;
-        $DirectorRequest = new SOAP_Value('DirectorSearchRequest','{urn:PI/DevCentral/SoapService}DirectorRequest',$DirectorRequest);
+        $DirectorRequest =& new SOAP_Value('DirectorSearchRequest','{urn:PI/DevCentral/SoapService}DirectorRequest',$DirectorRequest);
         return $this->client->call("DirectorSearchRequest", 
-                        array("DirectorSearchRequest"=>$DirectorRequest), 
+                        $v = array("DirectorSearchRequest"=>$DirectorRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -127,9 +127,9 @@ class AmazonSearchService {
     function ListManiaSearchRequest($ListManiaRequest) {
         // ListManiaSearchRequest is a ComplexType, refer to wsdl for more info
         $ListManiaRequest->devtag = $this->devtag;
-        $ListManiaRequest = new SOAP_Value('ListManiaSearchRequest','{urn:PI/DevCentral/SoapService}ListManiaRequest',$ListManiaRequest);
+        $ListManiaRequest =& new SOAP_Value('ListManiaSearchRequest','{urn:PI/DevCentral/SoapService}ListManiaRequest',$ListManiaRequest);
         return $this->client->call("ListManiaSearchRequest", 
-                        array("ListManiaSearchRequest"=>$ListManiaRequest), 
+                        $v = array("ListManiaSearchRequest"=>$ListManiaRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',
@@ -139,9 +139,9 @@ class AmazonSearchService {
     function similaritySearchRequest($SimilarityRequest) {
         // SimilaritySearchRequest is a ComplexType, refer to wsdl for more info
         $SimilarityRequest->devtag = $this->devtag;
-        $SimilarityRequest = new SOAP_Value('SimilaritySearchRequest','{urn:PI/DevCentral/SoapService}SimilarityRequest',$SimilarityRequest);
+        $SimilarityRequest =& new SOAP_Value('SimilaritySearchRequest','{urn:PI/DevCentral/SoapService}SimilarityRequest',$SimilarityRequest);
         return $this->client->call("SimilaritySearchRequest", 
-                        array("SimilaritySearchRequest"=>$SimilarityRequest), 
+                        $v = array("SimilaritySearchRequest"=>$SimilarityRequest), 
                         array('namespace'=>'urn:PI/DevCentral/SoapService',
                             'soapaction'=>'urn:PI/DevCentral/SoapService',
                             'style'=>'rpc',

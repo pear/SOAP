@@ -44,7 +44,7 @@ class Amazon {
     
     function SearchForm($info=array())
     {
-        global $amazon_modes, $PHP_SELF;
+        global $amazon_modes;
 
         $modelist = '';
         foreach($amazon_modes as $name=>$mode) {
@@ -68,7 +68,7 @@ class Amazon {
 echo <<< EOF
         <table border='1'><tr><td>
         Amazon Search<br/>
-        <form action='$PHP_SELF' method='post'>
+        <form action='{$_SERVER["PHP_SELF"]}' method='post'>
         <select name='search_class'>
         $classlist
         </select>
@@ -86,7 +86,6 @@ EOF;
     
     function _pageLink($page, &$info)
     {
-        global $PHP_SELF;
         $q = array();
         $info['search_page'] += $page;
         foreach($info as $k=>$v) {
@@ -95,7 +94,7 @@ EOF;
         $q = join($q,'&');
         if ($page == 1) $dir = "Next >>>";
         else $dir = "<<< Prev";
-        return "<a href='$PHP_SELF?$q'>$dir</a>";
+        return "<a href='{$_SERVER['PHP_SELF']}?$q'>$dir</a>";
     }
     
     function Search(&$info)
