@@ -423,7 +423,8 @@ class SOAP_Client extends SOAP_Base
                         $part = $this->_wsdl->elements[$part['namespace']][$part['type']];
                         $name = $part['name'];
                     }
-                    if (array_key_exists($name,$params)) {
+                    if (array_key_exists($name,$params) ||
+                        $this->_wsdl->getDataHandler($name,$part['namespace'])) {
                         $nparams[$name] =& $params[$name];
                     } else {
                         # we now force an associative array for parameters if using wsdl
@@ -450,6 +451,7 @@ class SOAP_Client extends SOAP_Base
                 }
             }
             $params =& $nparams;
+            unset($nparams);
             }
         } else {
             $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);

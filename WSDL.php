@@ -210,6 +210,54 @@ class SOAP_WSDL extends SOAP_Base
         }
     }
     
+    /**
+    * getDataHandler
+    *
+    * Given a datatype, what function handles the processing?
+    * this is used for doc/literal requests where we receive
+    * a datatype, and we need to pass it to a method in out
+    * server class
+    *
+    * @param string datatype
+    * @param string namespace
+    * @returns string methodname
+    * @access public
+    */
+    function getDataHandler($datatype,$namespace) {
+        // see if we have an element by this name
+        if (isset($this->namespaces[$namespace]))
+            $namespace = $this->namespaces[$namespace];
+        if (isset($this->ns[$namespace])) {
+            $nsp = $this->ns[$namespace];
+            #if (!isset($this->elements[$nsp]))
+            #    $nsp = $this->namespaces[$nsp];
+            if (isset($this->elements[$nsp][$datatype])) {
+                $checkmessages = array();
+                // find what messages use this datatype
+                foreach ($this->messages as $messagename=>$message) {
+                    foreach ($message as $partname=>$part) {
+                        if ($part['type']==$datatype) {
+                            $checkmessages[] = $messagename;
+                            break;
+                        }
+                    }
+                }
+                // find the operation that uses this message
+                $dataHandler = NULL;
+                foreach($this->portTypes as $portname=>$porttype) {
+                    foreach ($porttype as $opname=>$opinfo) {
+                        foreach ($checkmessages as $messagename) {
+                            if ($opinfo['input']['message'] == $messagename) {
+                                return $opname;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return NULL;
+    }
+    
     function getSoapAction($portName, $operation)
     {
         if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['soapAction']) &&

@@ -339,40 +339,9 @@ class SOAP_Server extends SOAP_Base
         
         if ($this->_wsdl) {
             $this->_setSchemaVersion($this->_wsdl->xsd);
-
-            // see if we have an element by this name
-            if (isset($this->_wsdl->ns[$this->method_namespace])) {
-                $nsp = $this->_wsdl->ns[$this->method_namespace];
-                #if (!isset($this->_wsdl->elements[$nsp]))
-                #    $nsp = $this->_wsdl->namespaces[$nsp];
-                if (isset($this->_wsdl->elements[$nsp][$this->methodname])) {
-                    $checkmessages = array();
-                    // find what messages use this datatype
-                    foreach ($this->_wsdl->messages as $messagename=>$message) {
-                        foreach ($message as $partname=>$part) {
-                            if ($part['type']==$this->methodname) {
-                                $checkmessages[] = $messagename;
-                                break;
-                            }
-                        }
-                    }
-                    // find the operation that uses this message
-                    $dataHandler = NULL;
-                    foreach($this->_wsdl->portTypes as $portname=>$porttype) {
-                        foreach ($porttype as $opname=>$opinfo) {
-                            foreach ($checkmessages as $messagename) {
-                                if ($opinfo['input']['message'] == $messagename) {
-                                    $dataHandler = $opname;
-                                    break;
-                                }
-                            }
-                            if ($dataHandler) break;
-                        }
-                        if ($dataHandler) break;
-                    }
-                    $this->methodname = $dataHandler;
-                }
-            }
+            $dataHandler = $this->_wsdl->getDataHandler($this->methodname,$this->method_namespace);
+            if ($dataHandler)
+                $this->call_methodname = $this->methodname = $dataHandler;
             
             $this->_portName = $this->_wsdl->getPortName($this->methodname);
             if (PEAR::isError($this->_portName)) {
@@ -492,7 +461,8 @@ class SOAP_Server extends SOAP_Base
                 // no map, all public functions are soap functions
                 return TRUE;
             }
-        } else {
+        } 
+        if (!$map) {
             $this->_raiseSoapFault("soap request specified an unhandled method '$this->methodname'",'','','Client');
             return FALSE;
         }
