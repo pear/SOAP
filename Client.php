@@ -73,9 +73,9 @@ class SOAP_Envelope extends DOMDocument {
     public function addHeader($header, $data) {
         if (!$this->headers) {
             $this->headers = $this->createElement('soap-env:Header');
-            $this->documentElement->insertChildBefore($this->headers, $this->body);
+            $this->documentElement->insertBefore($this->headers, $this->body);
         }
-        $node = $this->serializeOperation($method, $args, 'header');
+        $node = $this->serializeOperation($header, $data, 'header');
         $this->headers->appendChild($node);
     }
     
