@@ -463,8 +463,7 @@ class SOAP_Base extends SOAP_Base_Object
 
                 // serialize each array element
                 $ar_size = count($value);
-                for ($i=0; $i < $ar_size; $i++) {
-                    $array_val =& $value[$i];
+		foreach ($value as $array_val) {
                     if ($this->_isSoapValue($array_val)) {
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
@@ -598,12 +597,15 @@ class SOAP_Base extends SOAP_Base_Object
                 $type = 'Struct';
             } else {
                 $ar_size = count($value);
-                if ($ar_size > 0 && isset($value[0]) && is_a($value[0],'soap_value')) {
-                    // fixme for non-wsdl structs that are all teh same type
-                    if ($ar_size > 1 &&
-                        $this->_isSoapValue($value[0]) &&
-                        $this->_isSoapValue($value[1]) &&
-                        $value[0]->name != $value[1]->name) {
+                    reset($value);
+		    $key1 = key($value);
+		    if ($ar_size > 0 && is_a($key1,'soap_value')) {
+		    // fixme for non-wsdl structs that are all the same type
+		    $key2 = key($value);
+		    if ($ar_size > 1 &&
+		        $this->_isSoapValue($key1) &&
+			$this->_isSoapValue($key2) &&
+			$key1->name != $key2->name) {
                         // this is a struct, not an array
                         $type = 'Struct';
                     } else {
