@@ -1,4 +1,4 @@
-<?php
+class<?php
 //
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -563,7 +563,7 @@ class SOAP_Client extends SOAP_Base
         if (PEAR::isError($returnArray)) {
             return $this->_raiseSoapFault($returnArray);
         }
-        if (is_object($returnArray) && strcasecmp(get_class($returnArray),'stdClass')==0) {
+        if (is_object($returnArray) && strcasecmp(get_class($returnArray),'stdClass') == 0) {
             $returnArray = get_object_vars($returnArray);
         }
         if (is_array($returnArray)) {
