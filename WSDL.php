@@ -393,10 +393,23 @@ class SOAP_WSDL extends SOAP_Base
         
         if (!$this->_validateString($classname)) return NULL;
         
-        $class = "class $classname extends SOAP_Client {\n".
-        "    function $classname() {\n".
-        "        \$this->SOAP_Client(\"$clienturl\", 0, \$this->proxy);\n".
-        "    }\n";
+        if (is_array($this->proxy) && count($this->proxy) > 0) {            
+            $class = "class $classname extends SOAP_Client {\n".
+            "    function $classname() {\n".
+            "        \$this->SOAP_Client(\"$clienturl\", 0, 0, 
+                    array(";                    
+            foreach($this->proxy as $key => $val) {
+                $class .= "\"$key\"=>\"$val\",";    
+            }                
+            $class = substr($class, 0, strlen($class)-1);
+
+            $class .= "));\n }\n";
+        } else {                
+            $class = "class $classname extends SOAP_Client {\n".
+            "    function $classname() {\n".
+            "        \$this->SOAP_Client(\"$clienturl\", 0);\n".
+            "    }\n";      
+        }  
 
         // get the binding, from that get the port type
         $primaryBinding = $port['binding']; //$this->services[$this->service]['ports'][$port['name']]["binding"];
