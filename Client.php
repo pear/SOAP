@@ -303,7 +303,9 @@ class SOAP_Client extends SOAP_Base
             $params = array($params);
         }
         if (gettype($namespace) == 'array') {
-            $this->__options = array_merge($this->__options,$namespace);
+            foreach ($namespace as $optname=>$opt) {
+                $this->__options[strtolower($optname)]=$opt;
+            }
             if (isset($this->__options['namespace'])) $namespace = $this->__options['namespace'];
             else $namespace = false;
         } else {
