@@ -143,7 +143,7 @@ class SOAP_Value
                 "struct" => true,
             );
         }
-        return (bool)$validSoapTypes[$type]);
+        return (bool)$validSoapTypes[$type];
     }
     
     function _getSoapValue($value, $type)
