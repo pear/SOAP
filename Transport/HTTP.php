@@ -211,12 +211,12 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->_raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL " . $this->url);
             return false;
         }
         if (!isset($this->urlparts['host'])) {
-            $this->_raiseSoapFault("No host in URL $url");
-            return FALSE;
+            $this->_raiseSoapFault("No host in URL " . $this->url);
+            return false;
         }
         if (!isset($this->urlparts['port'])) {
 
@@ -232,7 +232,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         }
         if (!isset($this->urlparts['path']) || !$this->urlparts['path'])
             $this->urlparts['path'] = '/';
-        return TRUE;
+        return true;
     }
 
     /**
