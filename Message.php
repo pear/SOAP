@@ -1,110 +1,186 @@
 <?php
-/*
- * Copyright (c) 2001 Tim Uckun
- * All rights reserved.
- * 
- * This Software is distributed under the GPL. For a list of your
- * obligations and rights under this license please visit the GNU
- * website at http://www.gnu.org/
- *
- */
+//
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
+// | Authors: Dietrich Ayala <dietrich@ganx4.com> Original Author         |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+//
+require_once("SOAP/globals.php");
+require_once("SOAP/Parser.php");
+require_once("SOAP/Value.php");
 
 /**
- * A soap message object to be used with other soap objects It's
- * basically an container for SOAP_Value objects.
- *
- * @version 0.01
- * @author Tim Uckun <tim@diligence.com>
- *
- * Interface.
- * 
- * public variables:
- *     None please don't attempt to directly access variables in objects
- *         
- * Public Functions
- * 
- * SOAP_Message($method , $target="" , $params=0) // constructor. Use
- *                                     // this method to create a soap
- *                                     // msg Method is the name of
- *                                     // the method target is the URN
- *                                     // params is an array of
- *                                     // soapval
- *                                           
- * addparameter($par)                  // par is an soapval object
- * getParameter($i)                    // retrieve a paramter by index
- * getNumParameters()                  // returns the parameter count
- * method($meth='')                    // gets or sets the method
- * target($target='')                  // gets or sets the target
- * function serialize()                // serializes the entire
- *                                     // message usually called by
- *                                     // the soapclient object
- */
+*  SOAP Message Class
+* this class serializes and deserializes soap messages for transport (see SOAP::Transport)
+*
+* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+*
+* @access public
+* @version $Id$
+* @package SOAP::Message
+* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+*/
 class SOAP_Message
 {
-    var $_parameters;
-    var $_env_header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"  xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\"  xmlns:xsd=\"http://www.w3.org/1999/XMLSchema\">\n<SOAP-ENV:Body>\n" ;
-    var $_env_footer="</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>\n";
-	var $_method='';
-    var $_target='';
-                            
-    function SOAP_Message($method , $target="" , $params=0)
+    /**
+    * SOAP::Message constructor
+    *
+    * initializes a soap structure containing the method signature and parameters
+    *
+    * @param string $method       soap data (in xml)
+    * @param array(SOAP::Value) $params       soap data (in xml)
+    * @param string $method_namespace       soap data (in xml)
+    * @param array of string $new_namespaces       soap data (in xml)
+    *
+    * @access public
+    */
+    function SOAP_Message($method,$params,$method_namespace="http://testuri.org",$new_namespaces=NULL)
     {
-        $this->_method=$method;
-        $this->_target=$target;
-        
-        if ($params) {
-            if (is_array($params) && sizeof($params)>0) {
-                $this->_parameters = $params;
-            } else {
-                $this->addParam($params);
+        // globalize method namespace
+        global $methodNamespace;
+        $methodNamespace = $method_namespace;
+        // make method struct
+        $this->value = new SOAP_Value($method,"struct",$params,$method_namespace);
+        if (is_array($new_namespaces)) {
+            global $namespaces;
+            $i = count($namespaces);
+            foreach ($new_namespaces as $v) {
+                $namespaces[$v] = "ns".$i++;
             }
+            $this->namespaces = $namespaces;
         }
+        $this->payload = "";
+        $this->debug_flag = false;
+        $this->debug_str = "entering SOAP_Message() with SOAP_Value ".$this->value->name."\n";
     }
     
-    function addParameter($par) 
-    { 
-        $this->_parameters[]=$par; 
-    }
-
-    function getParameter($i) 
-    { 
-        return $this->_parameters[$i]; 
-    }
-
-    function getNumParameters() 
-    { 
-        return sizeof($this->_parameters); 
-    }
-     
-    function method($meth = '')
+    /**
+    * wraps the soap payload with the soap envelop data
+    *
+    * @param string $payload       soap data (in xml)
+    *
+    * @return string xml_soap_data
+    * @access private
+    */
+    function _makeEnvelope($payload)
     {
-        if ($meth) {
-            $this->_method=$meth;
+        global $SOAPSchemaEncoding;
+        global $namespaces;
+        $ns_string = "";
+        foreach ($namespaces as $k => $v) {
+            $ns_string .= "xmlns:$v=\"$k\" ";
         }
-        return $this->_method;
-    }
-
-    function target($target = '')
-    {
-        if ($target) {
-            $this->_target=$target;
-        }
-        return $this->_target;
+        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"$SOAPSchemaEncoding\">\n".
+                   $payload.
+                   "</SOAP-ENV:Envelope>\n";
     }
     
+    /**
+    * wraps the soap body
+    *
+    * @param string $payload       soap data (in xml)
+    *
+    * @return string xml_soap_data
+    * @access private
+    */
+    function _makeBody($payload)
+    {
+        return "<SOAP-ENV:Body>\n".$payload."</SOAP-ENV:Body>\n";
+    }
+    
+    /**
+    * creates an xml string representation of the soap message data
+    *
+    * @access private
+    */
+    function _createPayload()
+    {
+        $value = $this->value;
+        $payload = $this->_makeEnvelope($this->_makeBody($value->serialize()));
+        $this->debug($value->debug_str);
+        $payload = "<?xml version=\"1.0\"?>\n".$payload;
+        if ($this->debug_flag) {
+            $payload .= $this->serializeDebug();
+        }
+        $this->payload = str_replace("\n","\r\n", $payload);
+    }
+    
+    /**
+    * serializes this classes data into xml
+    *
+    * @return string xml_soap_data
+    * @access public
+    */
     function serialize()
     {
-        $s = $this->_env_header;
-        $s .= "<ns1:$this->_method xmlns:ns1='$this->_target' SOAP-ENV:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'>\n";
-        foreach ($this->_parameters as $param) {
-            $s .= $param->serialize();
+        if ($this->payload == "") {
+            $this->_createPayload();
+            return $this->payload;
         }
-        $s .= "</ns1:" . $this->_method . "s>\n";
-        $s .= $this->_env_footer;
-        
-        $s = str_replace("\n", "\r\n", $s);
-        return $s;
+        return $this->payload;
+    }
+    
+    /**
+    * parses a soap message
+    *
+    * @param string $data       soap message (in xml)
+    *
+    * @return SOAP::Value
+    * @access public
+    */
+    function parseResponse($data)
+    {
+        $this->debug("Entering parseResponse()");
+        $this->debug(" w/ data $data");
+        $this->debug("about to create parser instance w/ data");
+        // parse response
+        $response = new SOAP_Parser($data);
+        // return array of parameters
+        $ret = $response->get_response();
+        $this->debug($response->debug_str);
+        return $ret;
+    }
+    
+    /**
+    * maintains a string of debug data
+    *
+    * @params string data
+    * @access private
+    */
+    function debug($string)
+    {
+        if ($this->debug_flag) {
+            $this->debug_str .= "SOAP_Message: ".preg_replace("/>/","/>\r\n/",$string)."\n";
+        }
+    }
+    
+    /**
+    * preps debug data for encoding into SOAP::Message
+    *
+    * @return string
+    * @access private
+    */
+    function serializeDebug()
+    {
+        if ($this->debug_flag) {
+            return "<!-- DEBUG INFO:\n".$this->debug_str."-->\n";
+        }
+        return "";
     }
 }
-   
 ?>

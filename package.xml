@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!-- do not use the "Type" attribute here, that one is only for
+     generated package.xml files -->
+<package>
+ <name>SOAP</name>
+ <summary>SOAP Client/Server for PHP</summary>
+ <description>
+  Implementation of SOAP protocol and services
+ </description>
+ <maintainer>
+  <user>shane</user>
+  <name>Shane Caraveo</name>
+  <email>shane@php.net</email>
+ </maintainer>
+ <release>
+  <version>0.6</version>
+  <date>2002-02-18</date>
+  <notes>
+   This is the initial independent PEAR release.
+  </notes>
+ </release>
+ <filelist>
+  <dir name="/" baseinstalldir="SOAP">
+    <file role="php">Client.php</file>
+    <file role="php">Server.php</file>
+    <file role="php">Message.php</file>
+    <file role="php">Value.php</file>
+    <file role="php">Parser.php</file>
+    <file role="php">Transport.php</file>
+    <file role="php">globals.php</file>
+    <file role="php">WSDL.php</file>
+    <dir name="example"> 
+      <file role="php">stockquote.php</file>
+    </dir>
+    <dir name="Transport"> 
+      <file role="php">HTTP.php</file>
+    </dir>
+    <dir name="Types"> 
+      <file role="php">dateTime.php</file>
+      <file role="php">hexBinary.php</file>
+    </dir>
+    <dir name="interop"> 
+      <file role="php">client_params.php</file>
+      <file role="php">client_round2_base.php</file>
+      <file role="php">interop.php</file>
+      <file role="php">server_soapinterop_base.php</file>
+    </dir>
+  </dir>
+ </filelist>
+</package>

@@ -1,185 +1,217 @@
 <?php
-/*
- * Copyright (c) 2001 Tim Uckun
- * All rights reserved.
- * 
- * This Software is distributed under the GPL. For a list of your
- * obligations and rights under this license please visit the GNU
- * website at http://www.gnu.org/
- *
- */
-
-require_once "SOAP/Response.php";
+//
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
+// | Authors: Dietrich Ayala <dietrich@ganx4.com> Original Author         |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+//
+require_once("SOAP/Transport.php");
+require_once("SOAP/Message.php");
+require_once("SOAP/Value.php");
+require_once("SOAP/WSDL.php");
 
 /**
- * A soap client object to be used with other soap objects.  It
- * attempts to encapsulate various delivery methods for SOAP_Message
- * objects.
- *
- * @version 0.01
- * @author Tim Uckun <tim@diligence.com>
- *
- * Interface.
- *
- * public variables:
- *     None please don't attempt to directly access variables in objects
- *         
- * Public Functions
- * 
- * SOAP_Client($msg='')        // constructor. Use this method to create a
- *                             // soap client msg is the SOAP_Message object
- *  
- * userAgent($agent='')        // gets or sets the useragent (default is IE!)
- * msg ($msg = '')             // gets or sets the SOAP_Message object. Usually
- *                             // not needed and provided in the
- *                             // constructor
- * 
- * sendHTTP($url, $timeout=0)  // send the payload via HTTP to the URL
- * sendHTTPS($url, $timeout=0) // send the payload via HTTPS to the URL
- *                             // needs CURL to be compiled into php
- *                             // (--with-curl)
- */
+*  SOAP Client Class
+* this class is the main interface for making soap requests
+*
+* basic usage: 
+* $soapclient = new SOAP_Client( string path [ ,boolean wsdl] );
+* echo $soapclient->call( string methodname [ ,array parameters] );
+*
+* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+*
+* @access public
+* @version $Id$
+* @package SOAP::Client
+* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+*/
 class SOAP_Client
 {
-    var $_msg='';
-  
-    var $_path;
-    var $_server;
-    var $_port;
-    var $_errno;          
-    var $_errstring;      
-    // some servers are picky about the user agent so let's fake it
-    var $_userAgent='Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)';  
-
-    function SOAP_Client($msg='')
+    var $fault, $faultcode, $faultstring, $faultdetail;
+    var $endpoint, $portName;
+    var $debug_flag = false;
+    var $endpointType = "";
+    var $wsdl = NULL;
+    
+    /**
+    * SOAP::Client constructor
+    *
+    * @params string endpoint (URL)
+    * @params boolean wsdl (true if endpoint is a wsdl file)
+    * @params string portName
+    * @access public
+    */
+    function SOAP_Client($endpoint,$wsdl=false,$portName=false)
     {
-        $this->_msg=$msg;
-        return 1;
-    }
-
-    function userAgent($agent='')
-    {
-        if ($agent) {
-            $this->_userAgent = $agent;
-        }
-        return $this->_userAgent;
-    }
-
-    // obviously this has to be a valid soap msg
-    function msg ($msg = '')
-    {
-        if ($msg) {
-            $this->_msg=$msg;
-        }
-        return $this->_msg;
-    }
-  
-    function sendHTTP($url, $timeout=0)
-    {
-        if (!$this->_msg) {
-            $this->_errno=1;
-            $this->errstr='No message to send, nothing to do.';
-            return 0;
-        }
+        $this->endpoint = $endpoint;
+        $this->portName = $portName;
         
-        $urlparts = @parse_url($url);
-        /* this will crack the url like this..
-            [scheme] => https
-            [host] => www.diligence.com
-            [port] => 8080
-            [user] => tim
-            [pass] => password
-            [path] => /something.php
-            [query] => something=something
+        // make values
+        if ($wsdl) {
+            $this->endpointType = "wsdl";
+            // instantiate wsdl class
+            $this->wsdl = new wsdl($this->endpoint);
+        }
+    }
+    
+    /**
+    * SOAP::_setFault
+    *
+    * @params string method
+    * @params array params
+    * @params string namespace  (not required if using wsdl)
+    * @params string soapAction   (not required if using wsdl)
+    *
+    * @return array of results
+    * @access public
+    */
+    function _setFault($code, $summary, $detail = '')
+    {
+        $this->debug("FAULT: $summary<br>\n");
+        $this->fault = true;
+        $this->faultcode = $code;
+        $this->faultstring = summary;
+        $this->faultdetail = $detail;
+    }
+    
+    /**
+    * SOAP::Client::call
+    *
+    * @params string method
+    * @params array params
+    * @params string namespace  (not required if using wsdl)
+    * @params string soapAction   (not required if using wsdl)
+    *
+    * @return array of results
+    * @access public
+    */
+    function call($method,$params=array(),$namespace=false,$soapAction=false)
+    {
+        $this->fault = FALSE;
+        if ($this->endpointType == "wsdl") {
+            // get portName
+            if (!$this->portName) {
+                $this->portName = $this->wsdl->getPortName($method);
+            }
+            // get endpoint
+            if (!$this->endpoint = $this->wsdl->getEndpoint($this->portName)) {
+                $this->_setFault(-1,"no port of name '$this->portName' in the wsdl at that location!");
+                return false;
+            }
+            $this->debug("endpoint: $this->endpoint");
+            $this->debug("portName: $this->portName");
+            // get operation data
+            if ($opData = $this->wsdl->getOperationData($this->portName,$method)) {
+                $soapAction = $opData["soapAction"];
+                // set input params
+                $i = count($opData["input"]["parts"])-1;
+                foreach ($opData["input"]["parts"] as $name => $type) {
+                    if (isset($params[$name])) {
+                        $nparams[$name] = $params[$name];
+                    } else {
+                        $nparams[$name] = $params[$i];
+                    }
+                }
+                $params = $nparams;
+            } else {
+                $this->_setFault(-1,"could not get operation info from wsdl for operation: $method<br>");
+                return false;
+            }
+        }
+        $this->debug("soapAction: $soapAction");
+        // get namespace
+        if (!$namespace && $this->endpointType == 'wsdl') {
+            $namespace = $this->wsdl->getNamespace($this->portName,$method);
+            #if ($this->endpointType != "wsdl") {
+            #    //die("method call requires namespace if wsdl is not available!");
+            #} elseif (!$namespace = $this->wsdl->getNamespace($this->portName,$method)) {
+            #    //die("no namespace found in wsdl for operation: $method!");
+            #}
+        }
+        $this->debug("namespace: $namespace");
+        
+        // make message
+        $soapmsg = new SOAP_Message($method,$params,$namespace);
+        //$this->debug( "<xmp>".$soapmsg->serialize()."</xmp>");
+        // instantiate client
+        $dbg = "calling server at '$this->endpoint'...";
+        
+        $soap_transport = new SOAP_Transport($this->endpoint, $this->debug_flag);
+
+        $this->debug($dbg."instantiated client successfully");
+        $this->debug("endpoint: $this->endpoint<br>\n");
+        // send
+        $dbg = "sending msg w/ soapaction '$soapAction'...";
+        
+        $soap_data = $soapmsg->serialize();
+        if ($soap_transport->send($this->response,$soap_data,$soapAction)) {
+            // parse the response
+            $return = $soapmsg->parseResponse($this->response);
             
-            unless the user omitted somethings if so then the element is not defined
-        */
-        
-        if ( ! is_array($urlparts) ) {
-            $this->_errno=2;
-            $this->errstr="Unable to parse URL $url";
-            return 0;
+            $this->debug($soap_transport->debug_str);
+            $this->debug($dbg."sent message successfully and got a(n) ".gettype($return)." back");
+            // check for valid response
+            if (strcasecmp(get_class($return),"SOAP_Value")==0) {
+                // decode to native php datatype
+                $returnArray = $return->decode();
+                // fault?
+                if (is_array($returnArray)) {
+                    if (isset($returnArray['faultcode'])) {
+                        $this->debug('got fault');
+                        $this->fault = true;
+                        foreach ($returnArray as $k => $v) {
+                            //print "$k = $v<br>";
+                            if ($k == 'faultcode') $this->faultcode = $v;
+                            if ($k == 'faultstring') $this->faultstring = $v;
+                            if ($k == 'faultdetail') $this->faultdetail = $v;
+                            $this->debug("$k = $v<br>");
+                        }
+                        return false;
+                    }
+                    // return array of return values
+                    if (count($returnArray) == 1) {
+                        return array_shift($returnArray);
+                    }
+                    return $returnArray;
+                }
+                return $returnArray;
+            } else {
+                $this->_setFault(-1,"didn't get SOAP_Value object back from client");
+                return false;
+            }
         }
-       
-        if (!$urlparts['port']) {
-            $urlparts['port'] = 80;
-        }
-        
-        if ($timeout > 0) {
-            $fp=fsockopen($urlparts['host'], $urlparts['port'], &$this->errno, &$this->errstr, $timeout);
-        } else {
-            $fp=fsockopen($urlparts['host'], $urlparts['port'], 	&$this->errno, &$this->errstr);
-        }
-        
-        if (!$fp) {
-            $this->_errno=3;
-            $this->errstr="Unable to open socket in function sendHTTP10, server = $server ; port= $port";
-            
-            return 0;
-        }
-        
-        $credentials="";
-        if ($urlparts['user']) {
-            $credentials="Authorization: Basic " .
-                base64_encode($urlparts['user'] . ":" . $urlparts['pass']) . "\r\n";
-        }
-				  
-        $body = $this->_msg->serialize();
-        
-        $op= "POST " . $urlparts['path'] . " " . $this->_userAgent . "\r\n" .
-            "Host: ". $urlparts['host']  . "\r\n" .
-            $credentials . 
-            "Content-Type: text/xml\r\nContent-Length: " .
-            strlen($body) . "\r\n\r\n" .
-            $body;
-		
-        if (!fputs($fp, $op, strlen($op))) {
-            $this->_errno=3;
-            $this->errstr="Unable to write to the already opened socket";
-            return 0;
-        }
-        
-        $result="";
-
-        while($data=fread($fp, 32768)) {
-            $result .= $data;
-        }
-	    
-        $resp = new SOAP_Response($result);
-        
-        return $resp;
+        $this->_setFault(-1,"client send/recieve error");
+        return false;
     }
-
-    function sendHTTPS($url, $timeout=0)
+    
+    /**
+    * maintains a string of debug data
+    *
+    * @params string data
+    * @access private
+    */
+    function debug($string)
     {
-        /* NOTE This function uses the CURL functions
-        *  Your php must be compiled with CURL
-        */
-        print "<br> The URL is .. $url <br>";
-        $ch = curl_init(); 
-        if ($timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT,$timeout); //times out after 4s 
+        if ($this->debug_flag) {
+            $this->debug_data .= "SOAP_Client: ".preg_replace("/>/","/>\r\n/",$string)."\n";
         }
-        curl_setopt($ch, CURLOPT_HTTPHEADER, "Content-Type: text/xml");
-        curl_setopt($ch, CURLOPT_URL, $url); 
-        curl_setopt($ch, CURLOPT_FAILONERROR, 1); 
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
-        curl_setopt ($ch, CURLOPT_USERAGENT, $this->_userAgent);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); 
-        curl_setopt($ch, CURLOPT_VERBOSE,1); 
-        
-        curl_setopt($ch, CURLOPT_POST, 1); 
-        $result=curl_exec ($ch); 
-        curl_close ($ch); 
-        print "RESULT    $result<br>";
-        $resp= new SOAP_Response($result);
-        return $resp;
-   }                
-                       
-                       
-                       
-
-} // end class soapClient
+    }
+}
 
 
- ?>
+?>
