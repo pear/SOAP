@@ -417,6 +417,13 @@ class SOAP_Client extends SOAP_Base
         if (PEAR::isError($returnArray)) {
             return $this->raiseSoapFault($returnArray);
         }
+        if (is_object($returnArray)) {
+            $vars = get_object_vars($returnArray);
+            if (count($vars) == 1) {
+                return array_shift($vars);
+            }
+            return $returnArray;
+        } else
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';

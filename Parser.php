@@ -191,11 +191,12 @@ class SOAP_Parser extends SOAP_Base
         if ($response) {
             $nqn = new Qname($this->message[$pos]['name'],$this->message[$pos]['namespace']);
             $tqn = new Qname($this->message[$pos]['type'],$this->message[$pos]['type_namespace']);
-            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $response, $attrs);
+            $response = new SOAP_Value($nqn->fqn(), $tqn->fqn(), $response, $attrs);
+            if (isset($this->message[$pos]['arrayType'])) $response->arrayType = $this->message[$pos]['arrayType'];
         } else {
             $nqn = new Qname($this->message[$pos]['name'],$this->message[$pos]['namespace']);
             $tqn = new Qname($this->message[$pos]['type'],$this->message[$pos]['type_namespace']);
-            $response = new SOAP_Value($nqn->fqn(), $nqn->fqn(), $this->message[$pos]['cdata'], $attrs);
+            $response = new SOAP_Value($nqn->fqn(), $tqn->fqn(), $this->message[$pos]['cdata'], $attrs);
         }
         // handle header attribute that we need
         if (array_key_exists('actor',$this->message[$pos])) {

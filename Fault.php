@@ -90,6 +90,15 @@ class SOAP_Fault extends PEAR_Error
      */
     function getFault()
     {
+        global $SOAP_OBJECT_STRUCT;
+        if ($SOAP_OBJECT_STRUCT) {
+            $fault = new stdClass();
+            $fault->faultcode = $this->code;
+            $fault->faultstring = $this->message;
+            $fault->faultactor = $thiserror_message_prefix;
+            $fault->detail = $this->userinfo;
+            return $fault;
+        }
         return array(
                 'faultcode' => $this->code,
                 'faultstring' => $this->message,

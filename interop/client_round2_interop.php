@@ -22,7 +22,7 @@ require_once 'DB.php'; // PEAR/DB
 require_once 'SOAP/Client.php';
 require_once 'SOAP/interop/client_round2_params.php';
 require_once 'SOAP/test/test.utility.php';
-
+$SOAP_OBJECT_STRUCT = false;
 error_reporting(E_ALL ^ E_NOTICE);
 
 class Interop_Client extends SOAP_Base

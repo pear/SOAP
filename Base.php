@@ -20,6 +20,13 @@
 // $Id$
 //
 
+/*
+   SOAP_OBJECT_STRUCT makes pear::soap use objects for soap structures
+   rather than arrays.  This has been done to provide a closer match to php-soap.
+   If the old behaviour is needed, set to false.  The old behaviour is depricated.
+*/
+$SOAP_OBJECT_STRUCT = TRUE;
+
 require_once 'PEAR.php';
 #require_once 'SOAP/Fault.php';
 require_once 'SOAP/Type/dateTime.php';
@@ -346,10 +353,18 @@ class SOAP_Base extends PEAR
             if (strcasecmp($ptype,'Struct')==0 || strcasecmp($type,'Struct')==0) {
                 // struct
                 foreach ($value as $k => $v) {
-                    if (is_object($v))
-                        $xmlout_value .= $v->serialize($this); 
-                    else
+                    if (is_object($v)) {
+                        if (is_a($v,'soap_value')) {
+                            $xmlout_value .= $v->serialize($this);
+                        } else {
+                            // XXX get the members and serialize them instead
+                            // converting to an array is more overhead than we
+                            // should realy do, but php-soap is on it's way.
+                            $xmlout_value .= $this->serializeValue(get_object_vars($v), $k);
+                        }
+                    } else {
                         $xmlout_value .= $this->serializeValue($v,$k);
+                    }
                 }
             } else if (strcasecmp($ptype,'Array')==0 || strcasecmp($type,'Array')==0) {
                 // array
@@ -483,14 +498,18 @@ class SOAP_Base extends PEAR
     * @access   private
     */
     function _getType(&$value) {
+        global $SOAP_OBJECT_STRUCT;
         $type = gettype($value);
         switch ($type) {
         case 'object':
             if (is_a($value,'soap_value')) {
                 $type = $value->type;
+            } else {
+                $type = 'Struct';
             }
             break;
         case 'array':
+            // XXX hashes always get done as structs by pear::soap
             $type = $this->isHash($value)?'Struct':'Array';
             break;
         case 'integer':
@@ -609,21 +628,41 @@ class SOAP_Base extends PEAR
     */
     function decode($soapval)
     {
+        global $SOAP_OBJECT_STRUCT;
+        
         if (!is_object($soapval)) {
             return $soapval;
         } else if (is_array($soapval->value)) {
-            $return = array();
+            if ($SOAP_OBJECT_STRUCT && $soapval->type != 'Array') {
+                $return = new stdClass();
+            } else {
+                $return = array();
+            }
+            
             $counter = 1;
             $isstruct = TRUE; // assume it's a struct
             foreach ($soapval->value as $item) {
-                if (!$isstruct) {
-                    $return[] = $this->decode($item);
-                } else if (isset($return[$item->name])) {
-                    // this is realy an array, we need to redirect
-                    $isstruct = FALSE;
-                    $return = array($return[$item->name], $this->decode($item));
+                if (is_object($return)) {
+                    if (!$isstruct || $item->type == 'Array') {
+                        if (is_object($return->{$item->name})) {
+                            $return->{$item->name} = array();
+                        }
+                        $return->{$item->name} = $this->decode($item);
+                    } else if (isset($return->{$item->name})) {
+                        $isstruct = FALSE;
+                        $return->{$item->name} = array($return->{$item->name}, $this->decode($item));
+                    } else {
+                        $return->{$item->name} = $this->decode($item);
+                    }
                 } else {
-                    $return[$item->name] = $this->decode($item);
+                    if (!$isstruct) {
+                        $return[] = $this->decode($item);
+                    } else if (isset($return[$item->name])) {
+                        $isstruct = FALSE;
+                        $return = array($return[$item->name], $this->decode($item));
+                    } else {
+                        $return[$item->name] = $this->decode($item);
+                    }
                 }
             }
             return $return;
