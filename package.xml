@@ -25,13 +25,11 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.8RC3</version>
-    <date>2003-01-16</date>
+    <version>0.8RC4</version>
+    <date>2004-xx-xx</date>
     <notes>
-* DIME related issues were fixed
 * bugfixes (among others): 
-   #592: transport_https stops on HTTP 500 
-   #466: mime_part line ending
+   #2466: Calling any Object Constructor Causes Error 
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
