@@ -124,9 +124,10 @@ class SOAP_Client {
      * @param array  contains options for HTTP_Request class (see HTTP/Request.php)
      * @access public
      */
-    public function __construct($endpoint, $wsdl = 0) {
-        if (!$wsdl)
-            $wsdl = strcasecmp('.wsdl',substr($endpoint,strlen($endpoint)-4))==0;
+    public function __construct($endpoint, $wsdl = null) {
+        if (is_null($wsdl)) {
+            $wsdl = strcasecmp('.wsdl',substr($endpoint,strlen($endpoint)-5))==0;
+        }
         if ($wsdl) {
             $this->wsdl = WSDLManager::get($endpoint);
         } else {
