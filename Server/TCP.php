@@ -20,34 +20,34 @@
 //
 
 require_once 'SOAP/Server.php';
+
 /**
-*  SOAP_Server_TCP
-* SOAP Server Class
-*
-* implements TCP SOAP Server
-* http://www.pocketsoap.com/specs/smtpbinding/
-*
-* class overrides the default HTTP server, providing the ability
-* to accept socket connections and execute soap calls.
-*
-* TODO:
-*   use Net_Socket
-*   implement some security scheme
-*   implement support for attachments
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Server
-* @author   Shane Caraveo <shane@php.net> 
-*/
+ * SOAP Server Class that implements a TCP SOAP Server.
+ * http://www.pocketsoap.com/specs/smtpbinding/
+ *
+ * This class overrides the default HTTP server, providing the ability to
+ * accept socket connections and execute SOAP calls.
+ *
+ * TODO:
+ *   use Net_Socket
+ *   implement some security scheme
+ *   implement support for attachments
+ *
+ * @access   public
+ * @version  $Id$
+ * @package  SOAP
+ * @author   Shane Caraveo <shane@php.net> 
+ */
 class SOAP_Server_TCP extends SOAP_Server {
+
     var $headers = array();
     var $localaddr;
     var $port;
     var $listen;
     var $reuse;
     
-    function SOAP_Server_TCP($localaddr="127.0.0.1", $port=10000, $listen=5, $reuse=TRUE)
+    function SOAP_Server_TCP($localaddr = '127.0.0.1', $port = 10000,
+                             $listen = 5, $reuse = true)
     {
         parent::SOAP_Server();
         $this->localaddr = $localaddr;
@@ -58,29 +58,27 @@ class SOAP_Server_TCP extends SOAP_Server {
 
     function run()
     {
-        if (($sock = socket_create (AF_INET, SOCK_STREAM, 0)) < 0) {
-            return $this->_raiseSoapFault("socket_create() failed: reason: " . socket_strerror ($sock));
+        if (($sock = socket_create(AF_INET, SOCK_STREAM, 0)) < 0) {
+            return $this->_raiseSoapFault('socket_create() failed. Reason: ' . socket_strerror($sock));
         }
         if ($this->reuse &&
-            !@socket_setopt($sock,SOL_SOCKET,SO_REUSEADDR,1)) {
-            return $this->_raiseSoapFault("socket_setopt() failed: reason: ".socket_strerror(socket_last_error($sock)));
+            !@socket_setopt($sock, SOL_SOCKET, SO_REUSEADDR, 1)) {
+            return $this->_raiseSoapFault('socket_setopt() failed. Reason: ' . socket_strerror(socket_last_error($sock)));
         }        
-        if (($ret = socket_bind ($sock, $this->localaddr, $this->port)) < 0) {
-            return $this->_raiseSoapFault("socket_bind() failed: reason: " . socket_strerror ($ret));
+        if (($ret = socket_bind($sock, $this->localaddr, $this->port)) < 0) {
+            return $this->_raiseSoapFault('socket_bind() failed. Reason: ' . socket_strerror($ret));
         }
-        # print "LISTENING on {$this->localaddr}:{$this->port}\n";
-        if (($ret = socket_listen ($sock, $this->listen)) < 0) {
-            return $this->_raiseSoapFault("socket_listen() failed: reason: " . socket_strerror ($ret));
+        if (($ret = socket_listen($sock, $this->listen)) < 0) {
+            return $this->_raiseSoapFault('socket_listen() failed. Reason: ' . socket_strerror($ret));
         }
         
-        do {
-            $data = NULL;
+        while (true) {
+            $data = null;
             if (($msgsock = socket_accept($sock)) < 0) {
-                $this->_raiseSoapFault("socket_accept() failed: reason: " . socket_strerror ($msgsock));
+                $this->_raiseSoapFault('socket_accept() failed. Reason: ' . socket_strerror($msgsock));
                 break;
             }
-            # print "Accepted connection\n";
-            while ($buf = socket_read ($msgsock, 8192)) {
+            while ($buf = socket_read($msgsock, 8192)) {
                 if (!$buf = trim($buf)) {
                     continue;
                 }
@@ -89,23 +87,21 @@ class SOAP_Server_TCP extends SOAP_Server {
             
             if ($data) {
                 $response = $this->service($data);
-                # write to the socket
+                /* Write to the socket. */
                 if (!socket_write($msgsock, $response, strlen($response))) {
-                    return $this->_raiseSoapFault('Error sending response data reason '.socket_strerror());
+                    return $this->_raiseSoapFault('Error sending response data reason ' . socket_strerror());
                 }
             }
             
             socket_close ($msgsock);
-        } while (true);
+        }
         
         socket_close ($sock);
     }
     
     function service(&$data)
     {
-        # XXX we need to handle attachments somehow
-        return $this->parseRequest($data,$attachments);
+        /* TODO: we need to handle attachments somehow. */
+        return $this->parseRequest($data, $attachments);
     }    
 }
-
-?>
