@@ -51,7 +51,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     /**
      * Cookies
      *
-     * @var
+     * @var array
      */
     var $cookies;
 
