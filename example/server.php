@@ -23,6 +23,19 @@
 require_once 'SOAP/Server.php';
 
 $server = new SOAP_Server;
+/* tell server to translate to classes we provide if possible */
+$server->_auto_translation = true;
+
+class SOAPStruct {
+    var $varString;
+    var $varInt;
+    var $varFloat;
+    function SOAPStruct($s=NULL, $i=NULL, $f=NULL) {
+        $this->varString = $s;
+        $this->varInt = $i;
+        $this->varFloat = $f;
+    }
+}
 
 // create a class for your soap functions
 class SOAP_Example_Server {
@@ -66,7 +79,7 @@ class SOAP_Example_Server {
 
     function echoStruct($inputStruct)
     {
-	return new SOAP_Value('outputStruct','',$inputStruct);
+	return new SOAP_Value('outputStruct','{http://soapinterop.org/xsd}SOAPStruct',$inputStruct);
     }
     
     /**

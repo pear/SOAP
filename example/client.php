@@ -28,22 +28,39 @@ $options = array('namespace' => 'urn:SOAP_Example_Server',
                  'trace' => 1);
 
 $ret = $soapclient->call("echoStringSimple",array("inputString"=>"this is a test string"),$options);
-print $soapclient->__get_wire();
+#print $soapclient->__get_wire();
 print_r($ret);echo "<br>\n";
 
 $ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$options);
 print_r($ret);echo "<br>\n";
 
 class SOAPStruct {
-    var $varString = 'This is a test';
-    var $varInt = 1234;
-    var $varFloat = 123.456;
+    var $varString;
+    var $varInt;
+    var $varFloat;
+    function SOAPStruct($s=NULL, $i=NULL, $f=NULL) {
+        $this->varString = $s;
+        $this->varInt = $i;
+        $this->varFloat = $f;
+    }
 }
 
-$SOAPStruct = new SOAPStruct;
+$struct = new SOAPStruct('test string',123,123.123);
 
 /* send an object, get an object back */
-$ret = $soapclient->call("echoStruct",array(new SOAP_Value('inputStruct','',$SOAPStruct)),$options);
+/* tell client to translate to classes we provide if possible */
+$soapclient->_auto_translation = true;
+/* or you can explicitly set the translation for
+   a specific class.  auto_translation works for all cases,
+   but opens ANY class in the script to be used as a data type,
+   and may not be desireable.  both can be used on client or
+   server */
+$soapclient->__set_type_translation('{http://soapinterop.org/xsd}SOAPStruct','SOAPStruct');
+$ret = $soapclient->call("echoStruct",
+            array(new SOAP_Value('inputStruct',
+                                 '{http://soapinterop.org/xsd}SOAPStruct',
+                                 $struct)),$options);
+#print $soapclient->__get_wire();
 print_r($ret);
 
 /**
@@ -51,7 +68,7 @@ print_r($ret);
  * must do a little work to make it happen here.  This requires knowledge on the
  * developers part to figure out how they want to deal with it.
  */
-list($string, $int, $float) = array_values($soapclient->call("echoStructAsSimpleTypes",$SOAPStruct,$options));
+list($string, $int, $float) = array_values($soapclient->call("echoStructAsSimpleTypes",$struct,$options));
 echo "varString: $string<br>\nvarInt: $int<br>\nvarFloat: $float<br>\n";
 
 ?>
