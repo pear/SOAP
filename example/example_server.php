@@ -85,6 +85,8 @@ class SOAP_Example_Server {
 		array('in' => array('inputStruct' => '{http://soapinterop.org/xsd}SOAPStruct'),
 		      'out' => array('outputStruct' => '{http://soapinterop.org/xsd}SOAPStruct'),
 		      );
+	
+	$this->__dispatch_map['echoMimeAttachment'] = array();
     }
 
     /* this private function is called on by SOAP_Server to determine any
@@ -149,6 +151,11 @@ class SOAP_Example_Server {
 	    new SOAP_Value('outputInteger','int',$struct->varInt),
 	    new SOAP_Value('outputFloat','float',$struct->varFloat)
 	    );
+    }
+    
+    function echoMimeAttachment($stuff)
+    {
+        return new SOAP_Attachment('return','application/octet-stream',NULL,$stuff);
     }    
 }
 
