@@ -19,10 +19,11 @@
 //
 // $Id$
 //
-require_once("SOAP/Transport.php");
-require_once("SOAP/Message.php");
-require_once("SOAP/Value.php");
-require_once("SOAP/WSDL.php");
+require_once "PEAR.php";
+require_once "SOAP/Transport.php";
+require_once "SOAP/Message.php";
+require_once "SOAP/Value.php";
+require_once "SOAP/WSDL.php";
 
 /**
 *  SOAP Client Class
@@ -36,11 +37,12 @@ require_once("SOAP/WSDL.php");
 *
 * @access public
 * @version $Id$
-* @package SOAP
+* @package SOAP::Client
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author Stig Bakken <ssb@fast.no> Conversion to PEAR
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_Client
+class SOAP_Client extends PEAR
 {
     var $fault, $faultcode, $faultstring, $faultdetail;
     var $endpoint, $portName;
@@ -58,6 +60,7 @@ class SOAP_Client
     */
     function SOAP_Client($endpoint,$wsdl=false,$portName=false)
     {
+        parent::PEAR();
         $this->endpoint = $endpoint;
         $this->portName = $portName;
         
@@ -65,7 +68,7 @@ class SOAP_Client
         if ($wsdl) {
             $this->endpointType = "wsdl";
             // instantiate wsdl class
-            $this->wsdl = new wsdl($this->endpoint);
+            $this->wsdl = new SOAP_WSDL($this->endpoint);
         }
     }
     
@@ -79,15 +82,15 @@ class SOAP_Client
     *
     * @return array of results
     * @access public
-    */
     function _setFault($code, $summary, $detail = '')
     {
         $this->debug("FAULT: $summary<br>\n");
         $this->fault = true;
         $this->faultcode = $code;
-        $this->faultstring = summary;
+        $this->faultstring = $summary;
         $this->faultdetail = $detail;
     }
+    */
     
     /**
     * SOAP_Client::call
@@ -110,8 +113,7 @@ class SOAP_Client
             }
             // get endpoint
             if (!$this->endpoint = $this->wsdl->getEndpoint($this->portName)) {
-                $this->_setFault(-1,"no port of name '$this->portName' in the wsdl at that location!");
-                return false;
+                return $this->raiseError("no port of name '$this->portName' in the wsdl at that location!", -1);
             }
             $this->debug("endpoint: $this->endpoint");
             $this->debug("portName: $this->portName");
@@ -129,7 +131,7 @@ class SOAP_Client
                 }
                 $params = $nparams;
             } else {
-                $this->_setFault(-1,"could not get operation info from wsdl for operation: $method<br>");
+                return $this->raiseError("could not get operation info from wsdl for operation: $method", -1);
                 return false;
             }
         }
@@ -191,12 +193,10 @@ class SOAP_Client
                 }
                 return $returnArray;
             } else {
-                $this->_setFault(-1,"didn't get SOAP_Value object back from client");
-                return false;
+                return $this->raiseError("didn't get SOAP_Value object back from client", -1);
             }
         }
-        $this->_setFault(-1,"client send/recieve error");
-        return false;
+        return $this->raiseError("client send/recieve error", -1);
     }
     
     /**
