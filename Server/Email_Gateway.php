@@ -75,7 +75,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email
         
         # call the HTTP Server
         if (!$response) {
-            $soap_transport = new SOAP_Transport($gateway, $this->xml_encoding);
+            $soap_transport =& new SOAP_Transport($gateway, $this->xml_encoding);
             if ($soap_transport->fault) {
                 $response = $soap_transport->fault->message();
             }
@@ -129,7 +129,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email
                 $from = array_key_exists('reply-to',$this->headers) ? $this->headers['reply-to']:$this->headers['from'];
                 # XXX what if no from?????
                 
-                $soap_transport = new SOAP_Transport('mailto:'.$from, $this->response_encoding);
+                $soap_transport =& new SOAP_Transport('mailto:'.$from, $this->response_encoding);
                 $from = $this->endpoint ? $this->endpoint : $this->headers['to'];
                 $headers = array('In-Reply-To'=>$this->headers['message-id']);
                 $options = array('from' => $from, 'subject'=> $this->headers['subject'], 'headers' => $headers);

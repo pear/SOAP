@@ -124,7 +124,7 @@ class SOAP_Server_Email extends SOAP_Server {
         if ($this->soapfault) {
             return $this->soapfault->getFault();
         }
-        $client = new SOAP_Client(NULL);
+        $client =& new SOAP_Client(NULL);
         return $client->__parse($data, $this->xml_encoding, $this->attachments);
     }
     
@@ -195,7 +195,7 @@ class SOAP_Server_Email extends SOAP_Server {
                 $from = array_key_exists('reply-to',$this->headers) ? $this->headers['reply-to']:$this->headers['from'];
                 # XXX what if no from?????
                 
-                $soap_transport = new SOAP_Transport('mailto:'.$from, $this->response_encoding);
+                $soap_transport =& new SOAP_Transport('mailto:'.$from, $this->response_encoding);
                 $from = $this->endpoint ? $this->endpoint : $this->headers['to'];
                 $headers['In-Reply-To']=$this->headers['message-id'];
                 $options = array('from' => $from, 'subject'=> $this->headers['subject'], 'headers' => $headers);
