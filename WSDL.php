@@ -409,10 +409,9 @@ class SOAP_WSDL extends SOAP_Base
                 } else {
                     $class .= "\"$key\"=>\"$val\",";
                 }
-            }            
-            $class = substr($class, 0, strlen($class)-1);
-
+            }
             $class .= "));\n }\n";
+            $class = str_replace(',))', '))', $class);
         } else {                
             $class = "class $classname extends SOAP_Client {\n".
             "    function $classname() {\n".
