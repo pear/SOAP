@@ -55,6 +55,11 @@
 
       - Save the outgoing payload when sending by HTTPS as well as by
         HTTP (for tracing).
+
+      - Avoid infinite loops when wsdl:import files create a circular
+        dependency.
+
+      - Pass $this->docs to child SOAP_WSDL_Parser objects.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

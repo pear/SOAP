@@ -936,14 +936,20 @@ class SOAP_WSDL_Cache extends SOAP_Base
 
 class SOAP_WSDL_Parser extends SOAP_Base
 {
-    // define internal arrays of bindings, ports, operations, messages, etc.
+
+    /**
+     * Define internal arrays of bindings, ports, operations,
+     * messages, etc.
+     */
     var $currentMessage;
     var $currentOperation;
     var $currentPortType;
     var $currentBinding;
     var $currentPort;
 
-    // parser vars
+    /**
+     * Parser vars.
+     */
     var $cache;
 
     var $tns = null;
@@ -975,7 +981,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
         $this->parse($uri);
     }
 
-    function parse($uri) {
+    function parse($uri)
+    {
         // Check whether content has been read.
         $fd = $this->cache->get($uri, $this->wsdl->proxy);
         if (PEAR::isError($fd)) {
@@ -1452,27 +1459,29 @@ class SOAP_WSDL_Parser extends SOAP_Base
             }
         }
 
-        // top level elements found under wsdl:definitions
-        // set status
+        // Top level elements found under wsdl:definitions.
         switch ($qname->name) {
         case 'import':
             // sect 2.1.1 wsdl:import attributes: namespace location
-            if (array_key_exists('location', $attrs) &&
+            if ((isset($attrs['location']) || isset($attrs['schemaLocation'])) &&
                 !isset($this->wsdl->imports[$attrs['namespace']])) {
-                $uri = $attrs['location'];
+                $uri = isset($attrs['location']) ? $attrs['location'] : $attrs['schemaLocation'];
                 $location = parse_url($uri);
                 if (!isset($location['scheme'])) {
                     $base = parse_url($this->uri);
                     $uri = $this->merge_url($base, $uri);
                 }
-                $import_parser =& new SOAP_WSDL_Parser($uri, $this->wsdl);
+
+                $this->wsdl->imports[$attrs['namespace']] = $attrs;
+                $import_parser =& new SOAP_WSDL_Parser($uri, $this->wsdl, $this->docs);
                 if ($import_parser->fault) {
-                    return FALSE;
+                    unset($this->wsdl->imports[$attrs['namespace']]);
+                    return false;
                 }
                 $this->currentImport = $attrs['namespace'];
-                $this->wsdl->imports[$this->currentImport] = $attrs;
             }
-            $this->status = '';
+            // Continue on to the 'types' case - lack of break; is
+            // intentional.
 
         case 'types':
             // sect 2.2 wsdl:types
