@@ -436,9 +436,9 @@ class SOAP_Server {
                 $this->method_namespace = $obj->method_namespace;
                 $obv = get_object_vars($obj);
                 if (array_key_exists('dispatch_map',$obv) &&
-                    array_key_exists($this->methodname, $this->soapobject->dispatch_map) &&
-                    array_key_exists('namespace', $this->soapobject->dispatch_map[$this->methodname])) {
-                        $this->method_namespace = $this->soapobject->dispatch_map[$this->methodname]['namespace'];
+                    array_key_exists($this->methodname, $obj->dispatch_map) &&
+                    array_key_exists('namespace', $obj->dispatch_map[$this->methodname])) {
+                        $this->method_namespace = $obj->dispatch_map[$this->methodname]['namespace'];
                 }
                 $this->soapobject =  &$obj;
                 return TRUE;
