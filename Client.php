@@ -285,8 +285,8 @@ class SOAP_Client extends SOAP_Base
      * Sets option to use with the transports layers.
      *
      * An example of such use is
-     * $soapclient->setopt('curl', CURLOPT_VERBOSE, 1)
-     * to affect an option when using SSL connections
+     * $soapclient->setOpt('curl', CURLOPT_VERBOSE, 1)
+     * to pass a specific option to when using an SSL connection.
      *
      * @access public
      * @param  string  $category  category to which the option applies
@@ -294,11 +294,12 @@ class SOAP_Client extends SOAP_Base
      * @param  string  $value     option value
      * @return void
      */
-    function setOpt($category, $option, $value=NULL)
+    function setOpt($category, $option, $value = null)
     {
-        if ($value) {
-            if (!isset($this->__options[$category]))
+        if (!is_null($value)) {
+            if (!isset($this->__options[$category])) {
                 $this->__options[$category] = array();
+            }
             $this->__options[$category][$option] = $value;
         } else {
             $this->__options[$category] = $option;
@@ -306,21 +307,21 @@ class SOAP_Client extends SOAP_Base
     }
 
     /**
-    * SOAP_Client::__call
-    *
-    * Overload extension support
-    * if the overload extension is loaded, you can call the client class
-    * with a soap method name
-    * $soap = new SOAP_Client(....);
-    * $value = $soap->getStockQuote('MSFT');
-    *
-    * @param string method
-    * @param array  args
-    * @param string retur_value
-    *
-    * @return boolean
-    * @access public
-    */
+     * SOAP_Client::__call
+     *
+     * Overload extension support
+     * if the overload extension is loaded, you can call the client class
+     * with a soap method name
+     * $soap = new SOAP_Client(....);
+     * $value = $soap->getStockQuote('MSFT');
+     *
+     * @param string method
+     * @param array  args
+     * @param string retur_value
+     *
+     * @return boolean
+     * @access public
+     */
     function &__call($method, &$args, &$return_value)
     {
         // XXX overloading lowercases the method name, we
