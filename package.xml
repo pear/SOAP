@@ -49,7 +49,7 @@
           <file role="doc" name="email_gateway.php"/>
           <file role="doc" name="tcp_client.php"/>
           <file role="doc" name="tcp_server.php"/>
-          <file role="doc" name="tcp-daemon.pl"/>
+          <file role="doc" name="tcp_daemon.pl"/>
         </dir>
         <dir name="tools"> 
           <file role="php" name="genproxy.php"/>
