@@ -39,6 +39,11 @@
         <file role="php" name="WSDL.php"/>
         <dir name="example" role="doc"> 
           <file role="doc" name="stockquote.php"/>
+          <file role="doc" name="server.php"/>
+          <file role="doc" name="client.php"/>
+          <file role="doc" name="smtp.php"/>
+          <file role="doc" name="email_server.php"/>
+          <file role="doc" name="email_gateway.php"/>
         </dir>
         <dir name="tools"> 
           <file role="php" name="genproxy.php"/>
@@ -46,6 +51,10 @@
         <dir name="Transport"> 
           <file role="php" name="HTTP.php"/>
           <file role="php" name="SMTP.php"/>
+        </dir>
+        <dir name="Server"> 
+          <file role="php" name="Email.php"/>
+          <file role="php" name="Email_Gateway.php"/>
         </dir>
         <dir name="Type"> 
           <file role="php" name="dateTime.php"/>
