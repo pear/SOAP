@@ -528,7 +528,7 @@ class SOAP_Client extends SOAP_Base
     }
 }
 
-if (extension_loaded('overload')) {
-    overload('SOAP_Client');
-}
+#if (extension_loaded('overload')) {
+#    overload('SOAP_Client');
+#}
 ?>

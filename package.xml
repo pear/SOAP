@@ -20,10 +20,11 @@
   <release>
     <state>beta</state>
     <version>0.7.1</version>
-    <date>2002-11-11</date>
+    <date>2002-11-30</date>
     <notes>
-      Minor PEAR package fixes to ease installation issues.
-      A couple minor bug fixes.
+      Minor bug fixes over the 0.7.0 release.
+      Support for the overload extension is currently 
+      dissabled until futher work can be done.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
