@@ -1189,7 +1189,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
         switch($qname->name) {
         case 'import':
             // sect 2.1.1 wsdl:import attributes: namespace location
-            if (array_key_exists('location',$attrs)) {
+            if (array_key_exists('location',$attrs) &&
+                !isset($this->wsdl->imports[$attrs['namespace']])) {
                 $uri = $attrs['location'];
                 $location = parse_url($uri);
                 if (!isset($location['scheme'])) {
