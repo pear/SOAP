@@ -225,7 +225,7 @@ class SOAP_Server extends SOAP_Base
 
     function &callMethod($methodname, &$args) {
         global $soap_server_fault;
-        unset($soap_server_fault);
+        $soap_server_fault = null;
 
         if ($this->callHandler) {
             return @call_user_func_array($this->callHandler,array($methodname,$args));
@@ -251,7 +251,7 @@ class SOAP_Server extends SOAP_Base
 
         restore_error_handler();
 
-        return isset($soap_server_fault) ? $soap_server_fault : $ret;
+        return is_null($soap_server_fault) ? $ret : $soap_server_fault;
     }
 
     // create soap_val object w/ return values from method, use method signature to determine type
