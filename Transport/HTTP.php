@@ -295,6 +295,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
         if (!$fp) {
             return $this->_raiseSoapFault("Connect Error to $host:$port");
         }
+        if ($this->timeout > 0) {
+            // some builds of php do not support this, silence
+            // the warning
+            @socket_set_timeout($fp, $this->timeout);
+        }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
             return $this->_raiseSoapFault("Error POSTing Data to $host");
         }
