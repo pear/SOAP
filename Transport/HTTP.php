@@ -19,8 +19,19 @@
 // $Id$
 //
 
+/**
+ * HTTP Transport class
+ *
+ * @package  SOAP
+ * @category Web_Services
+ */
+
+/**
+ * Needed Classes
+ */
 require_once 'SOAP/Base.php';
 require_once 'Net/DIME.php';
+
 /**
  *  HTTP Transport for SOAP
  *
@@ -31,68 +42,77 @@ require_once 'Net/DIME.php';
  */
 class SOAP_Transport_HTTP extends SOAP_Base
 {
-
     /**
-    * Basic Auth string
-    *
-    * @var  string
-    */
+     * Basic Auth string
+     *
+     * @var  string
+     */
     var $headers = array();
 
     /**
-    *
-    * @var  int connection timeout in seconds - 0 = none
-    */
+     *
+     * @var  int connection timeout in seconds - 0 = none
+     */
     var $timeout = 4;
 
     /**
-    * Array containing urlparts - parse_url()
-    *
-    * @var  mixed
-    */
+     * Array containing urlparts - parse_url()
+     *
+     * @var  mixed
+     */
     var $urlparts = NULL;
 
     /**
-    * Connection endpoint - URL
-    *
-    * @var  string
-    */
+     * Connection endpoint - URL
+     *
+     * @var  string
+     */
     var $url = '';
 
     /**
-    * Incoming payload
-    *
-    * @var  string
-    */
+     * Incoming payload
+     *
+     * @var  string
+     */
     var $incoming_payload = '';
 
     /**
-    * HTTP-Request User-Agent
-    *
-    * @var  string
-    */
+     * HTTP-Request User-Agent
+     *
+     * @var  string
+     */
     var $_userAgent = SOAP_LIBRARY_NAME;
 
+    /**
+     * HTTP Encoding
+     *
+     * @var string
+     */
     var $encoding = SOAP_DEFAULT_ENCODING;
 
     /**
-    * HTTP-Response Content-Type encoding
-    *
-    * we assume UTF-8 if no encoding is set
-    * @var  string
-    */
+     * HTTP-Response Content-Type encoding
+     *
+     * we assume UTF-8 if no encoding is set
+     * @var  string
+     */
     var $result_encoding = 'UTF-8';
 
+    /**
+     * HTTP-Response Content-Type
+     */
     var $result_content_type;
 
     /**
-    * SOAP_Transport_HTTP Constructor
-    *
-    * @param string $URL    http url to soap endpoint
-    *
-    * @access public
-    */
-    function SOAP_Transport_HTTP($URL, $encoding=SOAP_DEFAULT_ENCODING)
+     * SOAP_Transport_HTTP Constructor
+     *
+     * @param string $URL    http url to soap endpoint
+     *
+     * @access public
+     * @param  string $URI
+     * @param  string $encoding  encoding to use
+     */
+    function SOAP_Transport_HTTP($URL, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('HTTP');
         $this->urlparts = @parse_url($URL);
@@ -101,15 +121,15 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * send and receive soap data
-    *
-    * @param string &$msg       outgoing post data
-    * @param string $action      SOAP Action header data
-    * @param int $timeout  socket timeout, default 0 or off
-    *
-    * @return string|fault response
-    * @access public
-    */
+     * send and receive soap data
+     *
+     * @param string &$msg       outgoing post data
+     * @param string $action      SOAP Action header data
+     * @param int    $timeout  socket timeout, default 0 or off
+     *
+     * @return string|fault response
+     * @access public
+     */
     function &send(&$msg,  /*array*/ $options = NULL)
     {
         if (!$this->_validateUrl()) {
@@ -129,15 +149,15 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * set data for http authentication
-    * creates Authorization header
-    *
-    * @param string $username   username
-    * @param string $password   response data, minus http headers
-    *
-    * @return none
-    * @access public
-    */
+     * set data for http authentication
+     * creates Authorization header
+     *
+     * @param string $username   username
+     * @param string $password   response data, minus http headers
+     *
+     * @return none
+     * @access public
+     */
     function setCredentials($username, $password)
     {
         $this->headers['Authorization'] = 'Basic ' . base64_encode($username . ':' . $password);
@@ -146,11 +166,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
     // private members
 
     /**
-    * validate url data passed to constructor
-    *
-    * @return boolean
-    * @access private
-    */
+     * validate url data passed to constructor
+     *
+     * @return boolean
+     * @access private
+     */
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
@@ -177,6 +197,15 @@ class SOAP_Transport_HTTP extends SOAP_Base
         return TRUE;
     }
 
+    /**
+     * Finds out what is the encoding.
+     *
+     * Sets the object property accordingly.
+     *
+     * @access private
+     * @param  array $headers  headers
+     * @return void
+     */
     function _parseEncoding($headers)
     {
         $h = stristr($headers,'Content-Type');
@@ -197,11 +226,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * remove http headers from response
-    *
-    * @return boolean
-    * @access private
-    */
+     * Remove http headers from response
+     *
+     * @return boolean
+     * @access private
+     */
     function _parseResponse()
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
@@ -233,11 +262,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * create http request, including headers, for outgoing request
-    *
-    * @return string outgoing_payload
-    * @access private
-    */
+     * Create http request, including headers, for outgoing request
+     *
+     * @param string   &$msg   outgoing SOAP package
+     * @param $options
+     * @return string outgoing_payload
+     * @access private
+     */
     function &_getRequest(&$msg, $options)
     {
         $action = isset($options['soapaction'])?$options['soapaction']:'';
@@ -270,14 +301,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * send outgoing request, and read/parse response
-    *
-    * @param string &$msg   outgoing SOAP package
-    * @param string $action   SOAP Action
-    *
-    * @return string &$response   response data, minus http headers
-    * @access private
-    */
+     * Send outgoing request, and read/parse response
+     *
+     * @param string  &$msg   outgoing SOAP package
+     * @param string  $action   SOAP Action
+     * @return string &$response   response data, minus http headers
+     * @access private
+     */
     function &_sendHTTP(&$msg, $options)
     {
         $this->_getRequest($msg, $options);
@@ -320,14 +350,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
     }
 
     /**
-    * send outgoing request, and read/parse response, via HTTPS
-    *
-    * @param string &$msg   outgoing SOAP package
-    * @param string $action   SOAP Action
-    *
-    * @return string &$response   response data, minus http headers
-    * @access private
-    */
+     * Send outgoing request, and read/parse response, via HTTPS
+     *
+     * @param string  &$msg   outgoing SOAP package
+     * @param string  $action   SOAP Action
+     * @return string &$response   response data, minus http headers
+     * @access private
+     */
     function &_sendHTTPS(&$msg, $options)
     {
         /* NOTE This function uses the CURL functions
