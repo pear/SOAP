@@ -46,7 +46,7 @@ $GLOBALS['SOAP_options'] = array();
 @include_once 'Mail/mimeDecode.php';
 if (class_exists('Mail_mimePart')) {
     $GLOBALS['SOAP_options']['Mime'] = 1;
-    define('MAIL_MIMEPART_CRLF',"\n");
+    define('MAIL_MIMEPART_CRLF',"\r\n");
 }
 
 @include_once 'Net/DIME.php';
