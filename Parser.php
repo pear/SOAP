@@ -98,12 +98,6 @@ class SOAP_Parser extends SOAP_Base
                     xml_get_current_line_number($parser),
                     xml_error_string(xml_get_error_code($parser)));
                 $this->_raiseSoapFault($err,htmlspecialchars($this->xml));
-            } else {
-                // build the response
-                if (count($this->root_struct))
-                    $this->soapresponse = $this->buildResponse($this->root_struct[0]);
-                if (count($this->header_struct))
-                    $this->soapheaders = $this->buildResponse($this->header_struct[0]);
             }
             xml_parser_free($parser);
         }
@@ -133,7 +127,7 @@ class SOAP_Parser extends SOAP_Base
      * @return SOAP_Value 
      * @access private
      */
-    function buildResponse($pos)
+    function &buildResponse($pos)
     {
         $response = NULL;
 
@@ -142,7 +136,7 @@ class SOAP_Parser extends SOAP_Base
 
             foreach ($children as $c => $child_pos) {
                 if ($this->message[$child_pos]['type'] != NULL) {
-                    $response[] = $this->buildResponse($child_pos);
+                    $response[] =& $this->buildResponse($child_pos);
                 }
             }
             if (array_key_exists('arraySize',$this->message[$pos])) {
@@ -465,10 +459,10 @@ class SOAP_Parser extends SOAP_Base
      * @return   array 
      * @access public
      */
-    function getResponse()
+    function &getResponse()
     {
-        if ($this->soapresponse) {
-            return $this->soapresponse;
+        if ($this->root_struct[0]) {
+            return $this->buildResponse($this->root_struct[0]);
         }
         return $this->_raiseSoapFault("couldn't build response");
     }
@@ -482,10 +476,10 @@ class SOAP_Parser extends SOAP_Base
      * @return   array 
      * @access public
      */
-    function getHeaders()
+    function &getHeaders()
     {
-        if ($this->soapheaders) {
-            return $this->soapheaders;
+        if ($this->header_struct[0]) {
+            return $this->buildResponse($this->header_struct[0]);
         }
         // we don't fault if there are no headers
         // that can be handled by the app if necessary

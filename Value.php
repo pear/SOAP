@@ -81,7 +81,7 @@ class SOAP_Value
     * @param    mixed   soap value {namespace}type, if not set an automatic 
     * @param    mixed   value to set
     */
-    function SOAP_Value($name = '', $type = false, $value, $attributes = array())
+    function SOAP_Value($name = '', $type = false, $value=NULL, $attributes = array())
     {
         // detect type if not passed
         $this->nqn =& new QName($name);
@@ -91,11 +91,10 @@ class SOAP_Value
         $this->type = $this->tqn->name;
         $this->type_prefix = $this->tqn->ns;
         $this->type_namespace = $this->tqn->namespace;
-        $this->value = $value;
+        $this->value =& $value;
         $this->attributes = $attributes;
     }
     
-   
     /**
     * Serialize
     * 
@@ -134,7 +133,7 @@ class SOAP_Header extends SOAP_Value
      * @param    int mustunderstand (zero or one)
      * @param    string actor
      */
-    function SOAP_Header($name = '', $type, $value = NULL,
+    function SOAP_Header($name = '', $type, $value,
                          $mustunderstand = 0,
                          $actor = 'http://schemas.xmlsoap.org/soap/actor/next')
     {

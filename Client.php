@@ -130,6 +130,7 @@ class SOAP_Client extends SOAP_Base
     */
     var $__proxy_params = array();
 
+    var $_soap_transport = NULL;
     /**
      * SOAP_Client constructor
      *
@@ -157,6 +158,16 @@ class SOAP_Client extends SOAP_Base
         }
     }
 
+    function _reset()
+    {
+        $this->xml = NULL;
+        $this->wire = NULL;
+        $this->__last_request = NULL;
+        $this->__last_response = NULL;
+        $this->headersIn = NULL;
+        $this->headersOut = NULL;
+    }
+    
     /**
      * setEncoding
      *
@@ -227,33 +238,40 @@ class SOAP_Client extends SOAP_Base
      */
     function &call($method, &$params, $namespace = false, $soapAction = false)
     {
+        $this->headersIn = null;
         $this->__last_request = null;
         $this->__last_response = null;
+        $this->wire = null;
+        $this->xml = NULL;
+        
         $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
             return $this->_raiseSoapFault($soap_data);
         }
-        $soap_transport =& new SOAP_Transport($this->_endpoint, $this->_encoding);
-        if ($soap_transport->fault) {
-            return $this->_raiseSoapFault($soap_transport->fault);
+        if (!$this->_soap_transport) {
+            $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
+            if (PEAR::isError($this->_soap_transport)) {
+                return $this->_raiseSoapFault($this->_soap_transport);
+            }
         }
+        $this->_soap_transport->encoding = $this->_encoding;
+        
         // send the message
         $transport_options = array_merge($this->__proxy_params, $this->__options);
-        $this->xml =& $soap_transport->send($soap_data, $transport_options);
+        $this->xml =& $this->_soap_transport->send($soap_data, $transport_options);
 
         // save the wire information for debugging
         if ($this->__options['trace'] > 0) {
-            $this->__last_request =& $soap_transport->transport->outgoing_payload;
-            $this->__last_response =& $soap_transport->transport->incoming_payload;
+            $this->__last_request =& $this->_soap_transport->outgoing_payload;
+            $this->__last_response =& $this->_soap_transport->incoming_payload;
             $this->wire =& $this->__get_wire();
         }
-        if ($soap_transport->fault) {
+        if ($this->_soap_transport->fault) {
             return $this->_raiseSoapFault($this->xml);
         }
 
-        $this->__attachments =& $soap_transport->transport->attachments;
-        $this->__result_encoding = $soap_transport->result_encoding;
-        unset($soap_transport);
+        $this->__attachments =& $this->_soap_transport->attachments;
+        $this->__result_encoding = $this->_soap_transport->result_encoding;
 
         if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
 
@@ -440,7 +458,8 @@ class SOAP_Client extends SOAP_Base
         } else {
             if (!$params) {
                 $mqname =& new QName($method, $namespace);
-                $params =& new SOAP_Value($mqname->fqn(), 'Struct', NULL);
+                $mynull = NULL;
+                $params =& new SOAP_Value($mqname->fqn(), 'Struct', $mynull);
             } elseif ($this->__options['input'] == 'parse') {
                 if (is_array($params)) {
                     $nparams = array();
@@ -461,6 +480,7 @@ class SOAP_Client extends SOAP_Base
             }
             $soap_msg =& $this->_makeEnvelope($params, $this->headersOut, $this->_encoding,$this->__options);
         }
+        unset($this->headersOut);
 
         if (PEAR::isError($soap_msg)) {
             return $this->_raiseSoapFault($soap_msg);
@@ -501,17 +521,16 @@ class SOAP_Client extends SOAP_Base
     function &__parse(&$response, $encoding, &$attachments)
     {
         // parse the response
-        $this->response =& new SOAP_Parser($response, $encoding, $attachments);
-        if ($this->response->fault) {
-            return $this->_raiseSoapFault($this->response->fault);
+        $response =& new SOAP_Parser($response, $encoding, $attachments);
+        if ($response->fault) {
+            return $this->_raiseSoapFault($response->fault);
         }
         // return array of parameters
-        $return =& $this->response->getResponse();
-        $headers =& $this->response->getHeaders();
+        $return =& $response->getResponse();
+        $headers =& $response->getHeaders();
         if ($headers) {
             $this->headersIn =& $this->__decodeResponse($headers,false);
         }
-
         return $this->__decodeResponse($return);
     }
 

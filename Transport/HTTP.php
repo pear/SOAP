@@ -48,7 +48,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
      * @var  string
      */
     var $headers = array();
-
+    var $cookies;
     /**
      *
      * @var  int connection timeout in seconds - 0 = none
@@ -103,6 +103,8 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
      */
     var $result_content_type;
 
+    var $result_headers = array();
+    var $result_cookies = array();
     /**
      * SOAP_Transport_HTTP Constructor
      *
@@ -132,6 +134,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
      */
     function &send(&$msg,  /*array*/ $options = NULL)
     {
+        $this->headers = array();
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
@@ -161,6 +164,12 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     function setCredentials($username, $password)
     {
         $this->headers['Authorization'] = 'Basic ' . base64_encode($username . ':' . $password);
+    }
+
+    function addCookie($name, $value)
+    {
+        $cookies = isset($this->cookies) ? $this->cookies. '; ' : '';
+        $this->cookies = $cookies . urlencode($name) . '=' . urlencode($value);
     }
 
     // private members
@@ -226,6 +235,57 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         if (!$this->result_content_type) $this->result_content_type = 'text/xml';
     }
 
+    function _parseHeaders($headers)
+    {
+        /* largely borrowed from HTTP_Request */
+        $this->result_headers = array();
+        $headers = split("\r?\n", $headers);
+        foreach ($headers as $value) {
+            list($name,$value) = split(':',$value);
+            $headername = strtolower($name);
+            $headervalue = trim($value);
+            $this->result_headers[$headername]=$headervalue;
+            
+            if ($headername == 'set-cookie') {
+                // Parse a SetCookie header to fill _cookies array
+                $cookie = array(
+                    'expires' => null,
+                    'domain'  => $this->urlparts['host'],
+                    'path'    => null,
+                    'secure'  => false
+                );
+
+                // Only a name=value pair
+                if (!strpos($headervalue, ';')) {
+                    list($cookie['name'], $cookie['value']) = array_map('trim', explode('=', $headervalue));
+                    $cookie['name']  = urldecode($cookie['name']);
+                    $cookie['value'] = urldecode($cookie['value']);
+
+                // Some optional parameters are supplied
+                } else {
+                    $elements = explode(';', $headervalue);
+                    list($cookie['name'], $cookie['value']) = array_map('trim', explode('=', $elements[0]));
+                    $cookie['name']  = urldecode($cookie['name']);
+                    $cookie['value'] = urldecode($cookie['value']);
+
+                    for ($i = 1; $i < count($elements);$i++) {
+                        list ($elName, $elValue) = array_map('trim', explode('=', $elements[$i]));
+                        if ('secure' == $elName) {
+                            $cookie['secure'] = true;
+                        } elseif ('expires' == $elName) {
+                            $cookie['expires'] = str_replace('"', '', $elValue);
+                        } elseif ('path' == $elName OR 'domain' == $elName) {
+                            $cookie[$elName] = urldecode($elValue);
+                        } else {
+                            $cookie[$elName] = $elValue;
+                        }
+                    }
+                }
+                $this->result_cookies[] = $cookie;
+            }
+        }
+    }
+    
     /**
      * Remove http headers from response
      *
@@ -238,9 +298,12 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             #$this->response = preg_replace("/[\r|\n]/", '', $match[2]);
             $this->response =& $match[2];
             // find the response error, some servers response with 500 for soap faults
-            if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
-                $status[1] >= 400 && $status[1] < 500) {
-                    $this->_raiseSoapFault("HTTP Response $status[1] Not Found");
+            $this->_parseHeaders($match[1]);
+    
+            list($protocol, $code) = sscanf($this->result_headers[0], '%s %s');
+            unset($this->result_headers[0]);            
+            if ($code >= 400 && $code < 500) {
+                    $this->_raiseSoapFault("HTTP Response $code Not Found");
                     return FALSE;
             }
             $this->_parseEncoding($match[1]);
@@ -289,6 +352,27 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         $this->headers['SOAPAction'] = "\"$action\"";
         if (isset($options['headers'])) {
             $this->headers = array_merge($this->headers, $options['headers']);
+        }
+        
+        unset($this->cookies);
+        if (!isset($options['nocookies']) || !$options['nocookies']) {
+            // add the cookies we got from the last request
+            if (isset($this->result_cookies)) {
+                foreach ($this->result_cookies as $cookie) {
+                    if ($cookie['domain'] == $this->urlparts['host'])
+                        $this->addCookie($cookie['name'],$cookie['value']);
+                }
+            }
+        }
+        // add cookies the user wants to set
+        if (isset($options['cookies'])) {
+            foreach ($options['cookies'] as $cookie) {
+                if ($cookie['domain'] == $this->urlparts['host'])
+                    $this->addCookie($cookie['name'],$cookie['value']);
+            }
+        }
+        if ($this->cookies) {
+            $this->headers['Cookie'] = $this->cookies;
         }
         $headers = '';
         foreach ($this->headers as $k => $v) {

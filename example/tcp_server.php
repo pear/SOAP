@@ -21,6 +21,7 @@
 
 // first, include the SOAP/Server class
 require_once 'SOAP/Server/TCP.php';
+set_time_limit(0);
 
 $server = new SOAP_Server_TCP("127.0.0.1",82);
 /* tell server to translate to classes we provide if possible */

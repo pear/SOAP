@@ -34,35 +34,14 @@ require_once 'SOAP/Base.php';
 * @package  SOAP::Transport
 * @author   Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport extends SOAP_Base_Object
+class SOAP_Transport
 {
-
-    /**
-    * Transport object - build using the constructor as a factory
-    * 
-    * @var  object  SOAP_Transport_SMTP|HTTP
-    */
-    var $transport = NULL;
-    
-    var $encoding = SOAP_DEFAULT_ENCODING;
-    var $result_encoding = SOAP_DEFAULT_ENCODING;
-    /**
-    * SOAP::Transport constructor
-    *
-    * @param string $url   soap endpoint url
-    *
-    * @access public
-    */
-    function SOAP_Transport($url, $encoding = SOAP_DEFAULT_ENCODING)
+    function &getTransport($url, $encoding = SOAP_DEFAULT_ENCODING)
     {
-        parent::SOAP_Base_Object('TRANSPORT');
-
         $urlparts = @parse_url($url);
-        $this->encoding = $encoding;
         
         if (!$urlparts['scheme']) {
-            $this->_raiseSoapFault("Invalid transport URI: $url");
-            return;
+            return SOAP_Base_Object::_raiseSoapFault("Invalid transport URI: $url");
         }
         
         if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
@@ -76,42 +55,13 @@ class SOAP_Transport extends SOAP_Base_Object
         $transport_include = 'SOAP/Transport/'.$transport_type.'.php';
         $res = @include_once($transport_include);
         if(!res && !in_array($transport_include, get_included_files())) {
-            $this->_raiseSoapFault("No Transport for {$urlparts['scheme']}");
-            return;
+            return SOAP_Base_Object::_raiseSoapFault("No Transport for {$urlparts['scheme']}");
         }
         $transport_class = "SOAP_Transport_$transport_type";
         if (!class_exists($transport_class)) {
-            $this->_raiseSoapFault("No Transport class $transport_class");
-            return;
+            return SOAP_Base_Object::_raiseSoapFault("No Transport class $transport_class");
         }
-        $this->transport =& new $transport_class($url, $encoding);
+        return new $transport_class($url, $encoding);
     }
-    
-    /**
-    * send a soap package, get a soap response
-    *
-    * @param string &$soap_data   soap data to be sent (in xml)
-    * @param string $action SOAP Action
-    * @param int $timeout protocol timeout in seconds
-    *
-    * @return string &$response   soap response (in xml)
-    * @access public
-    */
-    function &send(&$soap_data, /*array*/ $options = NULL)
-    {
-        if (!$this->transport) {
-            return $this->fault;
-        }
-        
-        $response =& $this->transport->send($soap_data, $options);
-        if (PEAR::isError($response)) {
-            return $this->_raiseSoapFault($response);
-        }
-        $this->result_encoding = $this->transport->result_encoding;
-        #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
-        #echo "\n INCOMING: ".preg_replace("/></",">\n<!--CRLF added-->",$this->transport->incoming_payload)."\n\n";
-        return $response;
-    }
-
 } // end SOAP_Transport
 ?>

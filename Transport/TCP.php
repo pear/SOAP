@@ -65,7 +65,8 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
     }
 
     function _socket_ping () {
-        if (!$this->socket) {
+        // XXX how do we restart after socket_shutdown?
+        //if (!$this->socket) {
             # create socket resource
             $this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
             if ($this->socket < 0) return 0;
@@ -73,7 +74,7 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
             # connect
             $result = socket_connect($this->socket, $this->urlparts['host'], $this->urlparts['port']);
             if ($result < 0) return 0;
-        }
+        //}
         return 1;
     }
 
@@ -98,8 +99,8 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
                 return $this->_raiseSoapFault('error on '.$this->url.' reason '.socket_strerror(socket_last_error($this->socket)));
 
             # write to the socket
-            if (!socket_write($this->socket, $this->outgoing_payload, strlen($this->outgoing_payload))) {
-                return $this->_raiseSoapFault('Error sending data to '.$this->url.' reason '.socket_strerror());
+            if (!@socket_write($this->socket, $this->outgoing_payload, strlen($this->outgoing_payload))) {
+                return $this->_raiseSoapFault('Error sending data to '.$this->url.' reason '.socket_strerror(socket_last_error($this->socket)));
             }
 
             # shutdown writing
@@ -107,7 +108,7 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
                 return $this->_raiseSoapFault("can't change socket mode to read.");
 
             # read everything we can.
-            while($buf = socket_read($this->socket, 1024, PHP_BINARY_READ)) {
+            while($buf = @socket_read($this->socket, 1024, PHP_BINARY_READ)) {
                 $this->incoming_payload .= $buf;
             }
 
