@@ -35,8 +35,19 @@ $server->addToMap('echoSimpleTypesAsStruct',
 		  array('return' => 'struct'));
 function echoSimpleTypesAsStruct($string, $int, $float)
 {
-    # convert a SOAPStruct to an array
-    $ret = array($string, $int, $float);
+    # convert a input into struct
+    /*$ret = new SOAP_Value("return","struct",
+            array( #push struct elements into one soap value
+                new SOAP_Value("varString","string",$string),
+                new SOAP_Value("varInt","int",$int),
+                new SOAP_Value("varFloat","float",$float)
+            )
+        );*/
+    $ret = array(
+        "varString"=>$string,
+        "varInt"=>$int,
+        "varFloat"=>$float
+    );
     return $ret;
 }
 

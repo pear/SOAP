@@ -19,11 +19,12 @@
 //
 // $Id$
 //
-require_once("SOAP/globals.php");
-require_once("SOAP/Value.php");
+
+require_once('SOAP/globals.php');
+require_once('SOAP/Value.php');
 
 /**
-*  SOAP parser
+* SOAP Parser
 * this class is used by SOAP::Message and SOAP::Server to parse soap packets
 *
 * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
@@ -36,47 +37,48 @@ require_once("SOAP/Value.php");
 */
 class SOAP_Parser
 {
-    var $status = "";
+    var $status = '';
     var $position = 0;
     var $pos_stat = 0;
     var $depth = 0;
-    var $default_namespace = "";
+    var $default_namespace = '';
     var $namespaces = array();
     var $message = array();
     var $fault = false;
-    var $fault_code = "";
-    var $fault_str = "";
-    var $fault_detail = "";
+    var $fault_code = '';
+    var $fault_str = '';
+    var $fault_detail = '';
     var $depth_array = array();
     var $debug_flag = true;
-    var $debug_str = "";
-    var $previous_element = "";
+    var $debug_str = '';
+    var $previous_element = '';
     var $soapresponse = NULL;
     var $parent = 0;
     var $root_struct_name = array();
-    var $curent_root_struct_name = "";
-    var $entities = array ( "&" => "&amp;", "<" => "&lt;", ">" => "&gt;",
-        "'" => "&apos;", '"' => "&quot;" );
-    var $xml = "";
-    var $xml_encoding = "";
+    var $curent_root_struct_name = '';
+    var $entities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;',
+        "'" => '&apos;', '"' => '&quot;' );
+    var $xml = '';
+    var $xml_encoding = '';
     var $root_struct = array();
     var $curent_root_struct = 0;
     var $references = array();
     var $need_references = array();
     var $XMLSchemaVersion;
     
-    function SOAP_Parser($xml,$encoding="UTF-8")
+    function SOAP_Parser($xml,$encoding='UTF-8')
     {
         $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         //global $soapTypes;
         //$this->soapTypes = $soapTypes;
         $this->xml = $xml;
         $this->xml_encoding = $encoding;
-        // determines where in the message we are (envelope,header,body,method)
         
+        // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($xml)) {
-            $this->debug("Entering SOAP_Parser()");
+            $this->debug('Entering SOAP_Parser()');
+
             //$this->debug("DATA DUMP:\n\n$xml");
             // Create an XML parser.
             $parser = xml_parser_create($this->xml_encoding);
@@ -85,15 +87,16 @@ class SOAP_Parser
             xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
             // Set the object for the parser.
             xml_set_object($parser, &$this);
+
             // Set the element handlers for the parser.
-            xml_set_element_handler($parser, "startElement","endElement");
-            xml_set_character_data_handler($parser,"characterData");
-            xml_set_default_handler($parser, "defaultHandler");
+            xml_set_element_handler($parser, 'startElement','endElement');
+            xml_set_character_data_handler($parser,'characterData');
+            xml_set_default_handler($parser, 'defaultHandler');
 
             // Parse the XML file.
             if (!xml_parse($parser,$xml,true)) {
                 // Display an error message.
-                $this->debug(sprintf("XML error on line %d: %s",
+                $this->debug(sprintf('XML error on line %d: %s',
                 xml_get_current_line_number($parser),
                 xml_error_string(xml_get_error_code($parser))));
                 $this->fault = true;
@@ -103,7 +106,7 @@ class SOAP_Parser
             }
             xml_parser_free($parser);
         } else {
-            $this->debug("xml was empty, didn't parse!");
+            $this->debug('xml was empty, didn\'t parse!');
         }
     }
     
@@ -112,8 +115,8 @@ class SOAP_Parser
         global $SOAP_namespaces;
         $this->XMLSchemaVersion = $schemaVersion;
         $tmpNS = array_flip($SOAP_namespaces);
-        $tmpNS["xsd"] = $this->XMLSchemaVersion;
-        $tmpNS["xsi"] = $this->XMLSchemaVersion."-instance";
+        $tmpNS['xsd'] = $this->XMLSchemaVersion;
+        $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
         $SOAP_namespaces = array_flip($tmpNS);
     }
     
@@ -121,14 +124,16 @@ class SOAP_Parser
     function buildResponse($pos)
     {
         $response = NULL;
-        if ($this->message[$pos]["children"] != "") {
-            $this->debug("children string = ".$this->message[$pos]["children"]);
-            $children = explode("|",$this->message[$pos]["children"]);
-            $this->debug("it has ".count($children)." children");
+
+        if ($this->message[$pos]['children'] != '') {
+            $this->debug('children string = '.$this->message[$pos]['children']);
+            $children = explode('|',$this->message[$pos]['children']);
+            $this->debug('it has '.count($children).' children');
+
             foreach ($children as $c => $child_pos) {
-                //$this->debug("child pos $child_pos: ".$this->message[$child_pos]["name"]);
-                if ($this->message[$child_pos]["type"] != NULL) {
-                    $this->debug("entering buildResponse() for ".$this->message[$child_pos]["name"].", array pos $c, pos: $child_pos");
+                //$this->debug("child pos $child_pos: ".$this->message[$child_pos]['name']);
+                if ($this->message[$child_pos]['type'] != NULL) {
+                    $this->debug('entering buildResponse() for '.$this->message[$child_pos]['name'].", array pos $c, pos: $child_pos");
                     $response[] = $this->buildResponse($child_pos);
                 }
             }
@@ -172,9 +177,10 @@ class SOAP_Parser
             $response = new SOAP_Value($this->message[$pos]["name"], $this->message[$pos]["type"] , $response);
         } else {
             #print "Parser creating: {$this->message[$pos]["name"]} type: {$this->message[$pos]["type"]}\n";
-            $this->debug("inside buildresponse: creating SOAP_Value ".$this->message[$pos]["name"]." of type ".$this->message[$pos]["type"]." and value: ".$this->message[$pos]["cdata"]);
-            $response = new SOAP_Value($this->message[$pos]["name"], $this->message[$pos]["type"] , $this->message[$pos]["cdata"]);
+            $this->debug('inside buildresponse: creating SOAP_Value '.$this->message[$pos]['name'].' of type '.$this->message[$pos]['type'].' and value: '.$this->message[$pos]['cdata']);
+            $response = new SOAP_Value($this->message[$pos]['name'], $this->message[$pos]['type'] , $this->message[$pos]['cdata']);
         }
+
         return $response;
     }
     
@@ -184,20 +190,24 @@ class SOAP_Parser
         // position in a total number of elements, starting from 0
         // update class level pos
         $pos = $this->position++;
+
         // and set mine
-        $this->message[$pos]["pos"] = $pos;
+        $this->message[$pos]['pos'] = $pos;
+
         // parent/child/depth determinations
         
         // depth = how many levels removed from root?
         // set mine as current global depth and increment global depth value
-        $this->message[$pos]["depth"] = $this->depth++;
+        $this->message[$pos]['depth'] = $this->depth++;
         
         // else add self as child to whoever the current parent is
         if ($pos != 0) {
-            $this->message[$this->parent]["children"] .= "|$pos";
+            $this->message[$this->parent]['children'] .= "|$pos";
         }
+
         // set my parent
-        $this->message[$pos]["parent"] = $this->parent;
+        $this->message[$pos]['parent'] = $this->parent;
+
         // set self as current value for this depth
         $this->depth_array[$this->depth] = $pos;
         // set self as current parent
@@ -205,13 +215,13 @@ class SOAP_Parser
         
         // set status
         if (preg_match("/:Envelope$/i",$name)) {
-            $this->status = "envelope";
+            $this->status = 'envelope';
         } elseif (preg_match("/:Header$/i",$name)) {
-            $this->status = "header";
+            $this->status = 'header';
         } elseif (preg_match("/:Body$/i",$name)) {
-            $this->status = "body";
+            $this->status = 'body';
         // set method
-        } elseif ($this->status == "body") {
+        } elseif ($this->status == 'body') {
             // is this element allowed to be a root?
             // XXX this needs to be optimized, we loop through attrs twice now
             $can_root = TRUE;
@@ -220,50 +230,61 @@ class SOAP_Parser
                     $can_root = FALSE;
                 }
             }
-            $this->status = "method";
+
+            $this->status = 'method';
+
             if ($can_root) {
-                if (strpos($name,":") !== false) {
-                    $this->root_struct_name[] = $this->curent_root_struct_name = substr(strrchr($name,":"),1);
+                if (strpos($name,':') !== false) {
+                    $this->root_struct_name[] = $this->curent_root_struct_name = substr(strrchr($name,':'),1);
                 } else {
                     $this->root_struct_name[] = $this->curent_root_struct_name = $name;
                 }
+
                 $this->root_struct[] = $this->curent_root_struct = $pos;
-                $this->message[$pos]["type"] = "struct";
+                $this->message[$pos]['type'] = 'struct';
             }
         }
+
         // set my status
-        $this->message[$pos]["status"] = $this->status;
+        $this->message[$pos]['status'] = $this->status;
         
         // set name
-        $this->message[$pos]["name"] = htmlspecialchars($name);
+        $this->message[$pos]['name'] = htmlspecialchars($name);
+
         // set attrs
-        $this->message[$pos]["attrs"] = $attrs;
+        $this->message[$pos]['attrs'] = $attrs;
+
         // get namespace
-        if (strpos($name,":") !== false) {
-            $namespace = substr($name,0,strpos($name,":"));
-            $this->message[$pos]["namespace"] = $namespace;
+        if (strpos($name,':') !== false) {
+            $namespace = substr($name,0,strpos($name,':'));
+            $this->message[$pos]['namespace'] = $namespace;
             $this->default_namespace = $namespace;
         } else {
-            $this->message[$pos]["namespace"] = $this->default_namespace;
+            $this->message[$pos]['namespace'] = $this->default_namespace;
         }
+
         // loop through atts, logging ns and type declarations
         foreach ($attrs as $key => $value) {
             // if ns declarations, add to class level array of valid namespaces
             if (preg_match('/^xmlns:/i',$key)) {
-                $prefix = substr(strrchr($key,":"),1);
-                if ($prefix == "xsd") {
+                $prefix = substr(strrchr($key,':'),1);
+
+                if ($prefix == 'xsd') {
                     $this->setSchemaVersion($value);
                 }
-                $this->namespaces[substr(strrchr($key,":"),1)] = $value;
+
+                $this->namespaces[substr(strrchr($key,':'),1)] = $value;
+
                 // set method namespace
                 if ($name == $this->curent_root_struct_name) {
                     $this->methodNamespace = $value;
                 }
             // if it's a type declaration, set type
             } elseif (preg_match('/:type$/i',$key)) {
-                $type = substr(strrchr($value,":"),1);
+                $type = substr(strrchr($value,':'),1);
+
                 if (!$type) $type = $value;
-                $this->message[$pos]["type"] = $type;
+                $this->message[$pos]['type'] = $type;
                 #print "set type for {$this->message[$pos]['name']} to {$this->message[$pos]['type']}\n";
                 // should do something here with the namespace of specified type?
             } elseif (preg_match('/:arrayType$/i',$key)) {
@@ -308,8 +329,8 @@ class SOAP_Parser
         
         // get type if not explicitly declared in an xsi:type attribute
         // XXX check on integrating wsdl validation here
-        if ($this->message[$pos]['type'] == "") {
-            if ($this->message[$pos]['children'] != "") {
+        if ($this->message[$pos]['type'] == '') {
+            if ($this->message[$pos]['children'] != '') {
                 $this->message[$pos]['type'] = 'struct';
             } else {
                 $parent = $this->message[$pos]['parent'];
@@ -324,29 +345,32 @@ class SOAP_Parser
         
         // set eval str start if it has a valid type and is inside the method
         if ($pos >= $this->curent_root_struct) {
-            $this->message[$pos]["inval"] = "true";
+            $this->message[$pos]['inval'] = 'true';
         }
         
         // if in the process of making a soap_val, close the parentheses and move on...
-        if ($this->message[$pos]["inval"] == "true") {
-            $this->message[$pos]["inval"] == "false";
+        if ($this->message[$pos]['inval'] == 'true') {
+            $this->message[$pos]['inval'] == 'false';
         }
+
         // if tag we are currently closing is the method wrapper
         if ($pos == $this->curent_root_struct) {
-            $this->status = "body";
-        } elseif (stristr($name,":Body")) {
-            $this->status = "header";
-        } elseif (stristr($name,":Header")) {
-            $this->status = "envelope";
+            $this->status = 'body';
+        } elseif (stristr($name,':Body')) {
+            $this->status = 'header';
+        } elseif (stristr($name,':Header')) {
+            $this->status = 'envelope';
         }
+
         // set parent back to my parent
-        $this->parent = $this->message[$pos]["parent"];
-        $this->debug("parsed $name end, type '".$this->message[$pos]["type"]."' children = ".$this->message[$pos]["children"]);
-        #print ("parsed $name end, type '".$this->message[$pos]["type"]."' children = ".$this->message[$pos]["children"]."\n");
+        $this->parent = $this->message[$pos]['parent'];
+        $this->debug("parsed $name end, type '".$this->message[$pos]['type']."' children = ".$this->message[$pos]['children']);
+        #print ("parsed $name end, type '".$this->message[$pos]['type']."' children = ".$this->message[$pos]['children']."\n");
         
         # handle any reverse references now
         $idref = $this->message[$pos]['id'];
-        if ($idref != "" && array_key_exists($idref,$this->need_references)) {
+
+        if ($idref != '' && array_key_exists($idref,$this->need_references)) {
             foreach ($this->need_references[$idref] as $ref_pos) {
                 #XXX is this stuff there already?
                 $this->message[$ref_pos]['children'] = &$this->message[$pos]['children'];
@@ -363,7 +387,7 @@ class SOAP_Parser
     function characterData($parser, $data)
     {
         $pos = $this->depth_array[$this->depth];
-        $this->message[$pos]["cdata"] .= $data;
+        $this->message[$pos]['cdata'] .= $data;
     }
     
     // default handler
@@ -388,16 +412,17 @@ class SOAP_Parser
         if ($this->soapresponse) {
             return $this->soapresponse;
         } else {
-            $this->debug("ERROR: did not successfully eval the msg");
+            $this->debug('ERROR: did not successfully eval the msg');
             $this->fault = true;
-            return new SOAP_Value("Fault","struct",array(new SOAP_Value("faultcode","string","SOAP-ENV:Parser"),new SOAP_Value("faultstring","string","couldn't build response")));
+
+            return new SOAP_Value('Fault','struct',array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'),new SOAP_Value('faultstring','string',"couldn't build response")));
         }
     }
     
     function debug($string)
     {
         if ($this->debug_flag) {
-            $this->debug_str .= "SOAP_Parser: ".preg_replace("/>/","/>\r\n/",$string)."\n";
+            $this->debug_str .= 'SOAP_Parser: '.preg_replace("/>/","/>\r\n/",$string)."\n";
         }
     }
     

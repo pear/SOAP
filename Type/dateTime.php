@@ -36,7 +36,8 @@ class SOAP_Type_dateTime
     function SOAP_Type_dateTime($date = -1)
     {
         if ($date == -1) $date = time();
-        if (gettype($date) == "integer") {
+
+        if (gettype($date) == 'integer') {
             $this->timestamp = $date;
         } else {
             $this->timestamp = $this->toUnixtime($date);
@@ -52,26 +53,27 @@ class SOAP_Type_dateTime
     {
         if (!$timestamp) $timestamp = $this->timestamp;
         if ($timestamp < 0) return 0;
-        return date("Y-m-d\TH:i:sO",$timestamp);
+
+        return date('Y-m-d\TH:i:sO',$timestamp);
     }
     
     function _split($datestr)
     {
         if (!$datestr)
             $datestr = $this->toString();
-        else if (gettype($datestr) == "integer")
+        else if (gettype($datestr) == 'integer')
             $datestr = $this->toString($datestr);
             
         if (ereg($this->ereg_iso8601,$datestr,$regs)) {
-            if ($regs[8] != "" && $regs[8] != "Z") {
+            if ($regs[8] != '' && $regs[8] != 'Z') {
                 $op = substr($regs[8],0,1);
                 $h = substr($regs[8],1,2);
-                if (strstr($regs[8],":")) {
+                if (strstr($regs[8],':')) {
                     $m = substr($regs[8],4,2);
                 } else {
                     $m = substr($regs[8],3,2);
                 }
-                if ($op == "+") {
+                if ($op == '+') {
                     $regs[4] = $regs[4] - $h;
                     if ($regs[4] < 0) $regs[4] += 24;
                     $regs[5] = $regs[5] - $m;
@@ -91,10 +93,12 @@ class SOAP_Type_dateTime
     function toUTC($datestr = NULL)
     {
         $regs = $this->_split($datestr);
+
         if ($regs) {
-            return sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ",$regs[1],$regs[2],$regs[3],$regs[4],$regs[5],$regs[6]);
+            return sprintf('%04d-%02d-%02dT%02d:%02d:%02dZ',$regs[1],$regs[2],$regs[3],$regs[4],$regs[5],$regs[6]);
         }
-        return "";
+
+        return '';
     }
 
     function toUnixtime($datestr = NULL)
@@ -120,7 +124,7 @@ class SOAP_Type_dateTime
         return -1;
     }
     
-    function _test($orig = "2001-04-25T09:31:41-0700")
+    function _test($orig = '2001-04-25T09:31:41-0700')
     {
         $utc = $this->toUTC($orig);
         $ts1 = $this->toUnixtime($orig);

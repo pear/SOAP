@@ -27,9 +27,8 @@
 //  ability to define smtp options (encoding, from, etc.)
 //
 
-require_once("SOAP/globals.php");
-# we have to use the message class to return a proper soap response
-require_once("SOAP/Message.php");
+require_once('SOAP/globals.php');
+require_once('SOAP/Message.php');
 
 /**
 *  SMTP Transport for SOAP
@@ -41,14 +40,15 @@ require_once("SOAP/Message.php");
 */
 class SOAP_Transport_SMTP
 {
-    var $credentials = "";
+    var $credentials = '';
     var $_userAgent;
     var $timeout = 4; // connect timeout
     var $errno = 0;
-    var $errmsg = "";
+    var $errmsg = '';
     var $urlparts = NULL;
-    var $url = "";
-    var $incoming_payload = "";
+    var $url = '';
+    var $incoming_payload = '';
+
     /**
     * SOAP_Transport_SMTP Constructor
     *
@@ -74,7 +74,7 @@ class SOAP_Transport_SMTP
     * @return boolean (success or failure)
     * @access public
     */
-    function send(&$msg, &$response, $action = "", $timeout=0)
+    function send(&$msg, &$response, $action = '', $timeout=0)
     {
         if (!$this->_validateUrl()) {
             return FALSE;
@@ -85,19 +85,23 @@ class SOAP_Transport_SMTP
                             "MIME-Version: 1.0\n".
                             "Content-Type: text/xml; charset=\"utf-8\"\n".
                             "Content-Transfer-Encoding: quoted-printable\n";
-        $subject = "SOAP Message";
+        $subject = 'SOAP Message';
+
         # we want to return a proper XML message
         $result = mail($this->urlparts['path'], $subject, $msg, $headers);
+
         if ($result) {
-            $val = new SOAP_Value("return","boolean",TRUE);
+            $val = new SOAP_Value('return','boolean',TRUE);
         } else {
-            $val = new SOAP_Value("Fault","struct",array(
-                new SOAP_Value("faultcode","string","SOAP-ENV:Transport"),
-                new SOAP_Value("faultstring","string","couldn't send message to $action")
+            $val = new SOAP_Value('Fault','struct',array(
+                new SOAP_Value('faultcode','string','SOAP-ENV:Transport'),
+                new SOAP_Value('faultstring','string',"couldn't send message to $action")
                 ));
         }
-        $return_msg =  new SOAP_Message("Response",array($val),"smtp");
+
+        $return_msg = new SOAP_Message('Response',array($val),'smtp');
         $response = $return_msg->serialize();
+
         return $result;
     }
 
@@ -142,5 +146,5 @@ class SOAP_Transport_SMTP
         return TRUE;
     }
     
-}; // end SOAP_Transport_HTTP
+} // end SOAP_Transport_HTTP
 ?>

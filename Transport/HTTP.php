@@ -18,7 +18,9 @@
 //
 // $Id$
 //
-require_once("SOAP/globals.php");
+
+require_once('SOAP/globals.php');
+
 /**
 *  HTTP Transport for SOAP
 *
@@ -29,14 +31,15 @@ require_once("SOAP/globals.php");
 */
 class SOAP_Transport_HTTP
 {
-    var $credentials = "";
+    var $credentials = '';
     var $_userAgent;
     var $timeout = 4; // connect timeout
     var $errno = 0;
-    var $errmsg = "";
+    var $errmsg = '';
     var $urlparts = NULL;
-    var $url = "";
-    var $incoming_payload = "";
+    var $url = '';
+    var $incoming_payload = '';
+
     /**
     * SOAP_Transport_HTTP Constructor
     *
@@ -62,7 +65,7 @@ class SOAP_Transport_HTTP
     * @return boolean (success or failure)
     * @access public
     */
-    function send(&$msg, &$response, $action = "", $timeout=0)
+    function send(&$msg, &$response, $action = '', $timeout=0)
     {
         if (!$this->_validateUrl()) {
             return FALSE;
@@ -88,7 +91,7 @@ class SOAP_Transport_HTTP
     */
     function setCredentials($username, $password)
     {
-        $this->credentials = "Authorization: Basic ".base64_encode($username.":".$password)."\r\n";
+        $this->credentials = 'Authorization: Basic '.base64_encode($username.':'.$password)."\r\n";
     }
     
     // private members
@@ -127,7 +130,7 @@ class SOAP_Transport_HTTP
     function _parseResponse()
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s",$this->incoming_payload,$match)) {
-            $this->response = preg_replace("/[\r|\n]/","",$match[2]);
+            $this->response = preg_replace("/[\r|\n]/",'',$match[2]);
             // if no content, return false
             return strlen($this->response) > 0;
         }
@@ -164,7 +167,7 @@ class SOAP_Transport_HTTP
     * @return boolean
     * @access private
     */
-    function _sendHTTP(&$msg, &$response, $action = "")
+    function _sendHTTP(&$msg, &$response, $action = '')
     {
         $this->_getRequest($msg, $action);
         
@@ -189,8 +192,9 @@ class SOAP_Transport_HTTP
         }
 
         fclose($fp);
+
         if (!$this->_parseResponse()) {
-            $this->errmsg = "Invalid HTTP Response";
+            $this->errmsg = 'Invalid HTTP Response';
             return FALSE;
         }
         $response = $this->response;
@@ -212,9 +216,9 @@ class SOAP_Transport_HTTP
         /* NOTE This function uses the CURL functions
         *  Your php must be compiled with CURL
         */
-        if (!extension_loaded("php_curl")) {
+        if (!extension_loaded('php_curl')) {
             $this->errno = -1;
-            $this->errmsg = "CURL Extension is required for HTTPS";
+            $this->errmsg = 'CURL Extension is required for HTTPS';
             return FALSE;
         }
         

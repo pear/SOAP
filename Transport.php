@@ -19,7 +19,9 @@
 //
 // $Id$
 //
-require_once("PEAR.php");
+
+require_once('PEAR.php');
+
 /**
 * SOAP Transport Layer
 * This layer can use different protocols dependant on the endpoint url provided
@@ -34,9 +36,9 @@ require_once("PEAR.php");
 class SOAP_Transport extends PEAR
 {
     var $transport = NULL;
-    var $outgoing_payload = "";
-    var $incoming_payload = "";
-    var $errmsg = "";
+    var $outgoing_payload = '';
+    var $incoming_payload = '';
+    var $errmsg = '';
 
     /**
     * SOAP::Transport constructor
@@ -49,13 +51,15 @@ class SOAP_Transport extends PEAR
     {
         /* only HTTP transport for now, later look at url for scheme */
         $this->debug_flag = $debug;
+
         $urlparts = @parse_url($url);
-        if (strcasecmp($urlparts['scheme'],"http")==0) {
-            require_once("SOAP/Transport/HTTP.php");
+
+        if (strcasecmp($urlparts['scheme'],'http')==0) {
+            require_once('SOAP/Transport/HTTP.php');
             $this->transport = new SOAP_Transport_HTTP($url);
             return;
-        } else if (strcasecmp($urlparts['scheme'],"mailto")==0) {
-            require_once("SOAP/Transport/SMTP.php");
+        } else if (strcasecmp($urlparts['scheme'],'mailto')==0) {
+            require_once('SOAP/Transport/SMTP.php');
             $this->transport = new SOAP_Transport_SMTP($url);
             return;
         }
@@ -73,7 +77,7 @@ class SOAP_Transport extends PEAR
     * @return boolean
     * @access public
     */
-    function send(&$response, &$soap_data, $action = "", $timeout=0)
+    function send(&$response, &$soap_data, $action = '', $timeout=0)
     {
         if (!$this->transport) return $this->raiseError($this->errmsg, -1);
         

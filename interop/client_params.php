@@ -127,7 +127,7 @@ $method_params["GroupB"]['php']["echoStructAsSimpleTypes"]['inputStruct'] =
         "varFloat"=>325.325
     );
 $method_params["GroupB"]['soapval']["echoStructAsSimpleTypes"]['inputStruct'] =
-        new SOAP_Value("inputStruct","SOAPStruct",
+        new SOAP_Value("inputStruct","struct",
             array( #push struct elements into one soap value
                 new SOAP_Value("varString","string","arg"),
                 new SOAP_Value("varInt","int",34),

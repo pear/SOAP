@@ -27,7 +27,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 
 $localonly = 0; // set to 1 to test only your local server
 $usebuiltin = 0; // use builtin list of endpoints
-$test = 'GroupB';  // which test to do: base, GroupB, GroupC
+$test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;

@@ -19,9 +19,10 @@
 //
 // $Id$
 //
-require_once("SOAP/globals.php");
-require_once("SOAP/Parser.php");
-require_once("SOAP/Value.php");
+
+require_once('SOAP/globals.php');
+require_once('SOAP/Parser.php');
+require_once('SOAP/Value.php');
 
 /**
 *  SOAP Message Class
@@ -49,24 +50,30 @@ class SOAP_Message
     *
     * @access public
     */
-    function SOAP_Message($method,$params,$method_namespace="http://testuri.org",$new_namespaces=NULL)
+    function SOAP_Message($method,$params,$method_namespace='http://testuri.org',$new_namespaces=NULL)
     {
         // globalize method namespace
         global $methodNamespace;
         $methodNamespace = $method_namespace;
+
         // make method struct
-        $this->value = new SOAP_Value($method,"struct",$params,$method_namespace);
+        $this->value = new SOAP_Value($method,'struct',$params,$method_namespace);
+
         if (is_array($new_namespaces)) {
             global $SOAP_namespaces;
+
             $i = count($SOAP_namespaces);
+
             foreach ($new_namespaces as $v) {
-                $SOAP_namespaces[$v] = "ns".$i++;
+                $SOAP_namespaces[$v] = 'ns'.$i++;
             }
+
             $this->namespaces = $SOAP_namespaces;
         }
-        $this->payload = "";
+
+        $this->payload = '';
         $this->debug_flag = false;
-        $this->debug_str = "entering SOAP_Message() with SOAP_Value ".$this->value->name."\n";
+        $this->debug_str = 'entering SOAP_Message() with SOAP_Value '.$this->value->name."\n";
     }
     
     /**
@@ -80,7 +87,9 @@ class SOAP_Message
     function _makeEnvelope($payload)
     {
         global $SOAP_namespaces;
-        $ns_string = "";
+
+        $ns_string = '';
+
         foreach ($SOAP_namespaces as $k => $v) {
             $ns_string .= "xmlns:$v=\"$k\"\n ";
         }
@@ -127,7 +136,7 @@ class SOAP_Message
     */
     function serialize()
     {
-        if ($this->payload == "") {
+        if ($this->payload == '') {
             $this->_createPayload();
             return $this->payload;
         }
@@ -144,9 +153,10 @@ class SOAP_Message
     */
     function parseResponse($data)
     {
-        $this->debug("Entering parseResponse()");
+        $this->debug('Entering parseResponse()');
         $this->debug(" w/ data $data");
-        $this->debug("about to create parser instance w/ data");
+        $this->debug('about to create parser instance w/ data');
+
         // parse response
         $response = new SOAP_Parser($data);
         // return array of parameters
@@ -164,7 +174,7 @@ class SOAP_Message
     function debug($string)
     {
         if ($this->debug_flag) {
-            $this->debug_str .= "SOAP_Message: ".preg_replace("/>/","/>\r\n/",$string)."\n";
+            $this->debug_str .= 'SOAP_Message: '.preg_replace("/>/","/>\r\n/",$string)."\n";
         }
     }
     
@@ -179,7 +189,8 @@ class SOAP_Message
         if ($this->debug_flag) {
             return "<!-- DEBUG INFO:\n".$this->debug_str."-->\n";
         }
-        return "";
+
+        return '';
     }
 }
 ?>
