@@ -1,6 +1,6 @@
 <?php
 
-class hexBinary
+class SOAP_Type_hexBinary
 {
     function to_bin($value)
     {
@@ -16,8 +16,8 @@ class hexBinary
         # first see if there are any invalid chars
         $l = strlen($value);
         if ($l < 1 || strspn($value, "0123456789ABCDEFabcdef") != $l) return FALSE;
-        $bin = hexBinary::to_bin($value);
-        $hex = hexBinary::to_hex($bin);
+        $bin = SOAP_Type_hexBinary::to_bin($value);
+        $hex = SOAP_Type_hexBinary::to_hex($bin);
         return strcasecmp($value, $hex) == 0;
     }
 }

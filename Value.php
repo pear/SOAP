@@ -369,7 +369,7 @@ class SOAP_Value
                 $type = "int";
             } elseif (isFloat($value)) {
                 $type = "float";
-            } elseif (hexBinary::is_hexbin($value)) {
+            } elseif (SOAP_Type_hexBinary::is_hexbin($value)) {
                 $type = "hexBinary";
             } elseif (isBase64($value)) {
                 $type = "base64Binary";

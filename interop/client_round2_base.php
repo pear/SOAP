@@ -28,7 +28,7 @@ $test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
-$numservers = 0; // zero for all of them
+$numservers = 1; // zero for all of them
 $testfunc = ""; // test a single function
 $specificendpoint = ""; //"http://63.142.188.184:1122/"; // endpoint url
 

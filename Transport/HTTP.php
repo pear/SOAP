@@ -175,7 +175,7 @@ class SOAP_Transport_HTTP
             $fp = fsockopen($this->urlparts['host'], $this->urlparts['port'], $this->errno, $this->errmsg);
         }
         if (!$fp) {
-            $this->errmsg = "Unable to connect to $this->urlparts['host']:$this->urlparts['port']";
+            $this->errmsg = "Unable to connect to {$this->urlparts['host']}:{$this->urlparts['port']}";
             return FALSE;
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
