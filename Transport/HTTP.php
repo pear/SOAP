@@ -45,10 +45,17 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     /**
      * Basic Auth string
      *
-     * @var  string
+     * @var  array
      */
     var $headers = array();
+
+    /**
+     * Cookies
+     *
+     * @var 
+     */
     var $cookies;
+
     /**
      *
      * @var  int connection timeout in seconds - 0 = none
@@ -104,7 +111,9 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     var $result_content_type;
 
     var $result_headers = array();
+
     var $result_cookies = array();
+
     /**
      * SOAP_Transport_HTTP Constructor
      *
@@ -166,11 +175,27 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         $this->headers['Authorization'] = 'Basic ' . base64_encode($username . ':' . $password);
     }
 
+    /**
+     * Add a cookie
+     *
+     * @access public
+     * @param  string  $name   cookie name
+     * @param  mixed   $value  cookie value
+     * @return void
+     */
     function addCookie($name, $value)
     {
         $this->cookies[$name]=$value;
     }
 
+    // private methods
+
+    /**
+     * Generates the correct headers for the cookies
+     *
+     * @access private
+     * @return void
+     */
     function _genCookieHeader()
     {
         foreach ($this->cookies as $name=>$value) {
@@ -180,13 +205,11 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         return $cookies;
     }
     
-    // private members
-
     /**
      * validate url data passed to constructor
      *
-     * @return boolean
      * @access private
+     * @return boolean
      */
     function _validateUrl()
     {
@@ -243,6 +266,12 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         if (!$this->result_content_type) $this->result_content_type = 'text/xml';
     }
 
+    /**
+     * Parses the headers
+     *
+     * @param  array $headers the headers
+     * @return void
+     */
     function _parseHeaders($headers)
     {
         /* largely borrowed from HTTP_Request */
