@@ -27,26 +27,33 @@ error_reporting(E_ALL ^ E_NOTICE);
 
 $localonly = 0; // set to 1 to test only your local server
 $usebuiltin = 0; // use builtin list of endpoints
+$usewsdl = 1;
 $test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
-$testfunc = ""; // test a single function
-$specificendpoint = ""; //"http://63.142.188.184:1122/"; // endpoint url
+$testfunc = ''; // test a single function
+$specificendpoint = ''; //"http://63.142.188.184:1122/"; // endpoint url
 
 if ($localonly) {
     # define your test servers endpointURL here
     $endpoints[$SOAP_LibraryName] = array(
-            "endpointURL" => "http://127.0.0.1/soap/interop.php",
-            "name" => $SOAP_LibraryName);
+            'endpointURL' => 'http://127.0.0.1/soap/interop.php',
+            'name' => $SOAP_LibraryName);
 } elseif ($usebuiltin) {
-    $endpoints["4s4c"] = array(
-            "endpointURL" => "http://soap.4s4c.com/ilab/soap.asp",
-            "name" => "4s4c");
-    $endpoints["Apache Axis"] = array(
-            "endpointURL" => "http://nagoya.apache.org:5049/axis/services/echo",
-            "name" => "Apache Axis");
+    $endpoints['4s4c'] = array(
+            'endpointURL' => 'http://soap.4s4c.com/ilab/soap.asp',
+            'wsdlURL' => 'http://www.pocketsoap.com/services/ilab.wsdl',
+            'name' => '4s4c');
+    $endpoints['Apache Axis'] = array(
+            'endpointURL' => 'http://nagoya.apache.org:5049/axis/services/echo',
+            'wsdlURL' => 'http://nagoya.apache.org:5049/axis/services/echo?wsdl',
+            'name' => 'Apache Axis');
+    $endpoints['Apache SOAP 2.2'] = array(
+            'endpointURL' => 'http://nagoya.apache.org:5049/soap/servlet/rpcrouter',
+            'wsdlURL' => 'http://www.apache.org/~rubys/ApacheSoap.wsdl',
+            'name' => 'Apache SOAP 2.2');
     #$endpoints["GLUE"] = array(
     #        "endpointURL" => "http://www.themindelectric.net:8005/glue/round2",
     #        "name" => "GLUE");
@@ -121,7 +128,7 @@ function test_result($expect, $result)
 }
 
 function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debug = 0) {
-    global $endpoints, $method_expect;
+    global $endpoints, $method_expect,$usewsdl;
 
     $success = FALSE;
     if ($debug) $show = 1;
@@ -138,9 +145,29 @@ function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debu
     $endpoint_info = $endpoints[$endpoint];
     
     $endpoints[$endpoint]["methods"][$method] = array();
-    $soap = new SOAP_Client($endpoint_info["endpointURL"]);
+    if ($usewsdl) {
+        if (array_key_exists('wsdlURL',$endpoint_info)) {
+            if (!array_key_exists('client',$endpoints[$endpoint])) {
+                $endpoints[$endpoint]['client'] = new SOAP_Client($endpoint_info['wsdlURL'],1);
+            }
+            $soap = $endpoints[$endpoint]['client'];
+            if ($soap->wsdl->fault) {
+                echo "WSDL error in $endpoint\n";
+                return FALSE;
+            }
+        } else {
+            echo "No WSDL for $endpoint\n";
+            return FALSE;
+        }
+    } else {
+        $soap = new SOAP_Client($endpoint_info['endpointURL']);
+    }
     $soap->debug_flag = true;
-    $return = $soap->call($method,$method_params,"http://soapinterop.org/","http://soapinterop.org/");
+    if ($usewsdl) {
+        $return = $soap->call($method,$method_params);
+    } else {
+        $return = $soap->call($method,$method_params,'http://soapinterop.org/','http://soapinterop.org/');
+    }
     
     if(!PEAR::isError($return) && !$soap->fault){
         if (is_array($method_params) && count($method_params) == 1) {
