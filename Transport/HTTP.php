@@ -293,10 +293,10 @@ class SOAP_Transport_HTTP extends SOAP_Base
             $fp = fsockopen($host, $port, $this->errno, $this->errmsg);
         }
         if (!$fp) {
-            return $this->raiseSoapFault("Connect Error to $host:$port");
+            return $this->_raiseSoapFault("Connect Error to $host:$port");
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
-            return $this->raiseSoapFault("Error POSTing Data to $host");
+            return $this->_raiseSoapFault("Error POSTing Data to $host");
         }
         
         // get reponse
