@@ -329,6 +329,9 @@ class SOAP_WSDL extends SOAP_Base
             reset($this->services[$this->service]['ports']);
             $port = current($this->services[$this->service]['ports']);
         }
+        // XXX currently do not support HTTP ports
+        if ($port['type'] != 'soap') return NULL;
+        
         // XXX currentPort is BAD
         $clienturl = $port['address']['location']; 
         if (!$classname) {
@@ -841,18 +844,23 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
             case 'sequence':
                 if ($this->schemaStatus == 'complexType') {
-                    $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] = 'sequence';
+                    $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] = $qname->name;
                     #if (!array_key_exists('type',$this->wsdl->complexTypes[$this->schema][$this->currentComplexType])) {
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Array';
                     #}
                 }
             break;
             case 'all':
-                $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] = 'all';
+                $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] = $qname->name;
                 if (!array_key_exists('type',$this->wsdl->complexTypes[$this->schema][$this->currentComplexType])) {
                     $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Struct';
                 }
             break;
+            case 'choice':
+                $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] = $qname->name;
+                if (!array_key_exists('type',$this->wsdl->complexTypes[$this->schema][$this->currentComplexType])) {
+                    $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Array';
+                }
             case 'attribute':
                 if ($this->schemaStatus == 'complexType') {
                     if (isset($attrs['name'])) {
