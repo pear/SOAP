@@ -499,7 +499,6 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         curl_setopt($ch, CURLOPT_FAILONERROR,    1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_VERBOSE,        1);
 
         if (isset($options['curl'])) {
             reset($options['curl']);
