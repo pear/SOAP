@@ -236,7 +236,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
             #$this->response = preg_replace("/[\r|\n]/", '', $match[2]);
-            $this->response = $match[2];
+            $this->response =& $match[2];
             // find the response error, some servers response with 500 for soap faults
             if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
                 $status[1] >= 400 && $status[1] < 500) {
@@ -409,6 +409,11 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         }
 
         $this->response = curl_exec($ch);
+        if (! $this->response) {
+            $m = 'curl_exec error ' . curl_errno($ch) . ' ' . curl_error($ch);
+            curl_close($ch);
+            return $this->_raiseSoapFault($m);
+        }        
         curl_close($ch);
 
         return $this->response;
