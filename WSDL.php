@@ -598,7 +598,13 @@ class SOAP_WSDL extends SOAP_Base
             }
 
             // Validate entries.
-            if (!$this->_validateString($opname)) {
+
+            // Operation names are function names, so try to make sure
+            // it's legal. This could potentially cause collisions,
+            // but let's try to make everything callable and see how
+            // many problems that causes.
+            $opname_php = preg_replace('/[ .\-\(\)]+/', '_', $opname);
+            if (!$this->_validateString($opname_php)) {
                 return null;
             }
             if (!$this->_validateString($namespace)) {
@@ -614,7 +620,7 @@ class SOAP_WSDL extends SOAP_Base
                 $argarray = 'null';
             }
 
-            $class .= "    function &$opname($args)\n    {\n$comments$wrappers" .
+            $class .= "    function &$opname_php($args)\n    {\n$comments$wrappers" .
                 "        return \$this->call('$opname',\n" .
                 "                            \$v = $argarray,\n" .
                 "                            array('namespace' => '$namespace',\n" .
