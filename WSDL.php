@@ -398,9 +398,18 @@ class SOAP_WSDL extends SOAP_Base
             "    function $classname() {\n".
             "        \$this->SOAP_Client(\"$clienturl\", 0, 0, 
                     array(";                    
+
             foreach($this->proxy as $key => $val) {
-                $class .= "\"$key\"=>\"$val\",";    
-            }                
+                if (is_array($val)) {
+                    $class .= "\"$key\" => array(";
+                    foreach ($val as $key2 => $val2) {
+                        $class .= "\"$key2\" => $val2\",";
+                    }
+                    $class .= ')';
+                } else {
+                    $class .= "\"$key\"=>\"$val\",";
+                }
+            }            
             $class = substr($class, 0, strlen($class)-1);
 
             $class .= "));\n }\n";

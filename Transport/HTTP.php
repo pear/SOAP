@@ -483,6 +483,10 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy_user'] . ':' . $options['proxy_pass']);
         }
 
+        if (isset($options['user'])) {
+            curl_setopt($ch, CURLOPT_USERPWD, $options['user'] . ':' . $options['pass']);
+        }
+
         if (!isset($options['soapaction'])) {
             $options['soapaction'] = '';
         }

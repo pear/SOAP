@@ -260,7 +260,7 @@ class SOAP_Client extends SOAP_Base
         $this->_soap_transport->encoding = $this->_encoding;
         
         // send the message
-        $transport_options = array_merge($this->__proxy_params, $this->__options);
+        $transport_options = array_merge_recursive($this->__proxy_params, $this->__options);
         $this->xml =& $this->_soap_transport->send($soap_data, $transport_options);
 
         // save the wire information for debugging
