@@ -26,14 +26,14 @@ require_once("SOAP/test/test.utility.php");
 error_reporting(E_ALL ^ E_NOTICE);
 
 $localonly = 0; // set to 1 to test only your local server
-$usebuiltin = 1; // use builtin list of endpoints
+$usebuiltin = 0; // use builtin list of endpoints
 $test = 'GroupB';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
 $testfunc = ""; // test a single function
-$specificendpoint = "http://soap.4s4c.com/ilab/soap.asp"; //"http://63.142.188.184:1122/"; // endpoint url
+$specificendpoint = ""; //"http://63.142.188.184:1122/"; // endpoint url
 
 if ($localonly) {
     # define your test servers endpointURL here
@@ -65,11 +65,13 @@ if ($localonly) {
 if ($localonly || $usebuiltin ||
     getInteropEndpoints($test)
     ) {
+    print "Got ".count($endpoints)." endpoints\n";
     do_interopTest($method_params[$test][$parm], $testfunc, $numservers);
 }
 
 function getInteropEndpoints($base = "base") {
     global $endpoints;
+    $endpoints = array();
     // get other interop endpoints
     $soapclient = new SOAP_Client("http://www.whitemesa.net/interopInfo");
     if($endpointArray = $soapclient->call("GetEndpointInfo",array("groupName"=>$base),"http://soapinterop.org/info/","http://soapinterop.org/info/")){
@@ -104,8 +106,22 @@ function decode_soapval($soapval)
     return $val;
 }
 
+function test_result($expect, $result)
+{
+    $ok = 0;
+    $expect_type = gettype($expect);
+    $result_type = gettype($result);
+    if ($expect_type == "array" && $result_type == "array") {
+        # compare arrays
+        $ok = array_compare($expect, $result);
+    } else {
+        $ok = string_compare($expect, $result);
+    }
+    return $ok;
+}
+
 function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debug = 0) {
-    global $endpoints;
+    global $endpoints, $method_expect;
 
     $success = FALSE;
     if ($debug) $show = 1;
@@ -138,14 +154,9 @@ function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debu
         # we need to decode what we sent so we can compare!
         $sent = decode_soapval($sent);
 
-        $ok = 0;
-        $sent_type = gettype($sent);
-        $return_type = gettype($return);
-        if ($sent_type == "array" && $return_type == "array") {
-            # compare arrays
-            $ok = array_compare($sent, $return);
-        } else {
-            $ok = string_compare($sent, $return);
+        $ok = test_result($sent,$return);
+        if (!$ok && array_key_exists($method,$method_expect)) {
+            $ok = test_result($method_expect[$method],$return);
         }
         
         if($ok){
@@ -161,6 +172,10 @@ function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debu
                 print_r($sent);
                 print "]<br>\nRECEIVED: [";
                 print_r($return);
+                if (array_key_exists($method,$method_expect)) {
+                    print "]<br>\nEXPECTED: [";
+                    print_r($method_expect[$method]);
+                }
                 print "]<br></pre>\n";
             }
         }

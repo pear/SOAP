@@ -36,6 +36,7 @@ function array_compare(&$ar1, &$ar2)
 {
     if (gettype($ar1) != 'array' || gettype($ar2) != 'array') return FALSE;
     # first a shallow diff
+    if (count($ar1) != count($ar2)) return FALSE;
     $diff = array_diff($ar1, $ar2);
     if (count($diff) == 0) return TRUE;
 

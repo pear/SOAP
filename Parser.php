@@ -53,12 +53,14 @@ class SOAP_Parser
     var $previous_element = "";
     var $soapresponse = NULL;
     var $parent = 0;
-    var $root_struct_name = "";
+    var $root_struct_name = array();
+    var $curent_root_struct_name = "";
     var $entities = array ( "&" => "&amp;", "<" => "&lt;", ">" => "&gt;",
         "'" => "&apos;", '"' => "&quot;" );
     var $xml = "";
     var $xml_encoding = "";
-    var $root_struct = "";
+    var $root_struct = array();
+    var $curent_root_struct = 0;
     var $references = array();
     var $need_references = array();
     var $XMLSchemaVersion;
@@ -97,7 +99,7 @@ class SOAP_Parser
                 $this->fault = true;
             } else {
                 // get final value
-                $this->soapresponse = $this->buildResponse($this->root_struct);
+                $this->soapresponse = $this->buildResponse($this->root_struct[0]);
             }
             xml_parser_free($parser);
         } else {
@@ -221,11 +223,11 @@ class SOAP_Parser
             $this->status = "method";
             if ($can_root) {
                 if (strpos($name,":") !== false) {
-                    $this->root_struct_name = substr(strrchr($name,":"),1);
+                    $this->root_struct_name[] = $this->curent_root_struct_name = substr(strrchr($name,":"),1);
                 } else {
-                    $this->root_struct_name = $name;
+                    $this->root_struct_name[] = $this->curent_root_struct_name = $name;
                 }
-                $this->root_struct = $pos;
+                $this->root_struct[] = $this->curent_root_struct = $pos;
                 $this->message[$pos]["type"] = "struct";
             }
         }
@@ -254,7 +256,7 @@ class SOAP_Parser
                 }
                 $this->namespaces[substr(strrchr($key,":"),1)] = $value;
                 // set method namespace
-                if ($name == $this->root_struct_name) {
+                if ($name == $this->curent_root_struct_name) {
                     $this->methodNamespace = $value;
                 }
             // if it's a type declaration, set type
@@ -321,7 +323,7 @@ class SOAP_Parser
         }
         
         // set eval str start if it has a valid type and is inside the method
-        if ($pos >= $this->root_struct) {
+        if ($pos >= $this->curent_root_struct) {
             $this->message[$pos]["inval"] = "true";
         }
         
@@ -330,7 +332,7 @@ class SOAP_Parser
             $this->message[$pos]["inval"] == "false";
         }
         // if tag we are currently closing is the method wrapper
-        if ($pos == $this->root_struct) {
+        if ($pos == $this->curent_root_struct) {
             $this->status = "body";
         } elseif (stristr($name,":Body")) {
             $this->status = "header";

@@ -134,6 +134,13 @@ $method_params["GroupB"]['soapval']["echoStructAsSimpleTypes"]['inputStruct'] =
                 new SOAP_Value("varFloat","float",325.325)
             )
         );
+$method_expect["echoStructAsSimpleTypes"] =
+    array(
+        "outputString"=>"arg",
+        "outputInteger"=>34,
+        "outputFloat"=>325.325
+    );    
+        
 $method_params["GroupB"]['php']["echoSimpleTypesAsStruct"] =
     array(
         "inputString"=>"arg",
@@ -146,6 +153,12 @@ $method_params["GroupB"]['soapval']["echoSimpleTypesAsStruct"] =
         new SOAP_Value("inputInteger","int",34),
         new SOAP_Value("inputFloat","float",325.325)
     );
+$method_expect["echoSimpleTypesAsStruct"] =
+    array(
+        "varString"=>"arg",
+        "varInt"=>34,
+        "varFloat"=>325.325
+    );    
 
 # XXX I know this isn't quite right, need to deal with this better
 function make_2d($x, $y)
