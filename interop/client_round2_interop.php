@@ -90,11 +90,11 @@ class Interop_Client
         if (!$endpointArray) return;
         
         // reset the status to zero
-        $res = $this->dbc->query("update endpoints set status = 0 where type='$test'");
+        $res = $this->dbc->query("update endpoints set status = 0 where class='$test'");
         if (DB::isError($res)) {
             die ($res->getMessage());
         }
-        $res->free();
+        if (is_object($res)) $res->free();
         // save new endpoints into database
         foreach($endpointArray as $k => $v){
             if (array_key_exists($v['endpointName'],$endpointArray)) {
@@ -105,7 +105,7 @@ class Interop_Client
             if (DB::isError($res)) {
                 die ($res->getMessage());
             }
-            $res->free();
+            if (is_object($res)) $res->free();
         }
     }
     
