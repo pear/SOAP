@@ -56,9 +56,9 @@ define('INF',   1.8e307);
 define('NAN',   0.0);
 
 # define types for value
-define('VALUE_SCALAR',  1);
-define('VALUE_ARRAY',   2);
-define('VALUE_STRUCT',  3);
+define('SOAP_VALUE_SCALAR',  1);
+define('SOAP_VALUE_ARRAY',   2);
+define('SOAP_VALUE_STRUCT',  3);
 
 
 define('SOAP_LIBRARY_NAME', 'PEAR-SOAPx4 0.6');

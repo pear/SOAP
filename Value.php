@@ -115,8 +115,8 @@ class SOAP_Value extends SOAP_Base
     /**
     *
     *
-    * @param    string  
-    * @param    boolean
+    * @param    string  name of the soap-value <value_name>
+    * @param    mixed   soap value type, if not set an automatic 
     * @param    int
     * @param    mixed
     * @param    mixed
@@ -175,29 +175,29 @@ class SOAP_Value extends SOAP_Base
         if (in_array($this->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
             // scalar
 
-            $this->type_code = VALUE_SCALAR;
+            $this->type_code = SOAP_VALUE_SCALAR;
             $this->addScalar($value, $this->type, $name);
 
         } elseif (strcasecmp('Array', $this->type) == 0 || strcasecmp('ur-type', $this->type) == 0) {
             // array
             
-            $this->type_code = VALUE_ARRAY;
+            $this->type_code = SOAP_VALUE_ARRAY;
             $this->addArray($value);
             
         } elseif (stristr($this->type, 'Struct')) {
             // struct
             
-            $this->type_code = VALUE_STRUCT;
+            $this->type_code = SOAP_VALUE_STRUCT;
             $this->addStruct($value);
             
         } elseif (is_array($value)) {
         
-            $this->type_code = VALUE_STRUCT;
+            $this->type_code = SOAP_VALUE_STRUCT;
             $this->addStruct($value);
             
         } else {
         
-            $this->type_code = VALUE_SCALAR;
+            $this->type_code = SOAP_VALUE_SCALAR;
             $this->addScalar($value, 'string', $name);
             
         }
@@ -350,7 +350,7 @@ class SOAP_Value extends SOAP_Base
         $xml = '';
 
         switch ($soapval->type_code) {
-        case VALUE_STRUCT:
+        case SOAP_VALUE_STRUCT:
             // struct
             $this->debug('got a struct');
 
@@ -379,7 +379,7 @@ class SOAP_Value extends SOAP_Base
             }
             break;
             
-        case VALUE_ARRAY:
+        case SOAP_VALUE_ARRAY:
             // array
             $offset = '';
 
@@ -415,7 +415,7 @@ class SOAP_Value extends SOAP_Base
             $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
             break;
             
-        case VALUE_SCALAR:
+        case SOAP_VALUE_SCALAR:
             # XXX we should be able to do this, but ASP.Net fails if we do
             #if ($soapval->prefix && $soapval->type_prefix) {
             #    $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->prefix:$soapval->name>\n";
@@ -463,7 +463,7 @@ class SOAP_Value extends SOAP_Base
         
         $this->debug("inside SOAP_Value->decode for $soapval->name of type $soapval->type and value: $soapval->value");
         // scalar decode
-        if ($soapval->type_code == VALUE_SCALAR) {
+        if ($soapval->type_code == SOAP_VALUE_SCALAR) {
             if ($soapval->type == 'boolean') {
                 #echo strcasecmp($soapval->value,'false');
                 if ($soapval->value != '0' && strcasecmp($soapval->value,'false') !=0) {
@@ -484,7 +484,7 @@ class SOAP_Value extends SOAP_Base
             #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]}\n";
             return $soapval->value;
         // array decode
-        } elseif ($soapval->type_code == VALUE_ARRAY) {
+        } elseif ($soapval->type_code == SOAP_VALUE_ARRAY) {
             if (is_array($soapval->value)) {
                 foreach ($soapval->value as $item) {
                     $return[] = $this->decode($item);
@@ -493,7 +493,7 @@ class SOAP_Value extends SOAP_Base
             }
             return $soapval->value;
         // struct decode
-        } elseif ($soapval->type_code == VALUE_STRUCT) {
+        } elseif ($soapval->type_code == SOAP_VALUE_STRUCT) {
             if (is_array($soapval->value)) {
                 $counter = 1;
                 foreach ($soapval->value as $item) {
