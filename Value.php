@@ -49,7 +49,7 @@ class SOAP_Value extends SOAP_Base
     *
     * @var  string
     */
-    var $value = '';
+    var $value = NULL;
     
     /**
     * 
@@ -183,7 +183,7 @@ class SOAP_Value extends SOAP_Base
     function addScalar($value, $type, $name = '')
     {
         if ($type == 'string') {
-            $this->value = htmlspecialchars($value);
+            $this->value = !is_null($value)?htmlspecialchars($value):NULL;
         } else {
             $this->value = $value;
         }
@@ -320,7 +320,7 @@ class SOAP_Value extends SOAP_Base
         } else {
             $xmlout_name = $soapval->name;
         }
-        $xmlout_value = '';
+        $xmlout_value = NULL;
         $xmlout_offset = '';
 
         switch ($soapval->type_code) {
@@ -389,10 +389,13 @@ class SOAP_Value extends SOAP_Base
         }
         
         if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
-        $xml = "<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
-            $this->xmlout_extra.">".
-            $xmlout_value."</$xmlout_name>\r\n";
-        
+        if (is_null($xmlout_value)) {
+            $xml = "<{$xmlout_name}{$xmlout_type}/>\r\n";
+        } else {
+            $xml = "<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
+                $this->xmlout_extra.">".
+                $xmlout_value."</$xmlout_name>\r\n";
+        }        
         return $xml;
     }
     
@@ -470,7 +473,9 @@ class SOAP_Value extends SOAP_Base
                 # if we can, lets set php's variable type
                 settype($soapval->value, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
-            return $this->un_htmlentities($soapval->value);
+            if (!is_null($soapval->value)) 
+                return $this->un_htmlentities($soapval->value);
+            return NULL;
         // array decode
         } elseif ($soapval->type_code == SOAP_VALUE_ARRAY) {
             if (is_array($soapval->value)) {
