@@ -360,12 +360,8 @@ class SOAP_Client extends SOAP_Base
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
                     } else {
-                        // XXX assuming it's an array, not a hash
-                        // XXX this is pretty pethetic, but "fixes" a problem where
-                        // paremeter names do not match correctly
-                        
-                        $nparams[$name] = current($params);
-                        next($params);
+                        # we now force an associative array for parameters if using wsdl
+                        return $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
                     }
                     if (gettype($nparams[$name]) != 'object' ||
                         !is_a($nparams[$name],'soap_value')) {

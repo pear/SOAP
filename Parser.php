@@ -329,7 +329,8 @@ class SOAP_Parser extends SOAP_Base
                 $vqn = new QName($value);
                 $this->message[$pos]['type'] = 'Array';
                 #$type = $vqn->name;
-                $this->message[$pos]['arraySize'] = $vqn->arraySize;
+                if (isset($vqn->arraySize))
+                    $this->message[$pos]['arraySize'] = $vqn->arraySize;
                 #$sa = strpos($type,'[');
                 #if ($sa > 0) {
                 #    $this->message[$pos]['arraySize'] = split(',',substr($type,$sa+1, strlen($type)-$sa-2));

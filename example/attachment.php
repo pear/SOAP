@@ -9,7 +9,8 @@ $methodValue = new SOAP_Value('testattach', 'Struct', array($v));
 
 $client = new SOAP_Client('mailto:user@domain.com');
 # calling with mime
-$resp = $client->call('echoMimeAttachment',array($v),array('Attachments'=>'Mime',
+$resp = $client->call('echoMimeAttachment',array($v),
+                array('attachments'=>'Mime',
                 'namespace'=>'http://soapinterop.org/',
                 'from'=>'user@domain.com',
                 'host'=>'smtp.domain.com'));
