@@ -248,7 +248,7 @@ class SOAP_Server {
             if ($request_headers->value) {
             // handle headers now
             foreach ($request_headers->value as $header_val) {
-                $f_exists = $this->validateMethod($header_val->name);
+                $f_exists = $this->validateMethod($header_val->name, $header_val->namespace);
                 
                 # XXX this does not take into account message routing yet
                 $myactor = (
@@ -287,6 +287,8 @@ class SOAP_Server {
         // evaluate message, getting back a SOAP_Value object
         $this->methodname = $parser->root_struct_name[0];
 
+        // figure out the method_namespace
+        $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname)) {
             $this->makeFault('Server',"method '$this->methodname' not defined in service");
@@ -421,18 +423,24 @@ class SOAP_Server {
         return false;
     }
     
-    function validateMethod($methodname)
+    function validateMethod($methodname, $namespace = NULL)
     {
         $this->soapobject =  NULL;
+        $this->method_namespace = NULL;
+        
         /* if it's in our function list, ok */
-        if (array_key_exists($methodname, $this->dispatch_map)) {
-            $this->method_namespace = $this->dispatch_map[$methodname]['namespace'];
+        if (array_key_exists($methodname, $this->dispatch_map) &&
+            (!$namespace || !array_key_exists('namespace', $this->dispatch_map[$methodname]) ||
+             $namespace == $this->dispatch_map[$methodname]['namespace'])) {
+                if (array_key_exists('namespace', $this->dispatch_map[$methodname]))
+                    $this->method_namespace = $this->dispatch_map[$methodname]['namespace'];
             return TRUE;
         }
         
         /* if it's in an object, it's ok */
         foreach ($this->dispatch_objects as $obj) {
-            if (method_exists($obj, $methodname)) {
+            if (method_exists($obj, $methodname) &&
+                (!$namespace || !$obj->method_namespace || $namespace == $obj->method_namespace)) {
                 $this->method_namespace = $obj->method_namespace;
                 $obv = get_object_vars($obj);
                 if (array_key_exists('dispatch_map',$obv) &&
@@ -461,7 +469,7 @@ class SOAP_Server {
         }
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;
-        $this->dispatch_map[$methodname]['namespace'] = $namespace;
+        if ($namespace) $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
     }
     
