@@ -577,6 +577,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         curl_setopt($ch, CURLOPT_FAILONERROR,    1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER,         1);
 
         if (isset($options['curl'])) {
             reset($options['curl']);
@@ -585,13 +586,17 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             }
         }
 
-        $this->response = curl_exec($ch);
-        if (! $this->response) {
+        $this->incoming_payload = curl_exec($ch);
+        if (! $this->incoming_payload ) {
             $m = 'curl_exec error ' . curl_errno($ch) . ' ' . curl_error($ch);
             curl_close($ch);
             return $this->_raiseSoapFault($m);
         }
         curl_close($ch);
+
+        if (!$this->_parseResponse()) {
+            return $this->fault;
+        }
 
         return $this->response;
     }
