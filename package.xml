@@ -25,10 +25,11 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.7.3</version>
-    <date>2003-05-17</date>
+    <version>0.7.4</version>
+    <date>2003-06-30</date>
     <notes>
-      Several bug fixes.
+      Fixes when behind a proxy.
+      Other bugfixes.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -103,11 +104,10 @@
   <changelog>
   <release>
     <state>beta</state>
-    <version>0.7.3.1</version>
-    <date>2003-??-??</date>
+    <version>0.7.3</version>
+    <date>2003-05-18</date>
     <notes>
-    Bugfix release.
-    Bug on proxy handling in the WSDL generation method
+    Several bugfixes.
     </notes>
   </release>
   <release>
