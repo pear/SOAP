@@ -764,7 +764,7 @@ class SOAP_Base extends PEAR
             return;
         } else if (isset($structure->parts)) {
             $data = $structure->parts[0]->body;
-            $headers = $structure->parts[0]->headers;
+            $headers = array_merge($structure->headers,$structure->parts[0]->headers);
             if (count($structure->parts) > 1) {
                 $mime_parts = array_splice($structure->parts,1);
                 // prepare the parts for the soap parser

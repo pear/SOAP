@@ -100,8 +100,10 @@ class SOAP_Transport_SMTP extends SOAP_Base
         
         // if the content type is already set, we assume that Mime encoding
         // is already done
-        if (!isset($headers['Content-Type'])) {
-            // do an inline Mime encoding
+        if (isset($headers['Content-Type'])) {
+            $out = $msg;
+        } else {
+            // do a simple inline Mime encoding
             $headers['Content-Disposition'] = 'inline';
             $headers['Content-Type'] = "text/xml; charset=\"$this->encoding\"";
             if (array_key_exists('transfer-encoding', $options)) {

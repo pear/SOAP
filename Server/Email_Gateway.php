@@ -50,20 +50,15 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
     {
         $this->endpoint = $endpoint;
         $response = '';
+        $useEncoding='Mime';
         
         // we have a full set of headers, need to find the first blank line
         $this->_parseEmail($data);
         if ($this->soapfault) {
             $response = $this->getFaultMessage();
         }
-        // get the character encoding of the incoming request
-        // treat incoming data as UTF-8 if no encoding set
-        if (!$response && !$this->_getContentEncoding($this->headers['content-type'])) {
-            $this->xml_encoding = SOAP_DEFAULT_ENCODING;
-            // an encoding we don't understand, return a fault
-            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
-            $response = $this->getFaultMessage();
-        }
+        if ($this->headers['content-type']=='application/dime')
+            $useEncoding='DIME';
         
         # call the HTTP Server
         if (!$response) {
@@ -80,6 +75,32 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
             $response = $soap_transport->send($data, $options);
             if ($soap_transport->fault) {
                 $response = $soap_transport->fault->message();
+            } else {
+                foreach ($soap_transport->transport->attachments as $cid=>$body) {
+                    $this->attachments[] = array('body' => $body, 'cid' => $cid, 'encoding' => 'base64');
+                }
+                if (count($this->attachments)) {
+                    if ($useEncoding == 'Mime') {
+                        $soap_msg = $this->_makeMimeMessage($response);
+                    } else {
+                        // default is dime
+                        $soap_msg = $this->_makeDIMEMessage($response);
+                        $header['Content-Type'] = 'application/dime';
+                    }
+                    if (PEAR::isError($soap_msg)) {
+                        return $this->raiseSoapFault($soap_msg);
+                    }
+                    if (is_array($soap_msg)) {
+                        $response = $soap_msg['body'];
+                        if (count($soap_msg['headers'])) {
+                            if (isset($options['headers'])) {
+                                $options['headers'] = array_merge($options['headers'],$soap_msg['headers']);
+                            } else {
+                                $options['headers'] = $soap_msg['headers'];
+                            }
+                        }
+                    }
+                }
             }
         }
         

@@ -77,11 +77,14 @@ class SOAP_Server_Email extends SOAP_Server {
                 // join lines back together
                 $enctext = preg_replace("/[\r|\n]/", '', $match[2]);
                 $data = base64_decode($enctext);
-            } else if (strcasecmp($this->headers['content-transfer-encoding'],'quoted-printable')==0) {
-                $data = $match[2];
+            #} else if (strcasecmp($this->headers['content-transfer-encoding'],'quoted-printable')==0) {
+            #    $data = $match[2];
+            #} else {
+            #    $this->makeFault('Client','Invalid Content-Transfer-Encoding');
+            #    return FALSE;
+            #}
             } else {
-                $this->makeFault('Client','Invalid Content-Transfer-Encoding');
-                return FALSE;
+                $data = $match[2];
             }
             
             // if no content, return false
