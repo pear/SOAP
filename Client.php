@@ -287,7 +287,7 @@ class SOAP_Client extends SOAP_Base
                 foreach ($returnArray as $k => $v) {
                     if (stristr($k,'faultcode')) $faultcode = $v;
                     if (stristr($k,'faultstring')) $faultstring = $v;
-                    if (stristr($k,'faultdetail')) $faultdetail = $v;
+                    if (stristr($k,'detail')) $faultdetail = $v;
                     if (stristr($k,'faultactor')) $faultactor = $v;
                 }
                 return $this->raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
