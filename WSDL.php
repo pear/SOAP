@@ -1138,7 +1138,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     if (!empty($attrs['base'])) {
                         $qn =& new QName($attrs['base']);
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = $qn->name;
-                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $qn->ns;
 
                         // Types that extend from other types aren't
                         // *of* those types. Reflect this by denoting
