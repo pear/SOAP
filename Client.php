@@ -27,6 +27,37 @@ require_once 'SOAP/WSDL.php';
 require_once 'SOAP/Fault.php';
 require_once 'SOAP/Parser.php';
 
+// Arnaud: the following code was taken from DataObject
+// and adapted to suit 
+
+// this will be horrifically slow!!!!
+// NOTE: Overload SEGFAULTS ON PHP4 + Zend Optimizer
+// these two are BC/FC handlers for call in PHP4/5
+
+if (substr(phpversion(), 0, 1) == 5) {
+    class SOAP_Client_Overload extends SOAP_Base
+    {
+        function __call($method, $args)
+        {
+            $return = null;
+            $this->_call($method, $args, $return);
+            return $return;
+        }
+    }
+} else {
+    if (!function_exists('clone')) {
+        eval('function clone($t) { return $t; }');
+    }
+    eval('
+        class SOAP_Client_Overload extends SOAP_Base {
+            function __call($method, $args, &$return) {
+                return $this->_call($method, $args, $return); 
+            }
+        }
+    ');
+}
+
+
 /**
  *  SOAP Client Class
  * this class is the main interface for making soap requests
@@ -44,7 +75,7 @@ require_once 'SOAP/Parser.php';
  * @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
  * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
  */
-class SOAP_Client extends SOAP_Base
+class SOAP_Client extends SOAP_Client_Overload
 {
     /**
      * Communication endpoint.
@@ -307,8 +338,6 @@ class SOAP_Client extends SOAP_Base
     }
 
     /**
-     * SOAP_Client::__call
-     *
      * Overload extension support
      * if the overload extension is loaded, you can call the client class
      * with a soap method name
@@ -322,17 +351,18 @@ class SOAP_Client extends SOAP_Base
      * @return boolean
      * @access public
      */
-    function &__call($method, &$args, &$return_value)
+    function _call($method, $args, &$return_value)
     {
         // XXX overloading lowercases the method name, we
         // need to look into the wsdl and try to find
         // the correct method name to get the correct
         // case for the call.
-        if ($this->_wsdl)
+        if ($this->_wsdl) {
             $this->_wsdl->matchMethod($method);
+        }
 
         $return_value =& $this->call($method, $args);
-        return TRUE;
+        return true;
     }
 
     function &__getlastrequest()
