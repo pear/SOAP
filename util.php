@@ -131,18 +131,18 @@ class QName
             preg_match('/\{(.*?)\}(.*)/',$name, $m);
             $this->name = $m[2];
             $this->namespace = $m[1];
-        } else if (strpos($name, ':') != FALSE) {
+        } else if (strchr($name, ':')) {
             $s = split(':',$name);
-            $s = array_reverse($s);
-            $this->name = $s[0];
-            $this->prefix = $s[1];
+            $this->name = $s[1];
+            $this->prefix = $s[0];
             $this->namespace = $namespace;
         } else {
             $this->name = $name;
             $this->namespace = $namespace;
         }
         
-        # a little more magic than should be in a qname
+        /*
+          Array support not yet implemented
         $p = strpos($this->name, '[');
         if ($p) {
             # XXX need to re-examine this logic later
@@ -151,6 +151,7 @@ class QName
             $this->arrayInfo = substr($this->name, $p);
             $this->name = substr($this->name, 0, $p);
         }
+        */
     }
 
     public function longname() {
