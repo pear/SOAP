@@ -625,7 +625,7 @@ class SOAP_Server extends SOAP_Base
         // In summry, if you add an object with both a dispatch map and type
         // definitions, then previous WSDL file operation and type definitions
         // will be overwritten.
-        if (isset($obj->__dispatch_map) && isset($obj->__typedef))
+        if (isset($obj->__dispatch_map) && isset($obj->__typedef)) {
             $this->addObjectWSDL($obj, $namespace, $service_name, $service_desc);
         }
         return true;
