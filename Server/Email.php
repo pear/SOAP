@@ -48,6 +48,49 @@ class SOAP_Server_Email extends SOAP_Server {
         parent::SOAP_Server();
         $this->send_response = $send_response;
     }
+
+    /**
+    * remove http headers from response
+    *
+    * TODO: use PEAR email classes
+    *
+    * @return boolean
+    * @access private
+    */
+    function _parseEmail(&$data)
+    {
+        if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $data, $match)) {
+            
+            if (preg_match_all('/^(.*?):\s+(.*)$/m', $match[1], $matches)) {
+                $hc = count($matches[0]);
+                for ($i = 0; $i < $hc; $i++) {
+                    $this->headers[strtolower($matches[1][$i])] = trim($matches[2][$i]);
+                }
+            }
+
+            if (!stristr($this->headers['content-type'],'text/xml')) {
+                    $this->makeFault('Client','Invalid Content Type');
+                    return FALSE;
+            }
+            
+            if (strcasecmp($this->headers['content-transfer-encoding'],'base64')==0) {
+                // join lines back together
+                $enctext = preg_replace("/[\r|\n]/", '', $match[2]);
+                $data = base64_decode($enctext);
+            } else if (strcasecmp($this->headers['content-transfer-encoding'],'quoted-printable')==0) {
+                $data = $match[2];
+            } else {
+                $this->makeFault('Client','Invalid Content-Transfer-Encoding');
+                return FALSE;
+            }
+            
+            // if no content, return false
+            return strlen($this->request) > 0;
+        }
+        $this->makeFault('Client','Invalid Email Format');
+        return FALSE;
+    }
+
     
     function service(&$data, $endpoint = '', $send_response = TRUE, $dump = FALSE)
     {
@@ -56,14 +99,17 @@ class SOAP_Server_Email extends SOAP_Server {
         $headers = array();
 
         # if neither matches, we'll just try it anyway
-        if (stristr($data,'Content-Type: application/dime')==0) {
+        if (stristr($data,'Content-Type: application/dime')) {
             $this->decodeDIMEMessage($data,$this->headers,$attachments);
             $useEncoding = 'DIME';
-        } else if (stristr($data,'Content-Type: multipart/related')) {
+        } else if (stristr($data,'MIME-Version:')) {
             // this is a mime message, lets decode it.
-            $data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
+            #$data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
             $this->decodeMimeMessage($data,$this->headers,$attachments);
             $useEncoding = 'Mime';
+        } else {
+            // the old fallback, but decodeMimeMessage handles things fine.
+            $this->_parseEmail($data);
         }
         
         // get the character encoding of the incoming request
@@ -75,7 +121,9 @@ class SOAP_Server_Email extends SOAP_Server {
             $response = $this->getFaultMessage();                
         }
         
-        if (!$this->soapfault) {
+        if ($this->soapfault) {
+            $response = $this->soapfault->message();
+        } else {
             $soap_msg = $this->parseRequest($data,$attachments);
             
             // handle Mime or DIME encoding
@@ -105,10 +153,8 @@ class SOAP_Server_Email extends SOAP_Server {
         }
 
         if ($this->send_response) {        
-            $payload = $response->serialize($this->response_encoding);
-            
             if ($dump) {
-                print $payload;
+                print $response;
             } else {
                 $from = array_key_exists('reply-to',$this->headers) ? $this->headers['reply-to']:$this->headers['from'];
                 # XXX what if no from?????
@@ -117,7 +163,7 @@ class SOAP_Server_Email extends SOAP_Server {
                 $from = $this->endpoint ? $this->endpoint : $this->headers['to'];
                 $headers['In-Reply-To']=$this->headers['message-id'];
                 $options = array('from' => $from, 'subject'=> $this->headers['subject'], 'headers' => $headers);
-                $soap_transport->send($payload, $options);
+                $soap_transport->send($response, $options);
             }
         }
     }    

@@ -25,7 +25,7 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/Transport.php';
 require_once 'SOAP/WSDL.php';
 require_once 'SOAP/Fault.php';
-
+require_once 'SOAP/Parser.php';
 /**
 *  SOAP Client Class
 * this class is the main interface for making soap requests

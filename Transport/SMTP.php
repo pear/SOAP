@@ -27,7 +27,6 @@
 //  ability to define smtp options (encoding, from, etc.)
 //
 
-require_once 'SOAP/Message.php';
 require_once 'SOAP/Base.php';
 
 /**
@@ -107,28 +106,28 @@ class SOAP_Transport_SMTP extends SOAP_Base
             $headers['Content-Type'] = "text/xml; charset=\"$this->encoding\"";
             if (array_key_exists('transfer-encoding', $options)) {
                 if (strcasecmp($options['transfer-encoding'],'quoted-printable')==0) {
-                    $headers .="Content-Transfer-Encoding: {$options['transfer-encoding']}\n";
+                    $headers['Content-Transfer-Encoding'] = $options['transfer-encoding'];
                     $out = &$msg;
                 } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
-                    $headers .="Content-Transfer-Encoding: base64\n";
+                    $headers['Content-Transfer-Encoding'] = 'base64';
                     $out = chunk_split(base64_encode($msg));
                 } else {
                     return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
                 }
             } else {
                 // default to base64
-                $headers .="Content-Transfer-Encoding: base64\n";
+                $headers['Content-Transfer-Encoding'] = 'base64';
                 $out = chunk_split(base64_encode($msg));
             }
         }
         
         foreach ($headers as $key => $value) {
-            $header_text .= "$key: $value\n";
+            $header_text .= "$key: $value\r\n";
         }
         
         $subject = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
         
-        $this->outgoing_payload = $header_text."\n\n".$this->outgoing_payload;
+        $this->outgoing_payload = $header_text."\r\n".$this->outgoing_payload;
         # we want to return a proper XML message
         $result = mail($this->urlparts['path'], $subject, $out, $header_text);
 
@@ -141,9 +140,11 @@ class SOAP_Transport_SMTP extends SOAP_Base
                 ));
         }
 
-        $return_msg = new SOAP_Message();
-        $return_msg->method('Response',array($val),'smtp');
-        $this->incoming_payload = $return_msg->serialize();
+        $mqname = new QName($method, $namespace);
+        $methodValue = new SOAP_Value('Response', 'Struct', array($val));
+        $return_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding);
+
+        $this->incoming_payload = $return_msg;
 
         return $this->incoming_payload;
     }
