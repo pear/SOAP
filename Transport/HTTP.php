@@ -20,7 +20,7 @@
 //
 
 require_once 'SOAP/Base.php';
-require_once 'Net_DIME/DIME.php';
+require_once 'Net/DIME.php';
 /**
 *  HTTP Transport for SOAP
 *
