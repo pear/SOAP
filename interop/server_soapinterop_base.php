@@ -33,98 +33,112 @@ function generateFault($short, $long)
     return $faultmsg;
 }
 
-function echoString($inputString)
-{
-    if (!$inputString) {
-        return generateFault("Empty Input", "No string detected.");
-    }
-    $returnSoapVal = new SOAP_Value("return","string",$inputString);
-    return $returnSoapVal;
-}
-
-
-function echoStringArray($inputStringArray)
-{
-    return $inputStringArray;
-}
-
-
-function echoInteger($inputInteger)
-{
-    return (integer)$inputInteger;
-}
-
-
-function echoIntegerArray($inputIntegerArray)
-{
-    return $inputIntegerArray;
-}
-
-
-function echoFloat($inputFloat)
-{
-    return (FLOAT)$inputFloat;
-}
-
-
-function echoFloatArray($inputFloatArray)
-{
-    return $inputFloatArray;
-}
-
-function echoStruct($inputStruct)
-{
-    return $inputStruct;
-}
-
-function echoStructArray($inputStructArray)
-{
-    return $inputStructArray;
-}
-
-$server->addToMap("echoVoid",array(),array());
-function echoVoid()
-{
-    return NULL;
-}
-
-$server->addToMap("echoBase64",array("base64Binary"),array("base64Binary"));
-function echoBase64($b_encoded)
-{
-	return base64_encode(base64_decode($b_encoded));
-}
-
-$server->addToMap("echoDate",array("dateTime"),array("dateTime"));
-function echoDate($timeInstant)
-{
-	return $timeInstant;
-}
-
 function hex2bin($data)
 {
     $len = strlen($data);
     return pack("H" . $len, $data);
 }
 
-$server->addToMap("echoHexBinary",array("hexBinary"),array("hexBinary"));
-function echoHexBinary($hb)
-{
-	return bin2hex(hex2bin($hb));
-}
 
-$server->addToMap("echoDecimal",array("decimal"),array("decimal"));
-function echoDecimal($dec)
-{
-	return (FLOAT)$dec;
-}
+class SOAP_Interop_Base {
+    function SOAP_Interop_Base() {
+	#if ($server) {
+	#    $server->addToMap("echoString",array("string"),array("string"));
+	#    $server->addToMap("echoStringArray",array(),array());
+	#    $server->addToMap("echoInteger",array("int"),array("int"));
+	#    $server->addToMap("echoIntegerArray",array(),array());
+	#    $server->addToMap("echoFloat",array("float"),array("float"));
+	#    $server->addToMap("echoFloatArray",array(),array());
+	#    $server->addToMap("echoStruct",array(),array());
+	#    $server->addToMap("echoStructArray",array(),array());
+	#    $server->addToMap("echoVoid",array(),array());
+	#    $server->addToMap("echoBase64",array("base64Binary"),array("base64Binary"));
+	#    $server->addToMap("echoDate",array("dateTime"),array("dateTime"));
+	#    $server->addToMap("echoHexBinary",array("hexBinary"),array("hexBinary"));
+	#    $server->addToMap("echoDecimal",array("decimal"),array("decimal"));
+	#    $server->addToMap("echoBoolean",array("boolean"),array("boolean"));
+	#}
+    }
 
-$server->addToMap("echoBoolean",array("boolean"),array("boolean"));
-function echoBoolean($boolean)
-{
-	if($boolean == 1){
-		return "true";
+    function echoString($inputString)
+    {
+	if (!$inputString) {
+	    return generateFault("Empty Input", "No string detected.");
 	}
-	return "false";
+	$returnSoapVal = new SOAP_Value("return","string",$inputString);
+	return $returnSoapVal;
+    }
+
+    function echoStringArray($inputStringArray)
+    {
+	return $inputStringArray;
+    }
+
+
+    function echoInteger($inputInteger)
+    {
+	return (integer)$inputInteger;
+    }
+
+    function echoIntegerArray($inputIntegerArray)
+    {
+	return $inputIntegerArray;
+    }
+
+    function echoFloat($inputFloat)
+    {
+	return (FLOAT)$inputFloat;
+    }
+
+    function echoFloatArray($inputFloatArray)
+    {
+	return $inputFloatArray;
+    }
+
+    function echoStruct($inputStruct)
+    {
+	return $inputStruct;
+    }
+
+    function echoStructArray($inputStructArray)
+    {
+	return $inputStructArray;
+    }
+
+    function echoVoid()
+    {
+	return NULL;
+    }
+
+    function echoBase64($b_encoded)
+    {
+	    return base64_encode(base64_decode($b_encoded));
+    }
+
+    function echoDate($timeInstant)
+    {
+	    return $timeInstant;
+    }
+
+    function echoHexBinary($hb)
+    {
+	    return bin2hex(hex2bin($hb));
+    }
+
+    function echoDecimal($dec)
+    {
+	    return (FLOAT)$dec;
+    }
+
+    function echoBoolean($boolean)
+    {
+	    if($boolean == 1){
+		    return "true";
+	    }
+	    return "false";
+    }
 }
 
+$base = new SOAP_Interop_Base();
+$server->addObjectMap($base);
 ?>

@@ -21,49 +21,59 @@
 //
 require_once('SOAP/Server.php');
 
-$server->addToMap('echoStructAsSimpleTypes',
-		  array('inputStruct' => 'struct'),
-		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'));
-function echoStructAsSimpleTypes ($struct)
-{
-    # convert a SOAPStruct to an array
-    return array_values($struct);
+class SOAP_Interop_GroupB {
+    function SOAP_Interop_GroupB() {
+#	$server->addToMap('echoStructAsSimpleTypes',
+#		  array('inputStruct' => 'struct'),
+#		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'));
+#        $server->addToMap('echoSimpleTypesAsStruct',
+#		      array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'),
+#		      array('return' => 'struct'));
+#	$server->addToMap('echoNestedStruct', array(), array());
+#	$server->addToMap('echo2DStringArray', array(), array());
+#	$server->addToMap('echoNestedArray', array(), array());
+    }
+    function echoStructAsSimpleTypes ($struct)
+    {
+	# convert a SOAPStruct to an array
+	return array_values($struct);
+    }
+
+    function echoSimpleTypesAsStruct($string, $int, $float)
+    {
+	# convert a input into struct
+	/*$ret = new SOAP_Value("return","struct",
+		array( #push struct elements into one soap value
+		    new SOAP_Value("varString","string",$string),
+		    new SOAP_Value("varInt","int",$int),
+		    new SOAP_Value("varFloat","float",$float)
+		)
+	    );*/
+	$ret = array(
+	    "varString"=>$string,
+	    "varInt"=>$int,
+	    "varFloat"=>$float
+	);
+	return $ret;
+    }
+
+    function echoNestedStruct($struct)
+    {
+	return $struct;
+    }
+
+    function echo2DStringArray($ary)
+    {
+	return $ary;
+    }
+
+    function echoNestedArray($ary)
+    {
+	return $ary;
+    }
 }
 
-$server->addToMap('echoSimpleTypesAsStruct',
-		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'),
-		  array('return' => 'struct'));
-function echoSimpleTypesAsStruct($string, $int, $float)
-{
-    # convert a input into struct
-    /*$ret = new SOAP_Value("return","struct",
-            array( #push struct elements into one soap value
-                new SOAP_Value("varString","string",$string),
-                new SOAP_Value("varInt","int",$int),
-                new SOAP_Value("varFloat","float",$float)
-            )
-        );*/
-    $ret = array(
-        "varString"=>$string,
-        "varInt"=>$int,
-        "varFloat"=>$float
-    );
-    return $ret;
-}
-
-function echoNestedStruct($struct)
-{
-    return $struct;
-}
-
-function echo2DStringArray($ary)
-{
-    return $ary;
-}
-
-function echoNestedArray($ary)
-{
-    return $ary;
-}
+$groupb = new SOAP_Interop_GroupB();
+$server->addObjectMap($groupb);
 
 ?>

@@ -477,7 +477,7 @@ class SOAP_Value extends SOAP_Base
             #    # THOUGHT: we could return a class instead.
             #    $dt = new SOAP_Type_dateTime($soapval->value);
             #    $soapval->value = $dt->toUnixtime();
-            } else if (in_array($soapval->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION], TRUE)) {
+            } else if (in_array($soapval->type, array_keys($SOAP_typemap[SOAP_XML_SCHEMA_VERSION]), TRUE)) {
                 # if we can, lets set php's variable type
                 settype($soapval->value, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
@@ -573,7 +573,7 @@ class SOAP_Value extends SOAP_Base
     function _getSoapType(&$value, &$type) {
     
         $doconvert = FALSE;
-        if ($this->wsdl) {
+        if (0 && $this->wsdl) {
             # see if it's a complex type so we can deal properly with SOAPENC:arrayType
             if (!$type && $this->name) {
                 # XXX TODO:

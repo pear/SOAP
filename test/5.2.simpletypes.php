@@ -38,10 +38,10 @@ $v =  new SOAP_Value("inputStruct","Struct",array(
         new SOAP_Value("color","string","Blue")
         ));
 $val = $v->serialize();
-if (string_compare($expect, $val)) {
+if (string_compare(str_replace("\r","",$expect), str_replace("\r","",$val))) {
     print "$prefix Serialize Type OK\n";
 } else {
-    print "$prefix Serialize Type FAILED $val\n";
+    print "$prefix Serialize Type FAILED\n[$val]\n[$expect]\n";
 }
 
 # deserialize a soap value
@@ -63,10 +63,10 @@ $expect = '<inputString>
 ';
 $v =  new SOAP_Value("inputString","struct",array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue'));
 $val = $v->serialize();
-if (string_compare($expect, $val)) {
+if (string_compare(str_replace("\r","",$expect), str_replace("\r","",$val))) {
     print "$prefix Serialize Unknown Type OK\n";
 } else {
-    print "$prefix Serialize Unknown Type FAILED\n";
+    print "$prefix Serialize Unknown Type FAILED\n$val\n";
 }
 
 # serialize a soap value with unknown type
