@@ -151,7 +151,7 @@ class SOAP_Message
         // parse response
         $response = new SOAP_Parser($data);
         // return array of parameters
-        $ret = $response->get_response();
+        $ret = $response->getResponse();
         $this->debug($response->debug_str);
         return $ret;
     }

@@ -26,9 +26,9 @@ include("SOAP/Server.php");
 // 2. instantiate server object
 $server = new SOAP_Server;
 
-/* 3. call the add_to_map() method for each service (function) you want to expose:
+/* 3. call the addToMap() method for each service (function) you want to expose:
 
-$server->add_to_map(
+$server->addToMap(
 	"echoString",		// function name
 	array("string"),	// array of input types
 	array("string")		// array of output types

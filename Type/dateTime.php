@@ -39,16 +39,16 @@ class SOAP_Type_dateTime
         if (gettype($date) == "integer") {
             $this->timestamp = $date;
         } else {
-            $this->timestamp = $this->to_unixtime($date);
+            $this->timestamp = $this->toUnixtime($date);
         }
     }
     
-    function to_soap($date = NULL)
+    function toSOAP($date = NULL)
     {
-        return $this->to_UTC($date);
+        return $this->toUTC($date);
     }
     
-    function to_string($timestamp = 0)
+    function toString($timestamp = 0)
     {
         if (!$timestamp) $timestamp = $this->timestamp;
         if ($timestamp < 0) return 0;
@@ -58,9 +58,9 @@ class SOAP_Type_dateTime
     function _split($datestr)
     {
         if (!$datestr)
-            $datestr = $this->to_string();
+            $datestr = $this->toString();
         else if (gettype($datestr) == "integer")
-            $datestr = $this->to_string($datestr);
+            $datestr = $this->toString($datestr);
             
         if (ereg($this->ereg_iso8601,$datestr,$regs)) {
             if ($regs[8] != "" && $regs[8] != "Z") {
@@ -88,7 +88,7 @@ class SOAP_Type_dateTime
         return FALSE;
     }
     
-    function to_UTC($datestr = NULL)
+    function toUTC($datestr = NULL)
     {
         $regs = $this->_split($datestr);
         if ($regs) {
@@ -97,7 +97,7 @@ class SOAP_Type_dateTime
         return "";
     }
 
-    function to_unixtime($datestr = NULL)
+    function toUnixtime($datestr = NULL)
     {
         $regs = $this->_split($datestr);
         if ($regs) {
@@ -113,19 +113,19 @@ class SOAP_Type_dateTime
             $date1 = $this->timestamp;
         }
         if (!is_numeric($date1))
-            $date1 = $this->to_unixtime($date1);
+            $date1 = $this->toUnixtime($date1);
         if (!is_numeric($date2))
-            $date2 = $this->to_unixtime($date2);
+            $date2 = $this->toUnixtime($date2);
         return $date1 - $date2;
     }
     
     function _test($orig = "2001-04-25T09:31:41-0700")
     {
-        $utc = $this->to_UTC($orig);
-        $ts1 = $this->to_unixtime($orig);
-        $ts2 = $this->to_unixtime($utc);
-        $b1 = $this->to_string($ts1);
-        $b2 = $this->to_string($ts2);
+        $utc = $this->toUTC($orig);
+        $ts1 = $this->toUnixtime($orig);
+        $ts2 = $this->toUnixtime($utc);
+        $b1 = $this->toString($ts1);
+        $b2 = $this->toString($ts2);
         print "orig: $orig\n";
         print "orig toUTC: $utc\n";
         print "orig ts: $ts1\n";

@@ -82,19 +82,19 @@ function echoStructArray($inputStructArray)
     return $inputStructArray;
 }
 
-$server->add_to_map("echoVoid",array(),array());
+$server->addToMap("echoVoid",array(),array());
 function echoVoid()
 {
     return NULL;
 }
 
-$server->add_to_map("echoBase64",array("base64Binary"),array("base64Binary"));
+$server->addToMap("echoBase64",array("base64Binary"),array("base64Binary"));
 function echoBase64($b_encoded)
 {
 	return base64_encode(base64_decode($b_encoded));
 }
 
-$server->add_to_map("echoDate",array("dateTime"),array("dateTime"));
+$server->addToMap("echoDate",array("dateTime"),array("dateTime"));
 function echoDate($timeInstant)
 {
 	return $timeInstant;
@@ -106,19 +106,19 @@ function hex2bin($data)
     return pack("H" . $len, $data);
 }
 
-$server->add_to_map("echoHexBinary",array("hexBinary"),array("hexBinary"));
+$server->addToMap("echoHexBinary",array("hexBinary"),array("hexBinary"));
 function echoHexBinary($hb)
 {
 	return bin2hex(hex2bin($hb));
 }
 
-$server->add_to_map("echoDecimal",array("decimal"),array("decimal"));
+$server->addToMap("echoDecimal",array("decimal"),array("decimal"));
 function echoDecimal($dec)
 {
 	return (FLOAT)$dec;
 }
 
-$server->add_to_map("echoBoolean",array("boolean"),array("boolean"));
+$server->addToMap("echoBoolean",array("boolean"),array("boolean"));
 function echoBoolean($boolean)
 {
 	if($boolean == 1){

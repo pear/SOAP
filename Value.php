@@ -82,7 +82,7 @@ class SOAP_Value
         // if type namespace was not explicitly passed, and we're not in a method struct:
         } elseif (!$this->type_prefix && $type != "struct" /*!isset($type_namespace)*/) {
             // try to get type prefix from typeMap
-            if ($ns = $this->verify_type($this->type)) {
+            if ($ns = $this->verifyType($this->type)) {
                 $this->type_prefix = $SOAP_namespaces[$ns];
             } else {
                 // else default to method namespace
@@ -269,7 +269,7 @@ class SOAP_Value
             #    # but we'll just do unix time stamps for now
             #    # THOUGHT: we could return a class instead.
             #    $dt = new SOAP_Type_dateTime($soapval->value);
-            #    $soapval->value = $dt->to_unixtime();
+            #    $soapval->value = $dt->toUnixtime();
             } else if (in_array($soapval->type, $SOAP_typemap[$SOAP_XMLSchemaVersion], TRUE)) {
                 # if we can, lets set php's variable type
                 settype($soapval->value,$SOAP_typemap[$SOAP_XMLSchemaVersion][$soapval->type]);
@@ -309,7 +309,7 @@ class SOAP_Value
     }
     
     // pass it a type, and it attempts to return a namespace uri
-    function verify_type($type)
+    function verifyType($type)
     {
         global $SOAP_typemap,$SOAP_namespaces,$SOAP_XMLSchemaVersion;
         /*foreach ($SOAP_typemap as $namespace => $types) {
@@ -328,10 +328,10 @@ class SOAP_Value
         return false;
     }
     
-    // alias for verify_type() - pass it a type, and it returns it's prefix
-    function get_prefix($type)
+    // alias for verifyType() - pass it a type, and it returns it's prefix
+    function getPrefix($type)
     {
-        if ($prefix = $this->verify_type($type)) {
+        if ($prefix = $this->verifyType($type)) {
             return $prefix;
         }
         return false;
@@ -355,7 +355,7 @@ class SOAP_Value
                 # allows for creating special classes to handle soap types
                 $type = get_class($value);
                 # this may return a different type that we process below
-                $value = $value->to_soap();
+                $value = $value->toSOAP();
             } elseif (isArray($value)) {
                 foreach ($value as $k => $v) {
                     if (preg_match("/^[0-9]+$/",$k)) {
@@ -386,15 +386,15 @@ class SOAP_Value
         # we have the type, handle any value munging we need
         if ($doconvert) {
             $dt = new SOAP_Type_dateTime($value);
-            if ($dt->to_unixtime() != -1) {
+            if ($dt->toUnixtime() != -1) {
                 $type = "dateTime";
-                $value = $dt->to_soap();
+                $value = $dt->toSOAP();
             }
         } else
         if ($type == "dateTime") {
             # encode a dateTime to ISOE
             $dt = new SOAP_Type_dateTime($value);
-            $value = $dt->to_soap();
+            $value = $dt->toSOAP();
         } else
         // php type name mangle
         if ($type == "integer") {
@@ -446,6 +446,6 @@ function isArray($value)
 function isDateTime($value)
 {
     $dt = new SOAP_Type_dateTime($value);
-    return $dt->to_unixtime() != -1;
+    return $dt->toUnixtime() != -1;
 }
 ?>

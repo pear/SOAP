@@ -80,9 +80,9 @@ class SOAP_Parser
             // Set the object for the parser.
             xml_set_object($parser, &$this);
             // Set the element handlers for the parser.
-            xml_set_element_handler($parser, "start_element","end_element");
-            xml_set_character_data_handler($parser,"character_data");
-            xml_set_default_handler($parser, "default_handler");
+            xml_set_element_handler($parser, "startElement","endElement");
+            xml_set_character_data_handler($parser,"characterData");
+            xml_set_default_handler($parser, "defaultHandler");
 
             // Parse the XML file.
             if (!xml_parse($parser,$xml,true)) {
@@ -93,7 +93,7 @@ class SOAP_Parser
                 $this->fault = true;
             } else {
                 // get final value
-                $this->soapresponse = $this->build_response($this->root_struct);
+                $this->soapresponse = $this->buildResponse($this->root_struct);
             }
             xml_parser_free($parser);
         } else {
@@ -102,7 +102,7 @@ class SOAP_Parser
     }
     
     // loop through msg, building response structures
-    function build_response($pos)
+    function buildResponse($pos)
     {
         $response = NULL;
         if ($this->message[$pos]["children"] != "") {
@@ -112,8 +112,8 @@ class SOAP_Parser
             foreach ($children as $c => $child_pos) {
                 //$this->debug("child pos $child_pos: ".$this->message[$child_pos]["name"]);
                 if ($this->message[$child_pos]["type"] != NULL) {
-                    $this->debug("entering build_response() for ".$this->message[$child_pos]["name"].", array pos $c, pos: $child_pos");
-                    $response[] = $this->build_response($child_pos);
+                    $this->debug("entering buildResponse() for ".$this->message[$child_pos]["name"].", array pos $c, pos: $child_pos");
+                    $response[] = $this->buildResponse($child_pos);
                 }
             }
         }
@@ -130,7 +130,7 @@ class SOAP_Parser
     }
     
     // start-element handler
-    function start_element($parser, $name, $attrs)
+    function startElement($parser, $name, $attrs)
     {
         // position in a total number of elements, starting from 0
         // update class level pos
@@ -219,7 +219,7 @@ class SOAP_Parser
     }
     
     // end-element handler
-    function end_element($parser, $name)
+    function endElement($parser, $name)
     {
         // position of current element is equal to the last value left in depth_array for my depth
         $pos = $this->depth_array[$this->depth];
@@ -260,14 +260,14 @@ class SOAP_Parser
     }
     
     // element content handler
-    function character_data($parser, $data)
+    function characterData($parser, $data)
     {
         $pos = $this->depth_array[$this->depth];
         $this->message[$pos]["cdata"] .= $data;
     }
     
     // default handler
-    function default_handler($parser, $data)
+    function defaultHandler($parser, $data)
     {
         //$this->debug("DEFAULT HANDLER: $data");
     }
@@ -283,7 +283,7 @@ class SOAP_Parser
     }
     
     // have this return a soap_val object
-    function get_response()
+    function getResponse()
     {
         if ($this->soapresponse) {
             return $this->soapresponse;
@@ -301,7 +301,7 @@ class SOAP_Parser
         }
     }
     
-    function decode_entities($text)
+    function decodeEntities($text)
     {
         foreach ($this->entities as $entity => $encoded) {
             $text = str_replace($encoded,$entity,$text);
@@ -323,7 +323,7 @@ $testtext = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>
 ';
 
 $soapmsg = new SOAP_Parser($testtext);
-$return = $soapmsg->get_response();
+$return = $soapmsg->getResponse();
 print_r($return);
 $returnArray = $return->decode();
 print_r($returnArray);

@@ -77,9 +77,9 @@ class SOAP_WSDL {
             // Set the object for the parser.
             xml_set_object($parser, $this);
             // Set the element handlers for the parser.
-            xml_set_element_handler($parser, "start_element","end_element");
-            xml_set_character_data_handler($parser,"character_data");
-            //xml_set_default_handler($this->parser, "default_handler");
+            xml_set_element_handler($parser, "startElement","endElement");
+            xml_set_character_data_handler($parser,"characterData");
+            //xml_set_default_handler($this->parser, "defaultHandler");
         
             // Parse the XML file.
             if (!xml_parse($parser,$wsdl_string,true)) {
@@ -94,7 +94,7 @@ class SOAP_WSDL {
     }
     
     // start-element handler
-    function start_element($parser, $name, $attrs) {
+    function startElement($parser, $name, $attrs) {
         global $SOAP_Schema;
         // position in the total number of elements, starting from 0
         
@@ -327,7 +327,7 @@ class SOAP_WSDL {
     }
     
     // end-element handler
-    function end_element($parser, $name)
+    function endElement($parser, $name)
     {
         // position of current element is equal to the last value left in depth_array for my depth
         $pos = $this->depth_array[$this->depth];
@@ -336,7 +336,7 @@ class SOAP_WSDL {
     }
     
     // element content handler
-    function character_data($parser, $data)
+    function characterData($parser, $data)
     {
         $pos = $this->depth_array[$this->depth];
         $this->message[$pos]["cdata"] .= $data;
