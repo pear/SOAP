@@ -32,7 +32,7 @@ $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
-$testfunc = "echo2DStringArray"; // test a single function
+$testfunc = ""; // test a single function
 $specificendpoint = "http://soap.4s4c.com/ilab/soap.asp"; //"http://63.142.188.184:1122/"; // endpoint url
 
 if ($localonly) {

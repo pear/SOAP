@@ -82,9 +82,9 @@ class SOAP_Transport extends PEAR
             return $this->raiseError($this->transport->errmsg, -1);
         }
         $this->outgoing_payload = $this->transport->outgoing_payload;
-        echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
+        #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
         #echo "\n INCOMING: ".$this->transport->incoming_payload."\n\n";
-        echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
+        #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
         return TRUE;
     }
 
