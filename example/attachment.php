@@ -7,9 +7,12 @@ $filename = 'attachment.php';
 $v =  new SOAP_Attachment('test','text/plain',$filename);
 $methodValue = new SOAP_Value('testattach', 'Struct', array($v));
 
-$client = new SOAP_Client('http://localhost/soap_interop/server_round2.php');
+$client = new SOAP_Client('mailto:user@domain.com');
 # calling with mime
-$resp = $client->call('echoMimeAttachment',array($v),array('Mime'=>1));
+$resp = $client->call('echoMimeAttachment',array($v),array('Mime'=>1,
+                'namespace'=>'http://soapinterop.org/',
+                'from'=>'user@domain.com',
+                'host'=>'smtp.domain.com'));
 print $client->wire."\n\n\n";
 print_r($resp);
 

@@ -43,7 +43,7 @@ require_once 'SOAP/interop/server_round2_groupC.php';
 
 $pop3 =& new Net_POP3();
 if ($pop3->connect('localhost', 110)) {
-    if ($pop3->login('soap', 'password')) {
+    if ($pop3->login('username', 'password')) {
         $listing = $pop3->getListing();
 
 	/* now loop through each message, and call the 

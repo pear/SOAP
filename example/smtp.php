@@ -21,8 +21,8 @@
 // include soap client class
 include("SOAP/Client.php");
 
-$soapclient = new SOAP_Client("mailto:soaptest@yourdomain.com");
-$options = array('namespace'=>'http://soapinterop.org/','from'=>'shanec@ActiveState.com');
+$soapclient = new SOAP_Client("mailto:user@domain.com");
+$options = array('namespace'=>'http://soapinterop.org/','from'=>'user@domain.com','host'=>'localhost');
 $return = $soapclient->call("echoString",array("inputString"=>"this is a test"), $options);
 $return = $soapclient->call("echoStringArray",array('inputStringArray' => array('good','bad','ugly')), $options);
 // don't expect much of a result!
