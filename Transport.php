@@ -65,20 +65,26 @@ class SOAP_Transport extends SOAP_Base_Object
             return;
         }
         
-        if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'https') == 0) {
-            include_once('SOAP/Transport/HTTP.php');
-            $this->transport = new SOAP_Transport_HTTP($url, $encoding);
-            return;
-        } else if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
-            include_once('SOAP/Transport/SMTP.php');
-            $this->transport = new SOAP_Transport_SMTP($url, $encoding);
-            return;
+        if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
+            $transport_type = 'SMTP';
+        } else if (strcasecmp($urlparts['scheme'], 'https') == 0) {
+            $transport_type = 'HTTP';
+        } else {
+            /* handle other transport types */
+            $transport_type = strtoupper($urlparts['scheme']);
         }
-        /* handle other transport types */
-        $res = @include_once('SOAP/Transport/'.strtoupper($urlparts['scheme']).'.php');
-        if(!res && !in_array('path/file.inc', get_included_files())) {
+        $transport_include = 'SOAP/Transport/'.$transport_type.'.php';
+        $res = @include_once($transport_include);
+        if(!res && !in_array($transport_include, get_included_files())) {
             $this->_raiseSoapFault("No Transport for {$urlparts['scheme']}");
+            return;
         }
+        $transport_class = "SOAP_Transport_$transport_type";
+        if (!class_exists($transport_class)) {
+            $this->_raiseSoapFault("No Transport class $transport_class");
+            return;
+        }
+        $this->transport =& new $transport_class($url, $encoding);
     }
     
     /**
@@ -97,7 +103,7 @@ class SOAP_Transport extends SOAP_Base_Object
             return $this->fault;
         }
         
-        $response = $this->transport->send($soap_data, $options);
+        $response =& $this->transport->send($soap_data, $options);
         if (PEAR::isError($response)) {
             return $this->_raiseSoapFault($response);
         }
