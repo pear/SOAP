@@ -74,11 +74,12 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 
 # for float support
 # is there a way to calculate INF for the platform?
-define('INF',   1.8e307); 
+define('INF',   1.8e307);
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_VERSION', '0.7.4.1');
-define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.7.4.1-devel');
+define('SOAP_LIBRARY_VERSION', '0.7.5');
+define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.7.5-devel');
+
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
 define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');
@@ -121,12 +122,12 @@ class SOAP_Base_Object extends PEAR
 {
     /**
     * Store debugging information in $debug_data?
-    * 
+    *
     * @var  boolean if true debugging informations will be store in $debug_data
     * @see  $debug_data, SOAP_Base
     */
     var $_debug_flag = false;
-    
+
     /**
     * String containing debugging informations if $debug_flag is set to true
     *
@@ -135,27 +136,27 @@ class SOAP_Base_Object extends PEAR
     * @access   public
     */
     var $_debug_data = '';
-    
+
     # supported encodings, limited by XML extension
     var $_encodings = array('ISO-8859-1','US-ASCII','UTF-8');
     /**
     * Fault code
-    * 
+    *
     * @var  string
     */
     var $_myfaultcode = '';
-    
+
     /**
     * Recent PEAR error object
-    * 
+    *
     * @var  object  PEAR Error
     */
     var $fault = NULL;
-    
+
     /**
     * Constructor
     *
-    * @param    string  error code 
+    * @param    string  error code
     * @see  $debug_data, _debug()
     */
     function SOAP_Base_Object($faultcode = 'Client')
@@ -164,15 +165,15 @@ class SOAP_Base_Object extends PEAR
         $this->_debug_flag = $GLOBALS['SOAP_DEBUG'];
         parent::PEAR('SOAP_Fault');
     }
-    
+
     /**
     * Raise a soap error
-    * 
+    *
     * Please referr to the SOAP definition for an impression of what a certain parameter
     * stands for.
     *
     * Use $debug_flag to store errors to the member variable $debug_data
-    * 
+    *
     * @param    string  error message
     * @param    string  detailed error message.
     * @param    string  actor
@@ -190,8 +191,8 @@ class SOAP_Base_Object extends PEAR
             $fault =& $str;
         } else {
             if (!$code) $code = $is_instance?$this->_myfaultcode:'Client';
-            $fault =& new SOAP_Fault($str, 
-                                          $code, 
+            $fault =& new SOAP_Fault($str,
+                                          $code,
                                           $actorURI,
                                           $detail,
                                           $mode,
@@ -205,12 +206,12 @@ class SOAP_Base_Object extends PEAR
     {
         return $this->fault != NULL;
     }
-    
+
     function &__getfault()
     {
         return $this->fault;
     }
-    
+
     /**
     * maintains a string of debug data
     *
@@ -237,7 +238,7 @@ class SOAP_Base extends SOAP_Base_Object
 {
     var $_XMLSchema = array('http://www.w3.org/2001/XMLSchema', 'http://www.w3.org/1999/XMLSchema');
     var $_XMLSchemaVersion = 'http://www.w3.org/2001/XMLSchema';
-    
+
     // load types into typemap array
     var $_typemap = array(
         'http://www.w3.org/2001/XMLSchema' => array(
@@ -308,13 +309,13 @@ class SOAP_Base extends SOAP_Base_Object
     var $_ns_count = 0;
 
     var $_xmlEntities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
-    
+
     var $_doconversion = FALSE;
-    
+
     var $__attachments = array();
-    
+
     var $_wsdl = NULL;
-    
+
     /**
     * section5
     *
@@ -322,15 +323,15 @@ class SOAP_Base extends SOAP_Base_Object
     */
     var $_section5 = TRUE;
 
-    // handle type to class mapping 
+    // handle type to class mapping
     var $_auto_translation = false;
     var $_type_translation = array();
-    
-    
+
+
     /**
     * Constructor
     *
-    * @param    string  error code 
+    * @param    string  error code
     * @see  $debug_data, _debug()
     */
     function SOAP_Base($faultcode = 'Client')
@@ -338,7 +339,7 @@ class SOAP_Base extends SOAP_Base_Object
         parent::SOAP_Base_Object($faultcode);
         $this->_resetNamespaces();
     }
-    
+
     function _resetNamespaces()
     {
         $this->_namespaces = array(
@@ -368,7 +369,7 @@ class SOAP_Base extends SOAP_Base_Object
         $tmpNS['xsi'] = $this->_XMLSchemaVersion.'-instance';
         $this->_namespaces = array_flip($tmpNS);
     }
-    
+
     function _getNamespacePrefix($ns)
     {
         if (array_key_exists($ns,$this->_namespaces)) {
@@ -388,14 +389,14 @@ class SOAP_Base extends SOAP_Base_Object
         }
         return NULL;
     }
-        
+
     function _isSoapValue(&$value)
     {
         return is_object($value) &&
                 (get_class($value) == 'soap_value' ||
                 is_subclass_of($value,'soap_value'));
     }
-   
+
     function _serializeValue(&$value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array(), $artype='')
     {
         $namespaces = array();
@@ -413,7 +414,7 @@ class SOAP_Base extends SOAP_Base_Object
         if (!$arrayType) $arrayType = $artype;
         if (!$ptype) $ptype = $this->_getType($value);
         if (!$type) $type = $ptype;
-        
+
         if (strcasecmp($ptype,'Struct')==0 || strcasecmp($type,'Struct')==0) {
             // struct
             $vars = NULL;
@@ -451,14 +452,14 @@ class SOAP_Base extends SOAP_Base_Object
             if (isset($options['flatten']) || ($arrayType && (strchr($arrayType,',') || strstr($arrayType,'][')))) {
                 $numtypes = $this->_multiArrayType($value, $arrayType, $ar_size, $xmlout_value);
             }
-            
+
             $array_type = $array_type_prefix = '';
             if ($numtypes != 1) {
                 $arrayTypeQName =& new QName($arrayType);
                 $arrayType = $arrayTypeQName->name;
                 $array_types = array();
                 $array_val = NULL;
-                
+
                 // serialize each array element
                 $ar_size = count($value);
                 for ($i=0; $i < $ar_size; $i++) {
@@ -467,14 +468,14 @@ class SOAP_Base extends SOAP_Base_Object
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
                         $array_type_ns = $array_val->type_namespace;
-                        $xmlout_value .= $array_val->serialize($this); 
+                        $xmlout_value .= $array_val->serialize($this);
                     } else {
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
                         $xmlout_value .= $this->_serializeValue($array_val,'item', $array_type, $this->_section5?NULL:$elNamespace);
                     }
                 }
-                
+
                 $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
                 if (!$arrayType) {
                     $numtypes = count($array_types);
@@ -520,7 +521,7 @@ class SOAP_Base extends SOAP_Base_Object
         } else {
             $xmlout_name = $name;
         }
-        
+
         if ($typeNamespace) {
             $typePrefix = $this->_getNamespacePrefix($typeNamespace);
             $xmlout_type = "$typePrefix:$type";
@@ -542,7 +543,7 @@ class SOAP_Base extends SOAP_Base_Object
         // store the attachement for mime encoding
         if (isset($options['attachment']))
             $this->__attachments[] = $options['attachment'];
-            
+
         if ($this->_section5) {
             if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
             if (is_null($xmlout_value)) {
@@ -561,8 +562,8 @@ class SOAP_Base extends SOAP_Base_Object
         }
         return $xml;
     }
-    
-    
+
+
     /**
     * SOAP::Value::_getType
     *
@@ -652,7 +653,7 @@ class SOAP_Base extends SOAP_Base_Object
             for ($i=0; $i<$c; $i++) {
                 $this->_multiArrayType($value[$i], $type, $size, $xml);
             }
-            
+
             if ($size) {
                 $size = $sz.','.$size;
             } else {
@@ -662,7 +663,7 @@ class SOAP_Base extends SOAP_Base_Object
         } else {
             if (is_object($value)) {
                 $type = $value->type;
-                $xml .= $value->serialize($this); 
+                $xml .= $value->serialize($this);
             } else {
                 $type = $this->_getType($value);
                 $xml .= $this->_serializeValue($value,'item',$type);
@@ -708,14 +709,14 @@ class SOAP_Base extends SOAP_Base_Object
         }
         return count($names)>1;
     }
-    
+
     function &_un_htmlentities($string)
     {
        $trans_tbl = get_html_translation_table (HTML_ENTITIES);
        $trans_tbl = array_flip($trans_tbl);
        return strtr($string, $trans_tbl);
     }
-    
+
     /**
     *
     * @param    mixed
@@ -723,7 +724,7 @@ class SOAP_Base extends SOAP_Base_Object
     function &_decode(&$soapval)
     {
         global $SOAP_OBJECT_STRUCT;
-        
+
         if (!$this->_isSoapValue($soapval)) {
             return $soapval;
         } else if (is_array($soapval->value)) {
@@ -749,7 +750,7 @@ class SOAP_Base extends SOAP_Base_Object
             } else {
                 $return = array();
             }
-            
+
             $counter = 1;
             $isstruct = !$SOAP_OBJECT_STRUCT || !is_array($return);
             foreach ($soapval->value as $item) {
@@ -811,7 +812,7 @@ class SOAP_Base extends SOAP_Base_Object
             }
             return $return;
         }
-        
+
         if ($soapval->type == 'boolean') {
             if ($soapval->value != '0' && strcasecmp($soapval->value,'false') !=0) {
                 $soapval->value = TRUE;
@@ -824,7 +825,7 @@ class SOAP_Base extends SOAP_Base_Object
         }
         return $soapval->value;
     }
-    
+
     /**
      * creates the soap envelope with the soap envelop data
      *
@@ -856,11 +857,11 @@ class SOAP_Base extends SOAP_Base_Object
             $smsg =& $method;
         }
         $body = "<SOAP-ENV:Body>\r\n".$smsg."\r\n</SOAP-ENV:Body>\r\n";
-        
+
         foreach ($this->_namespaces as $k => $v) {
             $ns_string .= " xmlns:$v=\"$k\"\r\n";
         }
-        
+
         /* if use='literal', we do not put in the encodingStyle.  This is denoted by
            $this->_section5 being false.
            XXX use can be defined at a more granular level than we are dealing with
@@ -871,18 +872,18 @@ class SOAP_Base extends SOAP_Base_Object
             ($this->_section5?" SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\"":'').
             ">\r\n".
             "$header_xml$body</SOAP-ENV:Envelope>\r\n";
-        
+
         return $xml;
     }
-    
+
     function &_makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         global $SOAP_options;
-        
+
         if (!isset($SOAP_options['Mime'])) {
             return $this->_raiseSoapFault('Mime is not installed');
         }
-        
+
         // encode any attachments
         // see http://www.w3.org/TR/SOAP-attachments
         // now we have to mime encode the message
@@ -893,7 +894,7 @@ class SOAP_Base extends SOAP_Base_Object
         $params['charset'] = $encoding;
         $params['encoding'] = 'base64';
         $msg->addSubPart($xml, $params);
-        
+
         // add the attachements
         $c = count($this->__attachments);
         for ($i=0; $i < $c; $i++) {
@@ -902,22 +903,22 @@ class SOAP_Base extends SOAP_Base_Object
         }
         return $msg->encode();
     }
-    
+
     // XXX this needs to be used from the Transport system
     function &_makeDIMEMessage(&$xml)
     {
         global $SOAP_options;
-        
+
         if (!isset($SOAP_options['DIME'])) {
             return $this->_raiseSoapFault('DIME is not installed');
         }
-        
+
         // encode any attachments
         // see http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // now we have to DIME encode the message
         $dime =& new Net_DIME_Message();
         $msg =& $dime->encodeData($xml,SOAP_ENVELOP,NULL,NET_DIME_TYPE_URI);
-        
+
         // add the attachements
         $c = count($this->__attachments);
         for ($i=0; $i < $c; $i++) {
@@ -935,7 +936,7 @@ class SOAP_Base extends SOAP_Base_Object
             $this->_raiseSoapFault('Mime Unsupported, install PEAR::Mail::Mime','','','Server');
             return;
         }
-        
+
         $params['include_bodies'] = TRUE;
         $params['decode_bodies']  = TRUE;
         $params['decode_headers'] = TRUE;
@@ -943,7 +944,7 @@ class SOAP_Base extends SOAP_Base_Object
         // XXX lame thing to have to do for decoding
         $decoder =& new Mail_mimeDecode($data);
         $structure = $decoder->decode($params);
-        
+
         if (isset($structure->body)) {
             $data = $structure->body;
             $headers = $structure->headers;
@@ -954,7 +955,7 @@ class SOAP_Base extends SOAP_Base_Object
             if (count($structure->parts) > 1) {
                 $mime_parts = array_splice($structure->parts,1);
                 // prepare the parts for the soap parser
-                
+
                 $c = count($mime_parts);
                 for ($i = 0; $i < $c; $i++) {
                     $p =& $mime_parts[$i];
@@ -972,14 +973,14 @@ class SOAP_Base extends SOAP_Base_Object
         }
         $this->_raiseSoapFault('Mime parsing error','','','Server');
     }
-    
+
     function _decodeDIMEMessage(&$data, &$headers, &$attachments)
     {
         global $SOAP_options;
         if (!isset($SOAP_options['DIME'])) {
             $this->_raiseSoapFault('DIME Unsupported, install PEAR::Net::DIME','','','Server');
         }
-        
+
         // XXX this SHOULD be moved to the transport layer, e.g. PHP  itself
         // should handle parsing DIME ;)
         $dime =& new Net_DIME_Message();
@@ -998,7 +999,7 @@ class SOAP_Base extends SOAP_Base_Object
             }
         }
     }
-    
+
     function __set_type_translation($type, $class=NULL)
     {
         $tq =& new QName($type);
@@ -1024,7 +1025,7 @@ class QName
     var $ns = '';
     var $namespace='';
     #var $arrayInfo = '';
-    
+
     function QName($name, $namespace = '') {
         if ($name && $name[0] == '{') {
             preg_match('/\{(.*?)\}(.*)/',$name, $m);
@@ -1040,7 +1041,7 @@ class QName
             $this->name = $name;
             $this->namespace = $namespace;
         }
-        
+
         # a little more magic than should be in a qname
         $p = strpos($this->name, '[');
         if ($p) {
@@ -1051,7 +1052,7 @@ class QName
             $this->name = substr($this->name, 0, $p);
         }
     }
-    
+
     function fqn()
     {
         if ($this->namespace) {
@@ -1061,6 +1062,6 @@ class QName
         }
         return $this->name;
     }
-    
+
 }
 ?>

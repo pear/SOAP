@@ -23,30 +23,30 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/Fault.php';
 require_once 'HTTP/Request.php';
 
-DEFINE("WSDL_CACHE_MAX_AGE",12*60*60);
-DEFINE("WSDL_CACHE_USE",0); // set to zero to turn off caching
+DEFINE('WSDL_CACHE_MAX_AGE', 43200);
+DEFINE('WSDL_CACHE_USE',     0); // set to zero to turn off caching
 
 /**
-*  SOAP_WSDL
-*  this class parses wsdl files, and can be used by SOAP::Client to properly register
-* soap values for services
-*
-* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
-*
-* TODO:
-*    add wsdl caching
-*   refactor namespace handling ($namespace/$ns)
-*    implement IDL type syntax declaration so we can generate WSDL
-*
-* @access public
-* @version $Id$
-* @package SOAP::Client
-* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
-*/
+ *  SOAP_WSDL
+ *  this class parses wsdl files, and can be used by SOAP::Client to properly register
+ * soap values for services
+ *
+ * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ *
+ * TODO:
+ *    add wsdl caching
+ *   refactor namespace handling ($namespace/$ns)
+ *    implement IDL type syntax declaration so we can generate WSDL
+ *
+ * @access public
+ * @version $Id$
+ * @package SOAP::Client
+ * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+ */
 class SOAP_WSDL extends SOAP_Base
 {
-    var $tns = NULL;
+    var $tns = null;
     var $definition = array();
     var $namespaces = array();
     var $ns = array();
@@ -60,19 +60,45 @@ class SOAP_WSDL extends SOAP_Base
     var $services = array();
     var $service = '';
     var $uri = '';
-    var $proxy = NULL;
+
+    /**
+     * Proxy parameters
+     *
+     * @var array
+     */
+    var $proxy = null;
+
     var $trace = 0;
+
+    /**
+     * Use cache
+     *
+     * @var boolean
+     */
+    var $cacheUse = null;
+
+    /**
+     * Cache max ligetime
+     *
+     * @var int
+     */
+    var $cacheMaxAge = null;
+
     /**
     * SOAP_WSDL constructor
     *
-    * @param string endpoint_uri (URL)
-    * @param array  contains options for HTTP_Request class (see HTTP/Request.php)
+    * @param string  endpoint_uri (URL)
+    * @param array   contains options for HTTP_Request class (see HTTP/Request.php)
+    * @param boolean use caching
+    * @param int     cache max lifetime
     * @access public
     */
-    function SOAP_WSDL($uri = false, $proxy=array()) {
+    function SOAP_WSDL($uri = false, $proxy = array(), $cacheUse = false, $cacheMaxAge = 43200) {
         parent::SOAP_Base('WSDL');
-        $this->uri = $uri;
-        $this->proxy = $proxy;
+        $this->uri         = $uri;
+        $this->proxy       = $proxy;
+        $this->cacheUse    = $cacheUse;
+        $this->cacheMaxAge = $cacheMaxAge;
         $this->parse($uri);
         reset($this->services);
         $this->service = key($this->services);
@@ -83,21 +109,21 @@ class SOAP_WSDL extends SOAP_Base
             $this->service = $service;
         }
     }
-    
-    function parse($uri, $proxy=array()) {
+
+    function parse($uri, $proxy = array()) {
         $parser =& new SOAP_WSDL_Parser($uri, $this);
         if ($parser->fault) {
             $this->_raiseSoapFault($parser->fault);
         }
     }
-    
+
     function getEndpoint($portName)
     {
         return (isset($this->services[$this->service]['ports'][$portName]['address']['location']))
                 ? $this->services[$this->service]['ports'][$portName]['address']['location']
                 : $this->_raiseSoapFault("no endpoint for port for $portName", $this->uri);
     }
-    
+
     function _getPortName($operation,$service) {
         if (isset($this->services[$service]['ports'])) {
             foreach ($this->services[$service]['ports'] as $port => $portAttrs) {
@@ -108,12 +134,12 @@ class SOAP_WSDL extends SOAP_Base
                 }
             }
         }
-        return NULL;
+        return null;
     }
-    
+
     // find the name of the first port that contains an operation of name $operation
     // always returns a the soap portName
-    function getPortName($operation, $service=NULL)
+    function getPortName($operation, $service = null)
     {
         if (!$service) $service = $this->service;
         if (isset($this->services[$service]['ports'])) {
@@ -132,7 +158,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return $this->_raiseSoapFault("no operation $operation in wsdl", $this->uri);
     }
-    
+
     function getOperationData($portName,$operation)
     {
         if (isset($this->services[$this->service]['ports'][$portName]['binding'])
@@ -152,7 +178,7 @@ class SOAP_WSDL extends SOAP_Base
                 $opData['input'] = array_merge($opData['input'], $this->portTypes[$portType][$operation]['input']);
                 $opData['output'] = array_merge($opData['output'], $this->portTypes[$portType][$operation]['output']);
             }
-            if (!$opData) 
+            if (!$opData)
                 return $this->_raiseSoapFault("no operation $operation for port $portName, in wsdl", $this->uri);
             $opData['parameters'] = false;
             if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace']))
@@ -188,7 +214,7 @@ class SOAP_WSDL extends SOAP_Base
                                 $opData['output']['parts'][$elname] = $elattrs;
                             }
                         }
-                        
+
                 } else {
                     $opData['output']['parts'][$pname] = $pattrs;
                 }
@@ -198,7 +224,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return $this->_raiseSoapFault("no binding for port $portName in wsdl", $this->uri);
     }
-    
+
     function matchMethod(&$operation) {
         // Overloading lowercases function names :(
         foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
@@ -209,21 +235,21 @@ class SOAP_WSDL extends SOAP_Base
             }
         }
     }
-    
+
     /**
-    * getDataHandler
-    *
-    * Given a datatype, what function handles the processing?
-    * this is used for doc/literal requests where we receive
-    * a datatype, and we need to pass it to a method in out
-    * server class
-    *
-    * @param string datatype
-    * @param string namespace
-    * @returns string methodname
-    * @access public
-    */
-    function getDataHandler($datatype,$namespace) {
+     * getDataHandler
+     *
+     * Given a datatype, what function handles the processing?
+     * this is used for doc/literal requests where we receive
+     * a datatype, and we need to pass it to a method in out
+     * server class
+     *
+     * @param string datatype
+     * @param string namespace
+     * @returns string methodname
+     * @access public
+     */
+    function getDataHandler($datatype, $namespace) {
         // see if we have an element by this name
         if (isset($this->namespaces[$namespace]))
             $namespace = $this->namespaces[$namespace];
@@ -255,9 +281,9 @@ class SOAP_WSDL extends SOAP_Base
                 }
             }
         }
-        return NULL;
+        return null;
     }
-    
+
     function getSoapAction($portName, $operation)
     {
         if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['soapAction']) &&
@@ -266,7 +292,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return false;
     }
-    
+
     function getNamespace($portName, $operation)
     {
         if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]) &&
@@ -288,7 +314,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return $this->ns[$namespace];
     }
-    
+
     function addNamespace($namespace) {
         if (array_key_exists($namespace, $this->ns)) {
             return $this->ns[$namespace];
@@ -299,14 +325,14 @@ class SOAP_WSDL extends SOAP_Base
         $this->ns[$namespace] = $attr;
         return $attr;
     }
-    
+
     function _validateString($string) {
         // XXX this should be done sooner or later
         return true;
         #if (preg_match("/^[\w_:#\/]+$/",$string)) return true;
         #return false;
     }
-    
+
     function _addArg(&$args, &$argarray, $argname)
     {
         if ($args) $args .= ", ";
@@ -315,7 +341,7 @@ class SOAP_WSDL extends SOAP_Base
         if ($argarray) $argarray .= ", ";
         $argarray .= "\"$argname\"=>\$".$argname;
     }
-    
+
     function _elementArg(&$args, &$argarray, &$_argtype, $_argname)
     {
         $comments = '';
@@ -348,7 +374,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return $comments;
     }
-    
+
     function _complexTypeArg(&$args, &$argarray, &$_argtype, $_argname)
     {
         $comments = '';
@@ -360,12 +386,12 @@ class SOAP_WSDL extends SOAP_Base
             }
             $wrapname = '{'.$this->namespaces[$_argtype['namespace']].'}'.$_argtype['type'];
             $comments .= "        \$$_argname =& new SOAP_Value('$_argname','$wrapname',\$$_argname);\n";
-            
+
         }
         $this->_addArg($args,$argarray,$_argname);
         return $comments;
     }
-    
+
     /**
      * generateProxyCode
      * generates stub code from the wsdl that can be saved to a file, or eval'd into existence
@@ -379,9 +405,9 @@ class SOAP_WSDL extends SOAP_Base
         }
         // XXX currently do not support HTTP ports
         if ($port['type'] != 'soap') return NULL;
-        
+
         // XXX currentPort is BAD
-        $clienturl = $port['address']['location']; 
+        $clienturl = $port['address']['location'];
         if (!$classname) {
             if ($multiport || $port) {
                 $classname = 'WebService_'.$this->service.'_'.$port['name'];
@@ -390,13 +416,13 @@ class SOAP_WSDL extends SOAP_Base
             }
             $classname = str_replace('.','_',$classname);
         }
-        
+
         if (!$this->_validateString($classname)) return NULL;
-        
-        if (is_array($this->proxy) && count($this->proxy) > 0) {            
+
+        if (is_array($this->proxy) && count($this->proxy) > 0) {
             $class = "class $classname extends SOAP_Client\n{\n".
             "    function $classname()\n{\n".
-            "        \$this->SOAP_Client(\"$clienturl\", 0, 0, 
+            "        \$this->SOAP_Client(\"$clienturl\", 0, 0,
                     array(";
 
             foreach($this->proxy as $key => $val) {
@@ -412,12 +438,12 @@ class SOAP_WSDL extends SOAP_Base
             }
             $class .= "));\n }\n";
             $class = str_replace(',))', '))', $class);
-        } else {                
+        } else {
             $class = "class $classname extends SOAP_Client\n{\n".
             "    function $classname()\n{\n".
             "        \$this->SOAP_Client(\"$clienturl\", 0);\n".
-            "    }\n";      
-        }  
+            "    }\n";
+        }
 
         // get the binding, from that get the port type
         $primaryBinding = $port['binding']; //$this->services[$this->service]['ports'][$port['name']]["binding"];
@@ -425,7 +451,7 @@ class SOAP_WSDL extends SOAP_Base
         $portType = $this->bindings[$primaryBinding]['type'];
         $portType = preg_replace("/^(.*:)/","",$portType);
         $style = $this->bindings[$primaryBinding]['style'];
-        
+
         // XXX currentPortType is BAD
         foreach ($this->portTypes[$portType] as $opname => $operation) {
             $soapaction = $this->bindings[$primaryBinding]['operations'][$opname]['soapAction'];
@@ -457,7 +483,7 @@ class SOAP_WSDL extends SOAP_Base
                                 $elattrs = null;
                                 $element = $_argtype['element'];
                                 $el = $this->elements[$_argtype['namespace']][$_argtype['type']];
-                                
+
                                 if($el['complex']) {
                                     $namespace = $this->namespaces[$_argtype['namespace']];
                                     // XXX need to wrap the parameters in a soap_value
@@ -479,7 +505,7 @@ class SOAP_WSDL extends SOAP_Base
                                     $comments .= "        \${$el['name']} =& new SOAP_Value('$wrapname',false,\$v=array($argarray));\n";
                                     $argarray = "'{$el['name']}'=>\${$el['name']}";
                                 }
-                        } else 
+                        } else
                         if (isset($_argtype['element'])) {
                             // element argument
                             $comments = $this->_elementArg($args, $argarray, $_argtype, $_argtype['type']);
@@ -490,14 +516,18 @@ class SOAP_WSDL extends SOAP_Base
                     }
                 }
             }
-            
+
             // validate entries
             if (!$this->_validateString($opname)) return NULL;
             if (!$this->_validateString($namespace)) return NULL;
             if (!$this->_validateString($soapaction)) return NULL;
-            
-            if ($argarray) $argarray = "array($argarray)";
-            else $argarray = 'NULL';
+
+            if ($argarray) {
+                $argarray = "array($argarray)";
+            } else {
+                $argarray = 'null';
+            }
+
             $class .= "    function $opname($args) {\n$comments$wrappers".
             "        return \$this->call(\"$opname\", \n".
             "                        \$v = $argarray, \n".
@@ -507,7 +537,7 @@ class SOAP_WSDL extends SOAP_Base
             "                            'use'=>'$use'".
             ($this->trace?",'trace'=>1":"")." ));\n".
             "    }\n";
-        }    
+        }
         $class .= "}\n";
         return $class;
     }
@@ -521,37 +551,45 @@ class SOAP_WSDL extends SOAP_Base
         }
         return $proxycode;
     }
-    
-    function &getProxy($port = '', $name='')
+
+    function &getProxy($port = '', $name = '')
     {
         $multiport = count($this->services[$this->service]['ports']) > 1;
+
         if (!$port) {
             reset($this->services[$this->service]['ports']);
             $port = current($this->services[$this->service]['ports']);
         }
+
         if ($multiport || $port) {
-            $classname = 'WebService_'.$this->service.'_'.$port['name'];
+            $classname = 'WebService_' . $this->service . '_' . $port['name'];
         } else {
-            $classname = 'WebService_'.$this->service;
+            $classname = 'WebService_' . $this->service;
         }
-        if ($name) $classname = $name.'_'.$classname;
-        $classname = preg_replace('/[ .\(\)]+/','_',$classname);
+
+        if ($name) {
+            $classname = $name . '_' . $classname;
+        }
+
+        $classname = preg_replace('/[ .\(\)]+/', '_', $classname);
+
         if (!class_exists($classname)) {
-            $proxy = $this->generateProxyCode($port,$classname);
+            $proxy = $this->generateProxyCode($port, $classname);
             eval($proxy);
         }
+
         return new $classname;
     }
-    
+
     function &_getComplexTypeForElement($name, $namespace)
     {
         $t = NULL;
-        if (isset($this->ns[$namespace]) && 
+        if (isset($this->ns[$namespace]) &&
             isset($this->elements[$this->ns[$namespace]][$name]['type'])) {
-            
+
             $type = $this->elements[$this->ns[$namespace]][$name]['type'];
             $ns = $this->elements[$this->ns[$namespace]][$name]['namespace'];
-            
+
             if (isset($this->complexTypes[$ns][$type])) {
                 $t = $this->complexTypes[$ns][$type];
             }
@@ -567,7 +605,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return NULL;
     }
-    
+
     function getComplexTypeChildType($ns, $name, $child_ns, $child_name) {
         // is the type an element?
         $t = $this->_getComplexTypeForElement($name, $ns);
@@ -578,7 +616,7 @@ class SOAP_WSDL extends SOAP_Base
         }
         return NULL;
     }
-    
+
     function getSchemaType($type, $name, $type_namespace)
     {
         # see if it's a complex type so we can deal properly with SOAPENC:arrayType
@@ -637,8 +675,8 @@ class SOAP_WSDL extends SOAP_Base
         }
         return array(NULL,NULL,NULL);
     }
-    
-    
+
+
 }
 
 class SOAP_WSDL_Cache extends SOAP_Base
@@ -656,17 +694,21 @@ class SOAP_WSDL_Cache extends SOAP_Base
         @mkdir($dir, 0700);
         return $dir;
     }
-    
+
     /**
      * get
      * retreives file from cache if it exists, otherwise retreive from net,
      * add to cache, and return from cache
+     *
+     * @access public
+     * @param  string
+     * @param  array   proxy parameters
+     * @param  int     cache lifetime
+     * @return string  data
      */
-    function get($wsdl_fname, $proxy_params=array(), $cache=0) {
-        $cachename = '';
-        $md5_wsdl = '';
-        $file_data = '';
-        if (WSDL_CACHE_USE) {
+    function get($wsdl_fname, $proxy_params = array(), $cache = 0) {
+        $cachename = $md5_wsdl = $file_data = '';
+        if ($this->cacheUse) {
             $cachename = SOAP_WSDL_Cache::_cacheDir() . '/' . md5($wsdl_fname). '.wsdl';
             if (file_exists($cachename)) {
                 $wf = fopen($cachename,'rb');
@@ -677,15 +719,15 @@ class SOAP_WSDL_Cache extends SOAP_Base
                 }
                 if ($cache) {
                     if ($cache != $md5_wsdl) {
-                        return $this->_raiseSoapFault("WSDL Checksum error!", $wsdl_fname);
+                        return $this->_raiseSoapFault('WSDL Checksum error!', $wsdl_fname);
                     }
                 } else {
                     $fi = stat($cachename);
                     $cache_mtime = $fi[8];
                     #print cache_mtime, time()
-                    if ($cache_mtime + WSDL_CACHE_MAX_AGE < time()) {
+                    if ($cache_mtime + $this->cacheMaxAge < time()) {
                         # expired
-                        $md5_wsdl = ""; # refetch
+                        $md5_wsdl = ''; # refetch
                     }
                 }
             }
@@ -693,7 +735,7 @@ class SOAP_WSDL_Cache extends SOAP_Base
         if (!$md5_wsdl) {
             // is it a local file?
             // this section should be replace by curl at some point
-            if (!preg_match('/^(http[s]|file):\/\//',$wsdl_fname)) {
+            if (!preg_match('/^(https?|file):\/\//',$wsdl_fname)) {
                 if (!file_exists($wsdl_fname)) {
                     return $this->_raiseSoapFault("Unable to read local WSDL $wsdl_fname", $wsdl_fname);
                 }
@@ -716,16 +758,16 @@ class SOAP_WSDL_Cache extends SOAP_Base
 
                 $result = $rq->sendRequest();
                 if (PEAR::isError($result)) {
-                    return $this->_raiseSoapFault("Unable to retrieve WSDL $wsdl_fname,".$rq->getResponseCode(), $wsdl_fname);
+                    return $this->_raiseSoapFault("Unable to retrieve WSDL $wsdl_fname," . $rq->getResponseCode(), $wsdl_fname);
             }
                $file_data = $rq->getResponseBody();
                 if (!$file_data) {
-                    return $this->_raiseSoapFault("Unable to retrieve WSDL $wsdl_fname, nohttp body", $wsdl_fname);
+                    return $this->_raiseSoapFault("Unable to retrieve WSDL $wsdl_fname, no http body", $wsdl_fname);
                 }
             }
-            
+
             $md5_wsdl = md5($file_data);
-            
+
             if (WSDL_CACHE_USE) {
                 $fp = fopen($cachename, "wb");
                 fwrite($fp, $file_data);
@@ -737,7 +779,6 @@ class SOAP_WSDL_Cache extends SOAP_Base
         }
         return $file_data;
     }
-    
 }
 
 class SOAP_WSDL_Parser extends SOAP_Base
@@ -748,14 +789,14 @@ class SOAP_WSDL_Parser extends SOAP_Base
     var $currentPortType;
     var $currentBinding;
     var $currentPort;
-    
+
     // parser vars
     var $cache;
 
-    var $tns = NULL;
+    var $tns = null;
     var $soapns = array('soap');
     var $uri = '';
-    var $wsdl = NULL;
+    var $wsdl = null;
 
     var $status = '';
     var $element_stack = array();
@@ -767,9 +808,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
     var $currentComplexType;
     var $schema_element_stack = array();
     var $currentElement;
-    
+
     // constructor
-    function SOAP_WSDL_Parser($uri, &$wsdl, $docs=false) {
+    function SOAP_WSDL_Parser($uri, &$wsdl, $docs = false) {
         parent::SOAP_Base('WSDLPARSER');
         $this->cache =& new SOAP_WSDL_Cache();
         $this->uri = $uri;
@@ -777,7 +818,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         $this->docs = $docs;
         $this->parse($uri);
     }
-    
+
     function parse($uri) {
         // Check whether content has been read.
         $fd = $this->cache->get($uri, $this->wsdl->proxy);
@@ -791,7 +832,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         xml_set_object($parser, $this);
         xml_set_element_handler($parser, 'startElement', 'endElement');
         if ($this->docs) xml_set_character_data_handler($parser, 'characterData');
-    
+
         if (!xml_parse($parser,$fd, true)) {
             $detail = sprintf('XML error on line %d: %s',
                                     xml_get_current_line_number($parser),
@@ -802,7 +843,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         xml_parser_free($parser);
         return TRUE;
     }
-    
+
     // start-element handler
     function startElement($parser, $name, $attrs) {
         // get element prefix
@@ -820,7 +861,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             $this->parentElement = $this->element_stack[$stack_size-1];
         }
         $this->element_stack[] = $this->currentTag;
-        
+
         // find status, register data
         switch($this->status) {
         case 'types':
@@ -871,7 +912,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                         $attrs['namespace'] = $qn->ns;
                     }
                 }
-                
+
                 $parentElement = '';
                 $stack_size = count($this->schema_element_stack);
                 if ($stack_size > 0) {
@@ -885,7 +926,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
                 $this->schema_element_stack[] = $this->currentElement;
                 if (!isset($attrs['namespace'])) $attrs['namespace'] = $this->schema;
-                
+
                 if ($parent_tag == 'schema') {
                     $this->wsdl->elements[$this->schema][$this->currentElement] = $attrs;
                     $this->wsdl->elements[$this->schema][$this->currentElement]['complex'] = FALSE;
@@ -958,9 +999,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
             break;
             }
-            
+
             $this->schema_stack[] = $qname->name;
-            
+
         break;
         case 'message':
             // sect 2.3 wsdl:message child wsdl:part
@@ -1028,13 +1069,13 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // sect 3.3
                     // soap:binding, attributes: transport(required), style(optional, default = document)
                     // if style is missing, it is assumed to be 'document'
-                    if (!isset($attrs['style'])) $attrs['style'] = 'document'; 
+                    if (!isset($attrs['style'])) $attrs['style'] = 'document';
                     $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding],$attrs);
                     break;
                 case 'operation':
                     // sect 3.4
                     // soap:operation, attributes: soapAction(required), style(optional, default = soap:binding:style)
-                    if (!isset($attrs['style'])) $attrs['style'] = $this->wsdl->bindings[$this->currentBinding]['style']; 
+                    if (!isset($attrs['style'])) $attrs['style'] = $this->wsdl->bindings[$this->currentBinding]['style'];
                     $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation] = $attrs;
                     break;
                 case 'body':
@@ -1082,7 +1123,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // sect 2.5
                     // wsdl:operation attributes: name
                     $this->currentOperation = $attrs['name'];
-                    break;            
+                    break;
                 case 'output':
                 case 'input':
                 case 'fault':
@@ -1093,7 +1134,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 case 'documentation':
                     break;
                 default:
-                    break;                    
+                    break;
                 }
                 break;
             case SCHEMA_WSDL_HTTP:
@@ -1148,7 +1189,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 case 'mimeXml':
                     // sect 5.6 mime:mimeXml
                     // <mime:mimeXml part="nmtoken"?/>
-                    // 
+                    //
                 case 'documentation':
                     break;
                 default:
@@ -1175,7 +1216,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         break;
         case 'service':
             $ns = $qname->ns?$this->wsdl->namespaces[strtolower($qname->ns)]:SCHEMA_WSDL;
-            
+
             switch($qname->name) {
             case 'port':
                 // sect 2.6 wsdl:port attributes: name binding
@@ -1201,7 +1242,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // shouldn't happen, we'll assume soap
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='soap';
                 }
-                
+
             break;
             case 'documentation':
                 break;
@@ -1209,7 +1250,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 break;
             }
         }
-        
+
         // top level elements found under wsdl:definitions
         // set status
         switch($qname->name) {
@@ -1298,8 +1339,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
         break;
         }
     }
-    
-    
+
+
     // end-element handler
     function endElement($parser, $name)
     {
@@ -1343,7 +1384,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         // bring depth down a notch
         //$this->depth--;
     }
-    
+
     // element content handler
     function characterData($parser, $data)
     {
@@ -1377,8 +1418,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
 
 
     // $parsed is a parse_url() resulting array
-    function merge_url($parsed,$path) { 
-       
+    function merge_url($parsed,$path) {
+
         if (! is_array($parsed)) return false;
 
         if (isset($parsed['scheme'])) {
@@ -1407,9 +1448,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
         $sep = $path[0]=='/'?'':'/';
         $uri .= $sep.$path;
 
-        return $uri; 
+        return $uri;
     }
-    
+
     function _normalize($path_str){
         $pwd='';
         $strArr=preg_split("/(\/)/",$path_str,-1,PREG_SPLIT_NO_EMPTY);
@@ -1429,7 +1470,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
         $pStr=implode("/",$pwdArr);
         $pwd=(strlen($pStr)>0) ? ("/".$pStr) : "/";
         return $pwd;
-    }    
+    }
 }
 
 ?>
