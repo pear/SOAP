@@ -9,10 +9,10 @@
 
 <?php
    //*-----------------------
-    include './soapval.php';
-    include './soapmsg.php';
-    include './soapresp.php';
-    include './soapclient.php';
+    include './Value.php';
+    include './Message.php';
+    include './Response.php';
+    include './Client.php';
     
     $send_int=2001;
 	$send_string="happy!";
