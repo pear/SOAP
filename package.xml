@@ -26,10 +26,9 @@
   <release>
     <state>beta</state>
     <version>0.8RC4</version>
-    <date>2004-xx-xx</date>
+    <date>2004-12-03</date>
     <notes>
-* bugfixes (among others): 
-   #2466: Calling any Object Constructor Causes Error 
+    Bugfixes
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
