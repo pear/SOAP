@@ -392,7 +392,6 @@ class SOAP_Transport_HTTP extends SOAP_Base
             curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s
         }
 
-//        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->outgoing_payload);
         curl_setopt($ch, CURLOPT_POSTFIELDS,     $msg);
         curl_setopt($ch, CURLOPT_URL,            $this->url);
         curl_setopt($ch, CURLOPT_POST,           1);
@@ -400,6 +399,14 @@ class SOAP_Transport_HTTP extends SOAP_Base
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_VERBOSE,        1);
+
+        if (isset($options['curl'])) {
+            reset($options['curl']);
+            while (list($key, $val) = each ($options['curl'])) {
+                curl_setopt($ch, $key, $val);
+            }
+        }
+
         $this->response = curl_exec($ch);
         curl_close($ch);
 

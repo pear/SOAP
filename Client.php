@@ -26,110 +26,126 @@ require_once 'SOAP/Transport.php';
 require_once 'SOAP/WSDL.php';
 require_once 'SOAP/Fault.php';
 require_once 'SOAP/Parser.php';
+
 /**
-*  SOAP Client Class
-* this class is the main interface for making soap requests
-*
-* basic usage: 
-*   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
-*   echo $soapclient->call( string methodname [ , array parameters] );
-*
-* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Client
-* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
-* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
-*/
+ *  SOAP Client Class
+ * this class is the main interface for making soap requests
+ *
+ * basic usage:
+ *   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
+ *   echo $soapclient->call( string methodname [ , array parameters] );
+ *
+ * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ *
+ * @access   public
+ * @version  $Id$
+ * @package  SOAP::Client
+ * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
+ * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
+ */
 class SOAP_Client extends SOAP_Base
 {
     /**
-    * Communication endpoint.
-    *
-    * Currently the following transport formats are supported:
-    *  - HTTP
-    *  - SMTP
-    * 
-    * Example endpoints:
-    *   http://www.example.com/soap/server.php
-    *   https://www.example.com/soap/server.php
-    *   mailto:soap@example.com
-    *
-    * @var  string
-    * @see  SOAP_Client()
-    */
+     * Communication endpoint.
+     *
+     * Currently the following transport formats are supported:
+     *  - HTTP
+     *  - SMTP
+     *
+     * Example endpoints:
+     *   http://www.example.com/soap/server.php
+     *   https://www.example.com/soap/server.php
+     *   mailto:soap@example.com
+     *
+     * @var  string
+     * @see  SOAP_Client()
+     */
     var $_endpoint = '';
-    
+
     /**
-    * portname
-    *
-    * @var string contains the SOAP PORT name that is used by the client
-    */
+     * portname
+     *
+     * @var string contains the SOAP PORT name that is used by the client
+     */
     var $_portName = '';
-    
-    
+
+
     /**
-    * Endpoint type 
-    *
-    * @var  string  e.g. wdsl
-    */
+     * Endpoint type
+     *
+     * @var  string  e.g. wdsl
+     */
     var $__endpointType = '';
-    
+
     /**
-    * wire
-    *
-    * @var  string  contains outoing and incoming data stream for debugging.
-    */
+     * wire
+     *
+     * @var  string  contains outoing and incoming data stream for debugging.
+     */
     var $xml; // contains the received xml
     var $wire;
-    var $__last_request = NULL;
-    var $__last_response = NULL;
-    var $__options = array('trace'=>0);
+    var $__last_request = null;
+    var $__last_response = null;
+
     /**
-    * encoding
-    *
-    * @var  string  Contains the character encoding used for XML parser, etc.
-    */
+     * Options
+     *
+     * @var array
+     */
+    var $__options = array('trace'=>0);
+
+    /**
+     * Available categories when using options
+     *
+     * @var array
+     */
+    var $__optionCategories = array('curl');
+
+    /**
+     * encoding
+     *
+     * @var  string  Contains the character encoding used for XML parser, etc.
+     */
     var $_encoding = SOAP_DEFAULT_ENCODING;
-    
-    
+
+
     /**
     * headersOut
     *
     * @var  array  contains an array of SOAP_Headers that we are sending
     */
-    var $headersOut = NULL;
+    var $headersOut = null;
     /**
     * headersOut
     *
     * @var  array  contains an array headers we recieved back in the response
     */
-    var $headersIn = NULL;
-    
+    var $headersIn = null;
+
     /**
     * __proxy_params
     *
     * @var  array  contains options for HTTP_Request class (see HTTP/Request.php)
     */
     var $__proxy_params = array();
+
     /**
-    * SOAP_Client constructor
-    *
-    * @param string endpoint (URL)
-    * @param boolean wsdl (true if endpoint is a wsdl file)
-    * @param string portName
-    * @param array  contains options for HTTP_Request class (see HTTP/Request.php)
-    * @access public
-    */
+     * SOAP_Client constructor
+     *
+     * @param string endpoint (URL)
+     * @param boolean wsdl (true if endpoint is a wsdl file)
+     * @param string portName
+     * @param array  contains options for HTTP_Request class (see HTTP/Request.php)
+     * @access public
+     */
     function SOAP_Client($endpoint, $wsdl = false, $portName = false, $proxy_params=array())
     {
         parent::SOAP_Base('Client');
         $this->_endpoint = $endpoint;
         $this->_portName = $portName;
         $this->__proxy_params = $proxy_params;
-        
+
         // make values
         if ($wsdl) {
             $this->__endpointType = 'wsdl';
@@ -140,17 +156,16 @@ class SOAP_Client extends SOAP_Base
             }
         }
     }
-    
+
     /**
-    * setEncoding
-    *
-    * set the character encoding, limited to 'UTF-8', 'US_ASCII' and 'ISO-8859-1'
-    *
-    * @param string encoding
-    *
-    * @return mixed returns NULL or SOAP_Fault
-    * @access public
-    */
+     * setEncoding
+     *
+     * set the character encoding, limited to 'UTF-8', 'US_ASCII' and 'ISO-8859-1'
+     *
+     * @param string encoding
+     * @return mixed returns NULL or SOAP_Fault
+     * @access public
+     */
     function setEncoding($encoding)
     {
         if (in_array($encoding, $this->_encodings)) {
@@ -159,17 +174,16 @@ class SOAP_Client extends SOAP_Base
         }
         return $this->_raiseSoapFault('Invalid Encoding');
     }
-    
+
     /**
-    * addHeader
-    *
-    * To add headers to the envelop, you use this function, sending it a
-    * SOAP_Header class instance.
-    *
-    * @param SOAP_Header a soap value to send as a header
-    *
-    * @access public
-    */
+     * addHeader
+     *
+     * To add headers to the envelop, you use this function, sending it a
+     * SOAP_Header class instance.
+     *
+     * @param SOAP_Header a soap value to send as a header
+     * @access public
+     */
     function addHeader(&$soap_value)
     {
         # add a new header to the message
@@ -185,33 +199,33 @@ class SOAP_Client extends SOAP_Base
     }
 
     /**
-    * SOAP_Client::call
-    *
-    * the namespace parameter is overloaded to accept an array of
-    * options that can contain data necessary for various transports
-    * if it is used as an array, it MAY contain a namespace value and a
-    * soapaction value.  If it is overloaded, the soapaction parameter is
-    * ignored and MUST be placed in the options array.  This is done
-    * to provide backwards compatibility with current clients, but
-    * may be removed in the future.
-    *
-    * @param string method
-    * @param array  params
-    * @param array options (hash with namespace, soapaction, timeout, from, subject, etc.)
-    *
-    * The options parameter can have a variety of values added.  The currently supported
-    * values are:
-    *   namespace
-    *   soapaction
-    *   timeout (http socket timeout)
-    *   from (smtp)
-    *   transfer-encoding (smtp, sets the Content-Transfer-Encoding header)
-    *   subject (smtp, subject header)
-    *   headers (smtp, array-hash of extra smtp headers)
-    *
-    * @return array of results
-    * @access public
-    */
+     * SOAP_Client::call
+     *
+     * the namespace parameter is overloaded to accept an array of
+     * options that can contain data necessary for various transports
+     * if it is used as an array, it MAY contain a namespace value and a
+     * soapaction value.  If it is overloaded, the soapaction parameter is
+     * ignored and MUST be placed in the options array.  This is done
+     * to provide backwards compatibility with current clients, but
+     * may be removed in the future.
+     *
+     * @param string method
+     * @param array  params
+     * @param array options (hash with namespace, soapaction, timeout, from, subject, etc.)
+     *
+     * The options parameter can have a variety of values added.  The currently supported
+     * values are:
+     *   namespace
+     *   soapaction
+     *   timeout (http socket timeout)
+     *   from (smtp)
+     *   transfer-encoding (smtp, sets the Content-Transfer-Encoding header)
+     *   subject (smtp, subject header)
+     *   headers (smtp, array-hash of extra smtp headers)
+     *
+     * @return array of results
+     * @access public
+     */
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $soap_data = $this->__generate($method, $params, $namespace, $soapAction);
@@ -239,12 +253,35 @@ class SOAP_Client extends SOAP_Base
         $this->__attachments =& $soap_transport->transport->attachments;
         $this->__result_encoding = $soap_transport->result_encoding;
         unset($soap_transport);
-        
+
         if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
-        
+
         return $this->__parse($this->xml, $this->__result_encoding,$this->__attachments);
     }
-    
+
+    /**
+     * Sets option to use with the transports layers.
+     *
+     * An example of such use is
+     * $soapclient->setopt('curl', CURLOPT_VERBOSE, 1)
+     * to affect an option when using SSL connections
+     *
+     * The category has to be a registered one.
+     *
+     * @access public
+     * @param  string  $category  category to which the option applies
+     * @param  string  $option    option name
+     * @param  string  $value     option value
+     * @return void
+     * @see    SOAP_Client::__optionCategories
+     */
+    function setOpt($category, $option, $value)
+    {
+        if (in_array($category, $this->__optionCategories)) {
+            $this->__options[$category][$option] = $value;
+        }
+    }
+
     /**
     * SOAP_Client::__call
     *
@@ -267,12 +304,12 @@ class SOAP_Client extends SOAP_Base
         $return_value = $this->call($method, $args);
         return TRUE;
     }
-    
+
     function &__getlastrequest()
     {
         return $this->__last_request;
     }
-    
+
     function &__getlastresponse()
     {
         return $this->__last_response;
@@ -282,17 +319,17 @@ class SOAP_Client extends SOAP_Base
     {
         $this->__options['use'] = $use;
     }
-    
+
     function __style($style)
     {
         $this->__options['style'] = $style;
     }
-    
+
     function __trace($level)
     {
         $this->__options['trace'] = $level;
     }
-    
+
     function &__generate($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $this->fault = null;
@@ -313,7 +350,7 @@ class SOAP_Client extends SOAP_Base
             $this->__options['soapaction'] = $soapAction;
             $this->__options['namespace'] = $namespace;
         }
-        
+
         if ($this->__endpointType == 'wsdl') {
             $this->_setSchemaVersion($this->_wsdl->xsd);
             // get portName
@@ -332,7 +369,7 @@ class SOAP_Client extends SOAP_Base
 
             // get operation data
             $opData = $this->_wsdl->getOperationData($this->_portName, $method);
-            
+
             if (PEAR::isError($opData)) {
                 return $this->_raiseSoapFault($opData);
             }
@@ -367,7 +404,7 @@ class SOAP_Client extends SOAP_Base
                         !is_a($nparams[$name],'soap_value')) {
                         // type is a qname likely, split it apart, and get the type namespace from wsdl
                         $qname = new QName($part['type']);
-                        if ($qname->ns) 
+                        if ($qname->ns)
                             $type_namespace = $this->_wsdl->namespaces[$qname->ns];
                         else if (isset($part['namespace']))
                             $type_namespace = $this->_wsdl->namespaces[$part['namespace']];
@@ -388,11 +425,11 @@ class SOAP_Client extends SOAP_Base
         } else {
             $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
-        
+
         // serialize the message
         $this->_section5 = TRUE; // assume we encode with section 5
         if (isset($this->__options['use']) && $this->__options['use']=='literal') $this->_section5 = FALSE;
-        
+
         if (!isset($this->__options['style']) || $this->__options['style'] == 'rpc') {
             $this->__options['style'] = 'rpc';
             $this->docparams = true;
@@ -426,7 +463,7 @@ class SOAP_Client extends SOAP_Base
         if (PEAR::isError($soap_msg)) {
             return $this->_raiseSoapFault($soap_msg);
         }
-        
+
         // handle Mime or DIME encoding
         // XXX DIME Encoding should move to the transport, do it here for now
         // and for ease of getting it done
@@ -442,7 +479,7 @@ class SOAP_Client extends SOAP_Base
                 return $this->_raiseSoapFault($soap_msg);
             }
         }
-        
+
         // instantiate client
         if (is_array($soap_msg)) {
             $soap_data = $soap_msg['body'];
@@ -472,11 +509,11 @@ class SOAP_Client extends SOAP_Base
         if ($headers) {
             $this->headersIn = $this->__decodeResponse($headers,false);
         }
-        
-        return $this->__decodeResponse($return); 
+
+        return $this->__decodeResponse($return);
     }
 
-    function &__decodeResponse($response,$shift=true) 
+    function &__decodeResponse($response,$shift=true)
     {
         if (!$response) return NULL;
         // check for valid response
@@ -515,7 +552,7 @@ class SOAP_Client extends SOAP_Base
         }
         return $returnArray;
     }
-    
+
     function __get_wire()
     {
         if ($this->__options['trace'] > 0) {
