@@ -29,6 +29,8 @@
     <date>2003-??-??</date>
     <notes>
     * timeout reporting on HTTP transmission (now returns an error)
+    * typo in WSDL.php on a variable test
+    * better error reporting of HTTP response
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
