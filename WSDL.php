@@ -394,16 +394,16 @@ class SOAP_WSDL extends SOAP_Base
         if (!$this->_validateString($classname)) return NULL;
         
         if (is_array($this->proxy) && count($this->proxy) > 0) {            
-            $class = "class $classname extends SOAP_Client {\n".
-            "    function $classname() {\n".
+            $class = "class $classname extends SOAP_Client\n{\n".
+            "    function $classname()\n{\n".
             "        \$this->SOAP_Client(\"$clienturl\", 0, 0, 
-                    array(";                    
+                    array(";
 
             foreach($this->proxy as $key => $val) {
                 if (is_array($val)) {
                     $class .= "\"$key\" => array(";
                     foreach ($val as $key2 => $val2) {
-                        $class .= "\"$key2\" => $val2\",";
+                        $class .= "\"$key2\" => \"$val2\",";
                     }
                     $class .= ')';
                 } else {
@@ -413,8 +413,8 @@ class SOAP_WSDL extends SOAP_Base
             $class .= "));\n }\n";
             $class = str_replace(',))', '))', $class);
         } else {                
-            $class = "class $classname extends SOAP_Client {\n".
-            "    function $classname() {\n".
+            $class = "class $classname extends SOAP_Client\n{\n".
+            "    function $classname()\n{\n".
             "        \$this->SOAP_Client(\"$clienturl\", 0);\n".
             "    }\n";      
         }  
