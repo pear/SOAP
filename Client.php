@@ -147,6 +147,7 @@ class SOAP_Client extends SOAP_Base
         $this->fault = null;
 
         if ($this->endpointType == 'wsdl') {
+            $this->setSchemaVersion($this->wsdl->xsd);
             // get portName
             if (!$this->portName) {
                 $this->portName = $this->wsdl->getPortName($method);
@@ -274,6 +275,16 @@ class SOAP_Client extends SOAP_Base
             return $returnArray;
         }
         return $returnArray;
+    }
+
+    function setSchemaVersion($schemaVersion)
+    {
+        global $SOAP_namespaces;
+        $this->XMLSchemaVersion = $schemaVersion;
+        $tmpNS = array_flip($SOAP_namespaces);
+        $tmpNS['xsd'] = $this->XMLSchemaVersion;
+        $tmpNS['xsi'] = $this->XMLSchemaVersion.'-instance';
+        $SOAP_namespaces = array_flip($tmpNS);
     }
     
     /**

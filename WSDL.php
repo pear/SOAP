@@ -49,6 +49,7 @@ class SOAP_WSDL extends SOAP_Base
     var $definition = array();
     var $namespaces = array();
     var $ns = array();
+    var $xsd = SOAP_XML_SCHEMA_VERSION;
     var $complexTypes = array();
     var $messages = array();
     var $portTypes = array();
@@ -380,6 +381,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
     
     // start-element handler
     function startElement($parser, $name, $attrs) {
+        global $SOAP_XMLSchema;
+        
         // get element prefix
         $qname = new QName($name);
         if ($qname->ns) {
@@ -599,6 +602,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     if ($key == 'targetNamespace' ||
                         strcasecmp($value,SOAP_SCHEMA)==0) {
                         $this->soapns[] = strtolower($qn->name);
+                    } else
+                    if (in_array($value, $SOAP_XMLSchema)) {
+                        $this->wsdl->xsd = $value;
                     }
                 }
             }
