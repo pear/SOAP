@@ -69,6 +69,7 @@ define('SOAP_SCHEMA',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SOAP_SCHEMA_ENCODING',      'http://schemas.xmlsoap.org/soap/encoding/');
 define('SOAP_ENVELOP',              'http://schemas.xmlsoap.org/soap/envelope/');
 define('SOAP_INTEROPORG',           'http://soapinterop.org/xsd');
+#define('SOAP_APACHE',               'http://xml.apache.org/xml-soap');
 
 $SOAP_XMLSchema = array(SOAP_XML_SCHEMA_VERSION, SOAP_XML_SCHEMA_1999);
 
@@ -78,7 +79,7 @@ $SOAP_typemap[SOAP_XML_SCHEMA_VERSION] = array(
         'boolean' => 'boolean',
         'float' => FLOAT,
         'double' => 'double',
-        'decimal' => 'integer',
+        'decimal' => FLOAT,
         'duration' => 'integer',
         'dateTime' => 'string',
         'time' => 'string',
@@ -133,6 +134,7 @@ $SOAP_typemap[SOAP_XML_SCHEMA_1999] = array(
         );
 $SOAP_typemap[SOAP_INTEROPORG] = array('SOAPStruct' => 'array');
 $SOAP_typemap[SOAP_SCHEMA_ENCODING] = array('base64' => 'string','array' => 'array','Array' => 'array', 'Struct'=>'array');
+#$SOAP_typemap[SOAP_APACHE] = array('Map' => 'array');
 
 // load namespace uris into an array of uri => prefix
 $SOAP_namespaces_default = array(
@@ -153,7 +155,6 @@ function soap_reset_namespaces() {
 $SOAP_Encodings = array('ISO-8859-1','US-ASCII','UTF-8');
 define('SOAP_DEFAULT_ENCODING',  'US-ASCII');
 
-$SOAP_xmlEntities = array('quot' => '"','amp' => '&',
-	'lt' => '<','gt' => '>','apos' => "'");
+$SOAP_xmlEntities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
     
 ?>

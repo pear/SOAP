@@ -206,7 +206,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _parseResponse()
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
-            #$this->response = preg_replace("/[\r|\n]/", ' ', $match[2]);
+            #$this->response = preg_replace("/[\r|\n]/", '', $match[2]);
             $this->response = $match[2];
             // find the response error, some servers response with 500 for soap faults
             if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&

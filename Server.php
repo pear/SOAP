@@ -87,6 +87,7 @@ class SOAP_Server {
     var $endpoint = ''; // the uri to ME!
     
     var $service = ''; //soapaction header
+    var $method_namespace = NULL;
     
     function SOAP_Server() {
         ini_set('track_errors',1);
@@ -119,9 +120,11 @@ class SOAP_Server {
         $payload = $response->serialize($this->response_encoding);
         // print headers
         if ($this->soapfault) {
-            $header[] = "Status: 500 Internal Server Error\r\n";
+            #$header[] = "Status: 500 Internal Server Error\r\n";
+            $header[] = "HTTP/1.1 500 Soap Fault\r\n";
         } else {
-            $header[] = "Status: 200 OK\r\n";
+            #$header[] = "Status: 200 OK\r\n";
+            $header[] = "HTTP/1.1 200 OK\r\n";
         }
 
         $header[] = 'Server: ' . SOAP_LIBRARY_NAME . "\r\n";
@@ -172,7 +175,11 @@ class SOAP_Server {
 
                 foreach ($return_type as $key => $type) {
                     if (is_numeric($key)) $key = 'item';
-                    $return_val[] = new SOAP_Value($key,$type,$method_response[$i++],$namespace);
+                    if (get_class($method_response[$i]) == 'soap_value') {
+                        $return_val[] = $method_response[$i++];
+                    } else {
+                        $return_val[] = new SOAP_Value($key,$type,$method_response[$i++],$namespace);
+                    }
                 }
             } else {
                 if (is_array($return_type)) {
@@ -191,13 +198,6 @@ class SOAP_Server {
     {
         global $_ENV, $_SERVER, $SOAP_Encodings;
         
-        // get headers
-        // get SOAPAction header
-        if ($headers_array['SOAPAction']) {
-            $this->SOAPAction = str_replace('"','',$_ENV['HTTP_SOAPACTION']);
-            $this->service = $this->SOAPAction;
-        }
-
         // get the character encoding of the incoming request
         // treat incoming data as UTF-8 if no encoding set
         $this->xml_encoding = 'UTF-8';
@@ -249,7 +249,10 @@ class SOAP_Server {
             // handle headers now
             foreach ($request_headers->value as $header_val) {
                 $f_exists = $this->validateMethod($header_val->name);
+                
+                # XXX this does not take into account message routing yet
                 $myactor = (
+                    !$header_val->actor ||
                     $header_val->actor == 'http://schemas.xmlsoap.org/soap/actor/next' ||
                     $header_val->actor == $this->endpoint);
                 
@@ -286,7 +289,7 @@ class SOAP_Server {
 
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname)) {
-            $this->makeFault('Server',"method '$this->methodname' not defined in service '$this->service'");
+            $this->makeFault('Server',"method '$this->methodname' not defined in service");
             return $this->getFaultMessage();
         }
 
@@ -300,7 +303,7 @@ class SOAP_Server {
         
         // verify that SOAP_Value objects in request match the methods signature
         if (!$this->verifyMethod($request_val)) {
-            $this->makeFault('Server','request failed validation against method signature');
+            // verifyMethod creates the fault
             return $this->getFaultMessage();
         }
         
@@ -316,7 +319,10 @@ class SOAP_Server {
         }
         
         // get the method result
-        $return_val = $this->buildResult($method_response, $this->return_type, $this->methodname);
+        if (is_null($method_response))
+            $return_val = NULL;
+        else
+            $return_val = $this->buildResult($method_response, $this->return_type);
         
         // response object is a soap_msg object
         $return_msg =  new SOAP_Message();
@@ -328,7 +334,7 @@ class SOAP_Server {
             }
         }
         
-        $return_msg->method($this->methodname.'Response',$return_val,$this->service);
+        $return_msg->method($this->methodname.'Response',$return_val,$this->method_namespace);
 
         if ($this->debug_flag) {
             $return_msg->debug_flag = true;
@@ -344,10 +350,24 @@ class SOAP_Server {
         //return true;
         $params = $request->value;
 
+        // get the dispatch map if one exists
+        $map = NULL;
+        if (array_key_exists($this->methodname, $this->dispatch_map)) {
+            $map = $this->dispatch_map[$this->methodname];
+        } else if ($this->soapobject) {
+            $obv = get_object_vars($this->soapobject);
+            if (array_key_exists('dispatch_map',$obv) &&
+                array_key_exists($this->methodname, $this->soapobject->dispatch_map)) {
+                    $map = $this->soapobject->dispatch_map[$this->methodname];
+            }
+        }
+        // we'll let it through
+        if (!$map) return TRUE;
+        
         // if there are input parameters required...
-        if ($sig = $this->dispatch_map[$this->methodname]['in']) {
+        if ($sig = $map['in']) {
             $this->input_value = count($sig);
-            $this->return_type = $this->getReturnType($this->methodname);
+            $this->return_type = $this->getReturnType($map['out']);
             if (is_array($params)) {
                 // validate the number of parameters
                 if (count($params) == count($sig)) {
@@ -361,10 +381,10 @@ class SOAP_Server {
                         // type not match
                         // if soap types do not match, we ok it if the mapped php types match
                         // this allows using plain php variables to work (ie. stuff like Decimal would fail otherwise)
-                        // XXX we should do further validation of the value of the type
+                        // we only error if the types exist in our type maps, and they differ
                         if (strcasecmp($sig_t[$i],$p[$i])!=0 &&
-                            !(isset($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]]) &&
-                            strcasecmp($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])==0)) {
+                            (isset($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]]) &&
+                            strcasecmp($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])!=0)) {
 
                             $param = $params[$i];
                             $this->makeFault('Client',"soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])));
@@ -383,22 +403,19 @@ class SOAP_Server {
                 return false;
             }
         // no params
-        } elseif (count($params)==0) {
-            $this->input_values = 0;
-            return true;
         }
         // we'll try it anyway
         return true;
     }
     
     // get string return type from dispatch map
-    function getReturnType($methodname)
+    function getReturnType($returndata)
     {
-        if (is_array($this->dispatch_map[$methodname]['out'])) {
-            if (count($this->dispatch_map[$methodname]['out']) > 1) {
-                return $this->dispatch_map[$methodname]['out'];
+        if (is_array($returndata)) {
+            if (count($returndata) > 1) {
+                return $returndata;
             }
-            $type = array_shift($this->dispatch_map[$methodname]['out']);
+            $type = array_shift($returndata);
             return $type;
         }
         return false;
@@ -408,12 +425,21 @@ class SOAP_Server {
     {
         $this->soapobject =  NULL;
         /* if it's in our function list, ok */
-        if (array_key_exists($methodname, $this->dispatch_map))
+        if (array_key_exists($methodname, $this->dispatch_map)) {
+            $this->method_namespace = $this->dispatch_map[$methodname]['namespace'];
             return TRUE;
+        }
         
         /* if it's in an object, it's ok */
         foreach ($this->dispatch_objects as $obj) {
             if (method_exists($obj, $methodname)) {
+                $this->method_namespace = $obj->method_namespace;
+                $obv = get_object_vars($obj);
+                if (array_key_exists('dispatch_map',$obv) &&
+                    array_key_exists($this->methodname, $this->soapobject->dispatch_map) &&
+                    array_key_exists('namespace', $this->soapobject->dispatch_map[$this->methodname])) {
+                        $this->method_namespace = $this->soapobject->dispatch_map[$this->methodname]['namespace'];
+                }
                 $this->soapobject =  &$obj;
                 return TRUE;
             }
@@ -427,7 +453,7 @@ class SOAP_Server {
     }
     
     // add a method to the dispatch map
-    function addToMap($methodname, $in, $out)
+    function addToMap($methodname, $in, $out, $namespace = NULL)
     {
         if (!function_exists($methodname)) {
             $this->makeFault('Server',"error mapping function\n");
@@ -435,6 +461,7 @@ class SOAP_Server {
         }
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;
+        $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
     }
     

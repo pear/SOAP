@@ -325,7 +325,7 @@ class Interop_Client
     * @return boolean result
     * @access public
     */    
-    function compareResult($expect, $result)
+    function compareResult($expect, $result, $type = NULL)
     {
         $ok = 0;
         $expect_type = gettype($expect);
@@ -334,7 +334,10 @@ class Interop_Client
             # compare arrays
             $ok = array_compare($expect, $result);
         } else {
-            $ok = string_compare($expect, $result);
+            if ($type == 'boolean')
+                $ok = boolean_compare($expect, $result);
+            else
+                $ok = string_compare($expect, $result);
         }
         return $ok;
     }
@@ -445,12 +448,12 @@ class Interop_Client
             }
 
             # we need to decode what we sent so we can compare!
-            $sent = $this->decodeSoapval($sent);
+            $sent_d = $this->decodeSoapval($sent);
             
             $soap_test->result['sent'] = $sent;
             $soap_test->result['return'] = $return;
             // compare the results with what we sent
-            $ok = $this->compareResult($sent,$return);
+            $ok = $this->compareResult($sent_d,$return, $sent->type);
             if (!$ok && $soap_test->expect) {
                 $ok = $this->compareResult($soap_test->expect,$return);
             }

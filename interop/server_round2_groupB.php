@@ -22,10 +22,15 @@
 require_once 'SOAP/Server.php';
 
 class SOAP_Interop_GroupB {
+    var $method_namespace = 'http://soapinterop.org/';
+    var $dispatch_map = array();
+    
     function SOAP_Interop_GroupB() {
-#	$server->addToMap('echoStructAsSimpleTypes',
-#		  array('inputStruct' => 'struct'),
-#		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'));
+	$this->dispatch_map['echoStructAsSimpleTypes'] =
+		array('in' => array('inputStruct' => 'SOAPStruct'),
+		      'out' => array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float')
+		      );
+	
 #        $server->addToMap('echoSimpleTypesAsStruct',
 #		      array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'),
 #		      array('return' => 'struct'));
@@ -36,24 +41,25 @@ class SOAP_Interop_GroupB {
     function echoStructAsSimpleTypes ($struct)
     {
 	# convert a SOAPStruct to an array
+	$vals = array_values($struct);
+	return array(
+	    new SOAP_Value('outputString','string',$struct['varString']),
+	    new SOAP_Value('outputInteger','int',$struct['varInt']),
+	    new SOAP_Value('outputFloat','float',$struct['varFloat'])
+	    );
 	return array_values($struct);
     }
 
     function echoSimpleTypesAsStruct($string, $int, $float)
     {
 	# convert a input into struct
-	/*$ret = new SOAP_Value("return","struct",
+	$ret = new SOAP_Value('return','Struct',
 		array( #push struct elements into one soap value
-		    new SOAP_Value("varString","string",$string),
-		    new SOAP_Value("varInt","int",$int),
-		    new SOAP_Value("varFloat","float",$float)
+		    new SOAP_Value('varString','string',$string),
+		    new SOAP_Value('varInt','int',(int)$int),
+		    new SOAP_Value('varFloat','float',(FLOAT)$float)
 		)
-	    );*/
-	$ret = array(
-	    "varString"=>$string,
-	    "varInt"=>$int,
-	    "varFloat"=>$float
-	);
+	    );
 	return $ret;
     }
 
@@ -64,7 +70,9 @@ class SOAP_Interop_GroupB {
 
     function echo2DStringArray($ary)
     {
-	return $ary;
+	$ret = new SOAP_Value('return','Array',$ary);
+	$ret->flattenArray = TRUE;
+	return $ret;
     }
 
     function echoNestedArray($ary)

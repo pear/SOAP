@@ -22,14 +22,16 @@ require_once 'SOAP/Server.php';
 require_once 'SOAP/Header.php';
 
 class SOAP_Interop_GroupC {
+    var $method_namespace = 'http://soapinterop.org/echoheader/';
+    
     function echoMeStringRequest($string)
     {
-	return new SOAP_Value('echoMeStringResponse','string',$string);
+	return new SOAP_Value('echoMeStringResponse','string',$string, $this->method_namespace);
     }
 
     function echoMeStructRequest($struct)
     {
-	return new SOAP_Value('echoMeStructResponse','SOAPStruct',$struct);
+	return new SOAP_Value('echoMeStructResponse','SOAPStruct',$struct, $this->method_namespace);
     }
 }
 

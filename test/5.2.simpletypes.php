@@ -1,5 +1,6 @@
 <?php
 require_once("SOAP/test/test.utility.php");
+require_once("SOAP/Fault.php");
 $prefix = "5.2 Simple Types";
 
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
@@ -23,6 +24,23 @@ if (array_compare($expect, $val)) {
 } else {
     print "$prefix Deserialize Message FAILED extected $expect, got $val\n";
 }
+
+# parse null value
+$msg = '<?xml version="1.0" encoding="UTF-8"?>
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<SOAP-ENV:Body>
+<ns1:echoVoidResponse xmlns:ns1="http://soapinterop.org/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+</ns1:echoVoidResponse>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>';
+$val = parseMessage($msg);
+if ($val == NULL) {
+    print "$prefix Deserialize Message with NULL value OK\n";
+} else {
+    print "$prefix Deserialize Message with NULL value FAILED\n";
+}
+
 # serialize a soap value
 $expect = '<inputStruct>
 <age xsi:type="xsd:int">45</age>

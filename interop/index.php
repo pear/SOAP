@@ -21,7 +21,7 @@ at <a href="http://www.whitemesa.com/interop.htm">White Mesa</a>.</p>
 <p>Currently Round 2 base, Group B and Group C interop tests are enabled.</p>
 
 <h3>Round 2 Interop Server</h3>
-Endpoint: <?php echo 'http://'.$_SERVER['SERVER_NAME']."/interop/server_round2.php"; ?><br>
+Endpoint: <?php echo $endpoint; ?><br>
 Base WSDL: <a href="<?php echo $base ?>"><?php echo $base ?></a><br>
 Group B WSDL: <a href="<?php echo $groupb ?>"><?php echo $groupb ?></a><br>
 Group C WSDL: <a href="<?php echo $groupc ?>"><?php echo $groupc ?></a><br>

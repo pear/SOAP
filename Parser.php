@@ -61,7 +61,8 @@ class SOAP_Parser extends SOAP_Base
     var $references = array();
     var $need_references = array();
     var $XMLSchemaVersion;
-
+    var $bodyDepth; // used to handle non-root elements before root body element
+    
     function SOAP_Parser($xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('Parser');
@@ -74,6 +75,11 @@ class SOAP_Parser extends SOAP_Base
         if (preg_match('/<\?xml.*?encoding=(?:[\'|"])([\w\d-]*)?.*?(?:[\'|"])\?>/',$xml,$m)) {
             $this->xml_encoding = strtoupper($m[1]);
         }
+        
+        # XXX need to do this better, remove newlines after > or before <
+        $this->xml = preg_replace("/>[\r\n|\n]/", '>', $this->xml);
+        $this->xml = preg_replace("/[\r\n|\n]</", '<', $this->xml);
+        
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($this->xml)) {
@@ -223,20 +229,22 @@ class SOAP_Parser extends SOAP_Base
             $this->message[$pos]['type'] = 'Struct';
         } elseif (strcasecmp('body',$qname->name)==0) {
             $this->status = 'body';
+            $this->bodyDepth = $this->depth;
         // set method
         } elseif ($this->status == 'body') {
             // is this element allowed to be a root?
             // XXX this needs to be optimized, we loop through attrs twice now
-            $can_root = TRUE;
-            foreach ($attrs as $key => $value) {
-                if (stristr($key, ':root') && !$value) {
-                    $can_root = FALSE;
+            $can_root = $this->depth == $this->bodyDepth + 1;
+            if ($can_root) {
+                foreach ($attrs as $key => $value) {
+                    if (stristr($key, ':root') && !$value) {
+                        $can_root = FALSE;
+                    }
                 }
             }
 
-            $this->status = 'method';
-
             if ($can_root) {
+                $this->status = 'method';
                 $this->root_struct_name[] = $this->curent_root_struct_name = $qname->name;
                 $this->root_struct[] = $this->curent_root_struct = $pos;
                 $this->message[$pos]['type'] = 'Struct';
@@ -313,8 +321,11 @@ class SOAP_Parser extends SOAP_Base
                 if (array_key_exists($ref,$this->references)) {
                     # cdata, type, inval
                     $ref_pos = $this->references[$ref];
+                    $this->message[$pos]['children'] = &$this->message[$ref_pos]['children'];
                     $this->message[$pos]['cdata'] = &$this->message[$ref_pos]['cdata'];
                     $this->message[$pos]['type'] = &$this->message[$ref_pos]['type'];
+                    $this->message[$pos]['arraySize'] = &$this->message[$ref_pos]['arraySize'];
+                    $this->message[$pos]['arrayType'] = &$this->message[$ref_pos]['arrayType'];
                 } else {
                     # reverse reference, store in 'need reference'
                     if (!is_array($this->need_references[$ref])) $this->need_references[$ref] = array();
@@ -380,7 +391,7 @@ class SOAP_Parser extends SOAP_Base
                 $this->message[$ref_pos]['arrayType'] = &$this->message[$pos]['arrayType'];
             }
             # wipe out our waiting list
-            $this->need_references[$idref] = array();
+            # $this->need_references[$idref] = array();
         }
     }
     

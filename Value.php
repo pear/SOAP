@@ -390,11 +390,11 @@ class SOAP_Value extends SOAP_Base
         
         if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
         if (is_null($xmlout_value)) {
-            $xml = "<{$xmlout_name}{$xmlout_type}/>\r\n";
+            $xml = "\r\n<{$xmlout_name}{$xmlout_type}/>";
         } else {
-            $xml = "<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
+            $xml = "\r\n<{$xmlout_name}{$xmlout_type}{$xmlout_arrayType}{$xmlout_offset}".
                 $this->xmlout_extra.">".
-                $xmlout_value."</$xmlout_name>\r\n";
+                $xmlout_value."</$xmlout_name>";
         }        
         return $xml;
     }

@@ -135,7 +135,7 @@ class SOAP_Message extends SOAP_Base
 	    $payload .= $header->serialize();
 	}
 	if (!$payload) return NULL;
-        return "<SOAP-ENV:Header>\r\n$payload</SOAP-ENV:Header>\r\n";
+        return "<SOAP-ENV:Header>\r\n$payload\r\n</SOAP-ENV:Header>\r\n";
     }
     
     /**
@@ -148,7 +148,7 @@ class SOAP_Message extends SOAP_Base
     */
     function _makeBody($payload)
     {
-        return "<SOAP-ENV:Body>\r\n$payload</SOAP-ENV:Body>\r\n";
+        return "<SOAP-ENV:Body>\r\n$payload\r\n</SOAP-ENV:Body>\r\n";
     }
     
     /**

@@ -16,6 +16,15 @@ function number_compare($f1, $f2)
     return bccomp($f1, $f2, $d) == 0;
 }
 
+function boolean_compare($f1, $f2)
+{
+    if (($f1 == 'true' || $f1 === TRUE || $f1 != 0) &&
+        ($f2 == 'true' || $f2 === TRUE || $f2 != 0)) return TRUE;
+    if (($f1 == 'false' || $f1 === FALSE || $f1 == 0) &&
+        ($f2 == 'false' || $f2 === FALSE || $f2 == 0)) return TRUE;
+    return FALSE;
+}
+
 function string_compare($e1, $e2)
 {
     if (is_numeric($e1) && is_numeric($e2)) {

@@ -94,7 +94,7 @@ class SOAP_Transport extends SOAP_Base
         }
         $this->result_encoding = $this->transport->result_encoding;
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
-        #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
+        #echo "\n INCOMING: ".preg_replace("/></",">\n<!--CRLF added-->",$this->transport->incoming_payload)."\n\n";
         return $response;
     }
 
