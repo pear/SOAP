@@ -32,11 +32,13 @@ require_once 'Net/POP3.php';
 
 $server = new SOAP_Server_Email;
 
-/* bind some classes to the server, so it can actually do something.  These classes are part of the PEAR::SOAP library, and are based on the SOAPBuilder Interoperability tests. */
+/* tell server to translate to classes we provide if possible */
+$server->_auto_translation = true;
 
-require_once 'SOAP/interop/server_round2_base.php';
-require_once 'SOAP/interop/server_round2_groupB.php';
-require_once 'SOAP/interop/server_round2_groupC.php';
+require_once 'example_server.php';
+
+$soapclass = new SOAP_Example_Server();
+$server->addObjectMap($soapclass,'urn:SOAP_Example_Server');
 
 
 /* Connect to a POP3 server and read the messages */

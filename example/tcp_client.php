@@ -13,22 +13,32 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Shane Caraveo <Shane@Caraveo.com>                           |
+// | Authors: Shane Hanna <iordy_at_iordy_dot_com>                        |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
 
-// first, include the SOAP/Server class
-require_once 'SOAP/Server.php';
+require_once('SOAP/Client.php');
 
-$server = new SOAP_Server;
-/* tell server to translate to classes we provide if possible */
-$server->_auto_translation = true;
+# client
+$soapclient = new SOAP_Client("tcp://127.0.0.1:82");
 
-require_once 'example_server.php';
+# namespace
+$options = array('namespace' => 'urn:SOAP_Example_Server', 'trace' => 1);
 
-$soapclass = new SOAP_Example_Server();
-$server->addObjectMap($soapclass,'urn:SOAP_Example_Server');
-$server->service($HTTP_RAW_POST_DATA);
+# one
+$params = array("string" => "this is string 1");
+$ret1 = $soapclient->call("echoString", $params, $options);
+# echo "WIRE: \n".$soapclient->__get_wire();
+print_r($ret1);
+echo "<br />\n";
+
+# two
+$params = array("string" => "this is string 2");
+$ret2 = $soapclient->call("echoString", $params, $options);
+# echo "WIRE: \n".$soapclient->__get_wire();
+print_r($ret2);
+echo "<br />\n";
+
 ?>

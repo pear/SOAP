@@ -31,10 +31,13 @@ require_once 'SOAP/Server/Email.php';
 
 $server = new SOAP_Server_Email;
 
-# include the soap classes
-require_once 'SOAP/interop/server_round2_base.php';
-require_once 'SOAP/interop/server_round2_groupB.php';
-require_once 'SOAP/interop/server_round2_groupC.php';
+/* tell server to translate to classes we provide if possible */
+$server->_auto_translation = true;
+
+require_once 'example_server.php';
+
+$soapclass = new SOAP_Example_Server();
+$server->addObjectMap($soapclass,'urn:SOAP_Example_Server');
 
 # read stdin
 $fin = fopen('php://stdin','rb');

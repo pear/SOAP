@@ -27,20 +27,24 @@ $soapclient = new SOAP_Client("http://localhost/SOAP/example/server.php");
 $options = array('namespace' => 'urn:SOAP_Example_Server',
                  'trace' => 1);
 
-$ret = $soapclient->call("echoStringSimple",array("inputString"=>"this is a test string"),$options);
+$params = array("inputString"=>"this is a test string");
+$ret = $soapclient->call("echoStringSimple",$params,$options);
 #print $soapclient->__get_wire();
 print_r($ret);echo "<br>\n";
 
-$ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$options);
+$params = array("inputString"=>"this is a test string");
+$ret = $soapclient->call("echoString",$params,$options);
 print_r($ret);echo "<br>\n";
 
-$ret = $soapclient->call("divide",array("dividend"=>22,"divisor"=>7),$options);
+$params = array("dividend"=>22,"divisor"=>7);
+$ret = $soapclient->call("divide",$params,$options);
 if (PEAR::isError($ret))
     print("Error: " . $ret->getMessage() . "<br>\n");
 else
     print("Quotient is " . $ret . "<br>\n");
 
-$ret = $soapclient->call("divide",array("dividend"=>22,"divisor"=>0),$options);
+$params = array("dividend"=>22,"divisor"=>0);
+$ret = $soapclient->call("divide",$params,$options);
 if (PEAR::isError($ret))
     print("Error: " . $ret->getMessage() . "<br>\n");
 else
@@ -69,10 +73,10 @@ $soapclient->_auto_translation = true;
    and may not be desireable.  both can be used on client or
    server */
 $soapclient->__set_type_translation('{http://soapinterop.org/xsd}SOAPStruct','SOAPStruct');
-$ret = $soapclient->call("echoStruct",
-            array(new SOAP_Value('inputStruct',
+$params =array(new SOAP_Value('inputStruct',
                                  '{http://soapinterop.org/xsd}SOAPStruct',
-                                 $struct)),$options);
+                                 $struct));
+$ret = $soapclient->call("echoStruct",$params,$options);
 #print $soapclient->__get_wire();
 print_r($ret);
 

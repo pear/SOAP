@@ -44,5 +44,5 @@ fclose($fin);
 
 # doit!
 $server = new SOAP_Server_Email_Gateway();
-$server->service($data, 'http://localhost/soap_interop/server_round2.php');
+$server->service($data, 'http://localhost/soap/example/server.php');
 ?>

@@ -20,9 +20,9 @@
 //
 
 // first, include the SOAP/Server class
-require_once 'SOAP/Server.php';
+require_once 'SOAP/Server/TCP.php';
 
-$server = new SOAP_Server;
+$server = new SOAP_Server_TCP("127.0.0.1",82);
 /* tell server to translate to classes we provide if possible */
 $server->_auto_translation = true;
 
@@ -30,5 +30,5 @@ require_once 'example_server.php';
 
 $soapclass = new SOAP_Example_Server();
 $server->addObjectMap($soapclass,'urn:SOAP_Example_Server');
-$server->service($HTTP_RAW_POST_DATA);
+$server->run();
 ?>
