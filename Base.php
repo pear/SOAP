@@ -596,7 +596,7 @@ class SOAP_Base extends SOAP_Base_Object
                 $type = 'Struct';
             } else {
                 $ar_size = count($value);
-                if ($ar_size > 0 && is_a($value[0],'soap_value')) {
+                if ($ar_size > 0 && isset($value[0]) && is_a($value[0],'soap_value')) {
                     // fixme for non-wsdl structs that are all teh same type
                     if ($ar_size > 1 &&
                         $this->_isSoapValue($value[0]) &&
