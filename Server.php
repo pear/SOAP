@@ -458,11 +458,14 @@ class SOAP_Server extends SOAP_Base
         
         /* if it's in an object, it's ok */
         if (isset($this->dispatch_objects[$namespace])) {
-            $obj =& $this->dispatch_objects[$namespace];
-            if (method_exists($obj, $methodname)) {
-                $this->method_namespace = $namespace;
-                $this->soapobject =& $obj;
-                return TRUE;
+            $c = count($this->dispatch_objects[$namespace]);
+            for ($i=0; $i < $c; $i++) {
+                $obj =& $this->dispatch_objects[$namespace][$i];
+                if (method_exists($obj, $methodname)) {
+                    $this->method_namespace = $namespace;
+                    $this->soapobject =& $obj;
+                    return TRUE;
+                }
             }
         }
         return FALSE;
@@ -479,7 +482,10 @@ class SOAP_Server extends SOAP_Base
                 return FALSE;
             }
         }
-        $this->dispatch_objects[$namespace] =& $obj;
+        if (!isset($this->dispatch_objects[$namespace])) {
+            $this->dispatch_objects[$namespace] = array();
+        }
+        $this->dispatch_objects[$namespace][] =& $obj;
         return TRUE;
     }
     
