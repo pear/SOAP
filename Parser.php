@@ -76,7 +76,7 @@ class SOAP_Parser extends SOAP_Base
             // prepare the xml parser
             $parser = xml_parser_create($this->xml_encoding);
             xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-            xml_set_object($parser, &$this);
+            xml_set_object($parser, $this);
             xml_set_element_handler($parser, 'startElement','endElement');
             xml_set_character_data_handler($parser,'characterData');
 
