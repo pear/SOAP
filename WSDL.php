@@ -1135,10 +1135,19 @@ class SOAP_WSDL_Parser extends SOAP_Base
             case 'extension':
             case 'restriction':
                 if ($this->schemaStatus == 'complexType') {
-                    if ($attrs['base']) {
+                    if (!empty($attrs['base'])) {
                         $qn =& new QName($attrs['base']);
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = $qn->name;
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $qn->ns;
+
+                        // Types that extend from other types aren't
+                        // *of* those types. Reflect this by denoting
+                        // which type they extend. I'm leaving the
+                        // 'type' setting here since I'm not sure what
+                        // removing it might break at the moment.
+                        if ($qname->name == 'extension') {
+                            $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['extends'] = $qn->name;
+                        }
                     } else {
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Struct';
                     }
