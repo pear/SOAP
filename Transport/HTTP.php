@@ -579,7 +579,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         curl_setopt($ch, CURLOPT_POSTFIELDS,     $msg);
         curl_setopt($ch, CURLOPT_URL,            $this->url);
         curl_setopt($ch, CURLOPT_POST,           1);
-        curl_setopt($ch, CURLOPT_FAILONERROR,    1);
+        curl_setopt($ch, CURLOPT_FAILONERROR,    0);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER,         1);
