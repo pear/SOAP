@@ -30,7 +30,6 @@
  * Needed Classes
  */
 require_once 'SOAP/Base.php';
-require_once 'Net/DIME.php';
 
 /**
  *  HTTP Transport for SOAP
@@ -40,7 +39,7 @@ require_once 'Net/DIME.php';
  * @package SOAP::Transport::HTTP
  * @author Shane Caraveo <shane@php.net>
  */
-class SOAP_Transport_HTTP extends SOAP_Base_Object
+class SOAP_Transport_HTTP extends SOAP_Base
 {
     /**
      * Basic Auth string
@@ -125,7 +124,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
      */
     function SOAP_Transport_HTTP($URL, $encoding = SOAP_DEFAULT_ENCODING)
     {
-        parent::SOAP_Base_Object('HTTP');
+        parent::SOAP_Base('HTTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
         $this->encoding = $encoding;
@@ -382,11 +381,17 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
 
             if ($this->result_content_type == 'application/dime') {
                 // XXX quick hack insertion of DIME
-                $this->_decodeDIMEMessage($this->response,$this->headers,$this->attachments);
+                if (PEAR::isError($this->_decodeDIMEMessage($this->response,$this->headers,$this->attachments))) {
+                    // _decodeDIMEMessage already raised $this->fault
+                    return false;
+                }
                 $this->result_content_type = $this->headers['content-type'];
             } else if (stristr($this->result_content_type,'multipart/related')) {
                 $this->response = $this->incoming_payload;
-                $this->_decodeMimeMessage($this->response,$this->headers,$this->attachments);
+                if (PEAR::isError($this->_decodeMimeMessage($this->response,$this->headers,$this->attachments))) {
+                    // _decodeMimeMessage already raised $this->fault
+                    return false;
+                }
             } else if ($this->result_content_type != 'text/xml') {
                 $this->_raiseSoapFault($this->response);
                 return false;
