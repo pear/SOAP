@@ -72,13 +72,15 @@ if (version_compare(phpversion(), '4.1', '>=') &&
     define('FLOAT', 'float');
 }
 
-# for float support
-# is there a way to calculate INF for the platform?
-define('INF',   1.8e307);
-define('NAN',   0.0);
+if (!defined('INF')) {
+    define('INF',   1.8e307);
+}
+if (!defined('NAN')) {
+    define('NAN',   0.0);
+}
 
-define('SOAP_LIBRARY_VERSION', '0.8.0RC2');
-define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.8.0RC2-devel');
+define('SOAP_LIBRARY_VERSION', '0.8.0RC4');
+define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.8.0RC4-devel');
 
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
