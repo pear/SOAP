@@ -68,7 +68,7 @@ class SOAP_Transport extends SOAP_Base
 
         $urlparts = @parse_url($url);
 
-        if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'http') == 0) {
+        if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'https') == 0) {
             include_once('SOAP/Transport/HTTP.php');
             $this->transport = new SOAP_Transport_HTTP($url);
             return;

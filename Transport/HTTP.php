@@ -274,7 +274,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
         /* NOTE This function uses the CURL functions
         *  Your php must be compiled with CURL
         */
-        if (!extension_loaded('php_curl')) {
+        if (!extension_loaded('curl')) {
             $this->errno = -1;
             $this->errmsg = 'CURL Extension is required for HTTPS';
             return $this->raiseSoapFault($this->errmsg);
