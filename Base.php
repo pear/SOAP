@@ -55,10 +55,10 @@ if (class_exists('Net_DIME_Message')) {
 }
 
 /**
-* Enable debugging informations?
-*
-* @const    SOAP_DEBUG
-*/
+ * Enable debugging informations?
+ *
+ * @const    SOAP_DEBUG
+ */
 $GLOBALS['SOAP_DEBUG']=false;
 
 if (!function_exists('version_compare') ||
@@ -123,44 +123,47 @@ if (!class_exists('stdClass')) {
 class SOAP_Base_Object extends PEAR
 {
     /**
-    * Store debugging information in $debug_data?
-    *
-    * @var  boolean if true debugging informations will be store in $debug_data
-    * @see  $debug_data, SOAP_Base
-    */
+     * Store debugging information in $debug_data?
+     *
+     * @var  boolean if true debugging informations will be store in $debug_data
+     * @see  $debug_data, SOAP_Base
+     */
     var $_debug_flag = false;
 
     /**
-    * String containing debugging informations if $debug_flag is set to true
-    *
-    * @var      string  debugging informations - mostyl error messages
-    * @see      $debug_flag, SOAP_Base
-    * @access   public
-    */
+     * String containing debugging informations if $debug_flag is set to true
+     *
+     * @var      string  debugging informations - mostyl error messages
+     * @see      $debug_flag, SOAP_Base
+     * @access   public
+     */
     var $_debug_data = '';
 
-    # supported encodings, limited by XML extension
-    var $_encodings = array('ISO-8859-1','US-ASCII','UTF-8');
     /**
-    * Fault code
-    *
-    * @var  string
-    */
+     * supported encodings, limited by XML extension
+     */
+    var $_encodings = array('ISO-8859-1','US-ASCII','UTF-8');
+
+    /**
+     * Fault code
+     *
+     * @var  string
+     */
     var $_myfaultcode = '';
 
     /**
-    * Recent PEAR error object
-    *
-    * @var  object  PEAR Error
-    */
+     * Recent PEAR error object
+     *
+     * @var  object  PEAR Error
+     */
     var $fault = NULL;
 
     /**
-    * Constructor
-    *
-    * @param    string  error code
-    * @see  $debug_data, _debug()
-    */
+     * Constructor
+     *
+     * @param    string  error code
+     * @see  $debug_data, _debug()
+     */
     function SOAP_Base_Object($faultcode = 'Client')
     {
         $this->_myfaultcode = $faultcode;
@@ -169,22 +172,22 @@ class SOAP_Base_Object extends PEAR
     }
 
     /**
-    * Raise a soap error
-    *
-    * Please referr to the SOAP definition for an impression of what a certain parameter
-    * stands for.
-    *
-    * Use $debug_flag to store errors to the member variable $debug_data
-    *
-    * @param    string  error message
-    * @param    string  detailed error message.
-    * @param    string  actor
-    * @param    mixed
-    * @param    mixed
-    * @param    mixed
-    * @param    boolean
-    * @see      $debug_flag, $debug_data
-    */
+     * Raise a soap error
+     *
+     * Please referr to the SOAP definition for an impression of what a certain parameter
+     * stands for.
+     *
+     * Use $debug_flag to store errors to the member variable $debug_data
+     *
+     * @param    string  error message
+     * @param    string  detailed error message.
+     * @param    string  actor
+     * @param    mixed
+     * @param    mixed
+     * @param    mixed
+     * @param    boolean
+     * @see      $debug_flag, $debug_data
+     */
     function &_raiseSoapFault($str, $detail = '', $actorURI = '', $code = null, $mode = null, $options = null, $skipmsg = false)
     {
         # pass through previous faults
@@ -215,27 +218,28 @@ class SOAP_Base_Object extends PEAR
     }
 
     /**
-    * maintains a string of debug data
-    *
-    * @param    debugging message - sometimes an error message
-    */
+     * maintains a string of debug data
+     *
+     * @param    debugging message - sometimes an error message
+     */
     function _debug($string)
     {
         if ($this->_debug_flag) {
             $this->_debug_data .= get_class($this) . ': ' . preg_replace("/>/", ">\r\n", $string) . "\n";
         }
     }
+
 }
 
 /**
-*  SOAP_Base
-* Common base class of all Soap lclasses
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Client
-* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-*/
+ *  SOAP_Base
+ * Common base class of all Soap lclasses
+ *
+ * @access   public
+ * @version  $Id$
+ * @package  SOAP::Client
+ * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ */
 class SOAP_Base extends SOAP_Base_Object
 {
     var $_XMLSchema = array('http://www.w3.org/2001/XMLSchema', 'http://www.w3.org/1999/XMLSchema');
@@ -308,9 +312,9 @@ class SOAP_Base extends SOAP_Base_Object
 
     // load namespace uris into an array of uri => prefix
     var $_namespaces;
-    var $_ns_count = 0;
+    var $_namespace;
 
-    var $_xmlEntities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
+    var $_xmlEntities = array('&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;');
 
     var $_doconversion = FALSE;
 
@@ -319,23 +323,22 @@ class SOAP_Base extends SOAP_Base_Object
     var $_wsdl = NULL;
 
     /**
-    * section5
-    *
-    * @var  boolean  defines if we use section 5 encoding, or false if this is literal
-    */
+     * section5
+     *
+     * @var  boolean  defines if we use section 5 encoding, or false if this is literal
+     */
     var $_section5 = TRUE;
 
     // handle type to class mapping
     var $_auto_translation = false;
     var $_type_translation = array();
 
-
     /**
-    * Constructor
-    *
-    * @param    string  error code
-    * @see  $debug_data, _debug()
-    */
+     * Constructor
+     *
+     * @param    string  error code
+     * @see  $debug_data, _debug()
+     */
     function SOAP_Base($faultcode = 'Client')
     {
         parent::SOAP_Base_Object($faultcode);
@@ -352,14 +355,14 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     /**
-    * _setSchemaVersion
-    *
-    * sets the schema version used in the soap message
-    *
-    * @param string (see globals.php)
-    *
-    * @access private
-    */
+     * _setSchemaVersion
+     *
+     * sets the schema version used in the soap message
+     *
+     * @param string (see globals.php)
+     *
+     * @access private
+     */
     function _setSchemaVersion($schemaVersion)
     {
         if (!in_array($schemaVersion, $this->_XMLSchema)) {
@@ -374,19 +377,21 @@ class SOAP_Base extends SOAP_Base_Object
 
     function _getNamespacePrefix($ns)
     {
-        if (array_key_exists($ns,$this->_namespaces)) {
+        if ($this->_namespace && $ns == $this->_namespace) {
+            return '';
+        }
+        if (isset($this->_namespaces[$ns])) {
             return $this->_namespaces[$ns];
         }
-        $prefix = 'ns'.count($this->_namespaces);
+        $prefix = 'ns' . count($this->_namespaces);
         $this->_namespaces[$ns] = $prefix;
         return $prefix;
-        return NULL;
     }
 
     function _getNamespaceForPrefix($prefix)
     {
         $flipped = array_flip($this->_namespaces);
-        if (array_key_exists($prefix,$flipped)) {
+        if (array_key_exists($prefix, $flipped)) {
             return $flipped[$prefix];
         }
         return NULL;
@@ -397,7 +402,8 @@ class SOAP_Base extends SOAP_Base_Object
         return is_object($value) && is_a($value,'soap_value');
     }
 
-    function _serializeValue(&$value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array(), $artype='')
+    function _serializeValue(&$value, $name = '', $type = false, $elNamespace = null,
+                             $typeNamespace = null, $options = array(), $attributes = array(), $artype = '')
     {
         $namespaces = array();
         $arrayType = $array_depth = $xmlout_value = null;
@@ -418,7 +424,7 @@ class SOAP_Base extends SOAP_Base_Object
 
         if (strcasecmp($ptype,'Struct') == 0 || strcasecmp($type,'Struct') == 0) {
             // struct
-            $vars = NULL;
+            $vars = null;
             if (is_object($value)) {
                 $vars = get_object_vars($value);
             } else {
@@ -426,7 +432,7 @@ class SOAP_Base extends SOAP_Base_Object
             }
             if (is_array($vars)) {
                 foreach (array_keys($vars) as $k) {
-                    if ($k[0]=='_') continue; // hide private vars
+                    if ($k[0] == '_') continue; // hide private vars
                     if (is_object($vars[$k])) {
                         if (is_a($vars[$k],'soap_value')) {
                             $xmlout_value .= $vars[$k]->serialize($this);
@@ -434,14 +440,14 @@ class SOAP_Base extends SOAP_Base_Object
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
                             // should realy do, but php-soap is on it's way.
-                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5?NULL:$elNamespace);
+                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5 ? null : $elNamespace);
                         }
                     } else {
-                        $xmlout_value .= $this->_serializeValue($vars[$k],$k, false, $this->_section5?NULL:$elNamespace);
+                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $this->_section5 ? null : $elNamespace);
                     }
                 }
             }
-        } else if (strcasecmp($ptype,'Array')==0 || strcasecmp($type,'Array')==0) {
+        } elseif (strcasecmp($ptype, 'Array') == 0 || strcasecmp($type, 'Array') == 0) {
             // array
             $typeNamespace = SOAP_SCHEMA_ENCODING;
             $orig_type = $type;
@@ -459,20 +465,22 @@ class SOAP_Base extends SOAP_Base_Object
                 $arrayTypeQName =& new QName($arrayType);
                 $arrayType = $arrayTypeQName->name;
                 $array_types = array();
-                $array_val = NULL;
+                $array_val = null;
 
                 // serialize each array element
                 $ar_size = count($value);
-		foreach ($value as $array_val) {
+                foreach ($value as $array_val) {
                     if ($this->_isSoapValue($array_val)) {
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
                         $array_type_ns = $array_val->type_namespace;
-                        $xmlout_value .= $array_val->serialize($this);
+                        // $xmlout_value .= $array_val->serialize($this);
+                        // PEAR BUG #3456
+                        $xmlout_value .= $this->_serializeValue($array_val, $array_val->name, $array_type, $array_type_ns);
                     } else {
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
-                        $xmlout_value .= $this->_serializeValue($array_val,'item', $array_type, $this->_section5?NULL:$elNamespace);
+                        $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace);
                     }
                 }
 
@@ -483,11 +491,14 @@ class SOAP_Base extends SOAP_Base_Object
                     // using anyType is more interoperable
                     if ($array_type == 'Struct') {
                         $array_type = '';
-                    } else if ($array_type == 'Array') {
+                    } elseif ($array_type == 'Array') {
                         $arrayType = 'anyType';
                         $array_type_prefix = 'xsd';
-                    } else
-                    if (!$arrayType) $arrayType = $array_type;
+                    } else {
+                        if (!$arrayType) {
+                            $arrayType = $array_type;
+                        }
+                    }
                 }
             }
             if (!$arrayType || $numtypes > 1) {
@@ -495,7 +506,7 @@ class SOAP_Base extends SOAP_Base_Object
             } else {
                 if ($array_type_ns) {
                     $array_type_prefix = $this->_getNamespacePrefix($array_type_ns);
-                } else if (array_key_exists($arrayType, $this->_typemap[$this->_XMLSchemaVersion])) {
+                } elseif (array_key_exists($arrayType, $this->_typemap[$this->_XMLSchemaVersion])) {
                     $array_type_prefix = $this->_namespaces[$this->_XMLSchemaVersion];
                 }
                 if ($array_type_prefix)
@@ -509,13 +520,13 @@ class SOAP_Base extends SOAP_Base_Object
                 }
             }
             $xmlout_arrayType .= "[$ar_size]\"";
-        } else if ($this->_isSoapValue($value)) {
+        } elseif ($this->_isSoapValue($value)) {
             $xmlout_value =& $value->serialize($this);
-        } else if ($type == 'string') {
+        } elseif ($type == 'string') {
             $xmlout_value = htmlspecialchars($value);
-        } else if ($type == 'rawstring') {
+        } elseif ($type == 'rawstring') {
             $xmlout_value =& $value;
-        } else if ($type == 'boolean') {
+        } elseif ($type == 'boolean') {
             $xmlout_value = $value?'true':'false';
         } else {
             $xmlout_value =& $value;
@@ -524,64 +535,80 @@ class SOAP_Base extends SOAP_Base_Object
         // add namespaces
         if ($elNamespace) {
             $elPrefix = $this->_getNamespacePrefix($elNamespace);
-            $xmlout_name = "$elPrefix:$name";
+            if ($elPrefix) {
+                $xmlout_name = "$elPrefix:$name";
+            } else {
+                $xmlout_name = $name;
+            }
         } else {
             $xmlout_name = $name;
         }
 
         if ($typeNamespace) {
             $typePrefix = $this->_getNamespacePrefix($typeNamespace);
-            $xmlout_type = "$typePrefix:$type";
-        } else if ($type && array_key_exists($type, $this->_typemap[$this->_XMLSchemaVersion])) {
+            if ($typePrefix) {
+                $xmlout_type = "$typePrefix:$type";
+            } else {
+                $xmlout_type = $type;
+            }
+        } elseif ($type && array_key_exists($type, $this->_typemap[$this->_XMLSchemaVersion])) {
             $typePrefix = $this->_namespaces[$this->_XMLSchemaVersion];
-            $xmlout_type = "$typePrefix:$type";
+            if ($typePrefix) {
+                $xmlout_type = "$typePrefix:$type";
+            } else {
+                $xmlout_type = $type;
+            }
         }
 
         // handle additional attributes
         $xml_attr = '';
-        if (count($attributes) > 0) {
+        if (count($attributes)) {
             foreach ($attributes as $k => $v) {
                 $kqn =& new QName($k);
                 $vqn =& new QName($v);
-                $xml_attr .= ' '.$kqn->fqn().'="'.$vqn->fqn().'"';
+                $xml_attr .= ' ' . $kqn->fqn() . '="' . $vqn->fqn() . '"';
             }
         }
 
         // store the attachement for mime encoding
-        if (isset($options['attachment']))
+        if (isset($options['attachment'])) {
             $this->__attachments[] = $options['attachment'];
+        }
 
         if ($this->_section5) {
-            if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
+            if ($xmlout_type) {
+                $xmlout_type = " xsi:type=\"$xmlout_type\"";
+            }
             if (is_null($xmlout_value)) {
                 $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xml_attr/>";
             } else {
-                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xmlout_offset$xml_attr>".
-                    $xmlout_value."</$xmlout_name>";
+                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xmlout_offset$xml_attr>" .
+                    $xmlout_value . "</$xmlout_name>";
             }
         } else {
             if (is_null($xmlout_value)) {
                 $xml = "\r\n<$xmlout_name$xmlns$xml_attr/>";
             } else {
-                $xml = "\r\n<$xmlout_name$xmlns$xml_attr>".
-                    $xmlout_value."</$xmlout_name>";
+                $xml = "\r\n<$xmlout_name$xmlns$xml_attr>" .
+                    $xmlout_value . "</$xmlout_name>";
             }
         }
+
         return $xml;
     }
 
-
     /**
-    * SOAP::Value::_getType
-    *
-    * convert php type to soap type
-    * @param    string  value
-    *
-    * @return   string  type  - soap type
-    * @access   private
-    */
-    function _getType(&$value) {
-        global $SOAP_OBJECT_STRUCT,$SOAP_RAW_CONVERT;
+     * SOAP::Value::_getType
+     *
+     * convert php type to soap type
+     * @param    string  value
+     *
+     * @return   string  type  - soap type
+     * @access   private
+     */
+    function _getType(&$value)
+    {
+        global $SOAP_OBJECT_STRUCT, $SOAP_RAW_CONVERT;
         $type = gettype($value);
         switch ($type) {
         case 'object':
@@ -591,21 +618,22 @@ class SOAP_Base extends SOAP_Base_Object
                 $type = 'Struct';
             }
             break;
+
         case 'array':
             // XXX hashes always get done as structs by pear::soap
             if ($this->_isHash($value)) {
                 $type = 'Struct';
             } else {
                 $ar_size = count($value);
-                    reset($value);
-		    $key1 = key($value);
-		    if ($ar_size > 0 && is_a($key1,'soap_value')) {
-		    // fixme for non-wsdl structs that are all the same type
-		    $key2 = key($value);
-		    if ($ar_size > 1 &&
-		        $this->_isSoapValue($key1) &&
-			$this->_isSoapValue($key2) &&
-			$key1->name != $key2->name) {
+                reset($value);
+                $key1 = key($value);
+                if ($ar_size > 0 && is_a($key1,'soap_value')) {
+                    // fixme for non-wsdl structs that are all the same type
+                    $key2 = key($value);
+                    if ($ar_size > 1 &&
+                        $this->_isSoapValue($key1) &&
+                        $this->_isSoapValue($key2) &&
+                        $key1->name != $key2->name) {
                         // this is a struct, not an array
                         $type = 'Struct';
                     } else {
@@ -616,41 +644,54 @@ class SOAP_Base extends SOAP_Base_Object
                 }
             }
             break;
+
         case 'integer':
         case 'long':
             $type = 'int';
             break;
+
         case 'boolean':
             #$value = $value?'true':'false';
             break;
+
         case 'double':
             $type = 'float'; // double is deprecated in 4.2 and later
             break;
-        case 'NULL':
+
+        case 'null':
             $type = '';
             break;
+
         case 'string':
             if ($SOAP_RAW_CONVERT) {
                 if (is_numeric($value)) {
-                    if (strstr($value,'.')) $type = 'float';
-                    else $type = 'int';
-                } else
-                if (SOAP_Type_hexBinary::is_hexbin($value)) {
-                    $type = 'hexBinary';
-                } else
-                if ($this->_isBase64($value)) {
-                    $type = 'base64Binary';
+                    if (strstr($value, '.')) {
+                        $type = 'float';
+                    } else {
+                        $type = 'int';
+                    }
                 } else {
-                    $dt =& new SOAP_Type_dateTime($value);
-                    if ($dt->toUnixtime() != -1) {
-                        $type = 'dateTime';
-                        #$value = $dt->toSOAP();
+                    if (SOAP_Type_hexBinary::is_hexbin($value)) {
+                        $type = 'hexBinary';
+                    } else {
+                        if ($this->_isBase64($value)) {
+                            $type = 'base64Binary';
+                        } else {
+                            $dt =& new SOAP_Type_dateTime($value);
+                            if ($dt->toUnixtime() != -1) {
+                                $type = 'dateTime';
+                                //$value = $dt->toSOAP();
+                            }
+                        }
                     }
                 }
             }
+            break;
+
         default:
             break;
         }
+
         return $type;
     }
 
@@ -676,32 +717,33 @@ class SOAP_Base extends SOAP_Base_Object
                 $xml .= $value->serialize($this);
             } else {
                 $type = $this->_getType($value);
-                $xml .= $this->_serializeValue($value,'item',$type);
+                $xml .= $this->_serializeValue($value, 'item', $type);
             }
         }
-        $size = NULL;
+        $size = null;
         return 1;
     }
-    // support functions
+
     /**
-    *
-    * @param    string
-    * @return   string
-    */
+     *
+     * @param    string
+     * @return   string
+     */
     function _isBase64(&$value)
     {
         $l = strlen($value);
         if ($l > 0)
-            return $value[$l-1] == '=' && preg_match("/[A-Za-z=\/\+]+/",$value);
+            return $value[$l-1] == '=' && preg_match("/[A-Za-z=\/\+]+/", $value);
         return FALSE;
     }
 
     /**
-    *
-    * @param    mixed
-    * @return   boolean
-    */
-    function _isHash(&$a) {
+     *
+     * @param    mixed
+     * @return   boolean
+     */
+    function _isHash(&$a)
+    {
         # XXX I realy dislike having to loop through this in php code,
         # realy large arrays will be slow.  We need a C function to do this.
         $names = array();
@@ -711,7 +753,7 @@ class SOAP_Base extends SOAP_Base_Object
             $t = gettype($k);
             if ($t != 'integer') {
                 return TRUE;
-            } else if ($this->_isSoapValue($v)) {
+            } elseif ($this->_isSoapValue($v)) {
                 $names[$v->name] = 1;
             }
             // if someone has a large hash they should realy be defining the type
@@ -736,21 +778,21 @@ class SOAP_Base extends SOAP_Base_Object
         global $SOAP_OBJECT_STRUCT;
         if (!$this->_isSoapValue($soapval)) {
             return $soapval;
-        } else if (is_array($soapval->value)) {
+        } elseif (is_array($soapval->value)) {
             if ($SOAP_OBJECT_STRUCT && $soapval->type != 'Array') {
                 $classname = 'stdclass';
                 if (isset($this->_type_translation[$soapval->tqn->fqn()])) {
                     // this will force an error in php if the
                     // class does not exist
                     $classname = $this->_type_translation[$soapval->tqn->fqn()];
-                } else if (isset($this->_type_translation[$soapval->type])) {
+                } elseif (isset($this->_type_translation[$soapval->type])) {
                     // this will force an error in php if the
                     // class does not exist
                     $classname = $this->_type_translation[$soapval->type];
-                } else if ($this->_auto_translation) {
+                } elseif ($this->_auto_translation) {
                     if (class_exists($soapval->type)) {
                         $classname = $soapval->type;
-                    } else if ($this->_wsdl) {
+                    } elseif ($this->_wsdl) {
                         $t = $this->_wsdl->getComplexTypeNameForElement($soapval->name, $soapval->namespace);
                         if ($t && class_exists($t)) $classname = $t;
                     }
@@ -778,15 +820,15 @@ class SOAP_Base extends SOAP_Base_Object
                         if (isset($return->{$item->name}) &&
                           is_object($return->{$item->name})) {
                             $return->{$item->name} =& $this->_decode($item);
-                        } else if (isset($return->{$item->name}) &&
+                        } elseif (isset($return->{$item->name}) &&
                           is_array($return->{$item->name})) {
                             $return->{$item->name}[] =& $this->_decode($item);
-                        } else if (is_array($return)) {
+                        } elseif (is_array($return)) {
                             $return[] =& $this->_decode($item);
                         } else {
                             $return->{$item->name} =& $this->_decode($item);
                         }
-                    } else if (isset($return->{$item->name})) {
+                    } elseif (isset($return->{$item->name})) {
                         $isstruct = FALSE;
                         if (count(get_object_vars($return)) == 1) {
                             $d =& $this->_decode($item);
@@ -801,7 +843,7 @@ class SOAP_Base extends SOAP_Base_Object
                     /* set the attributes as members in the class */
                     if (method_exists($return,'__set_attribute')) {
                         foreach ($soapval->attributes as $key=>$value) {
-                            call_user_func_array(array(&$return,'__set_attribute'),array($key,$value));
+                            call_user_func_array(array(&$return,'__set_attribute'),array($key, $value));
                         }
                     }
                 } else {
@@ -810,7 +852,7 @@ class SOAP_Base extends SOAP_Base_Object
                     }
                     if (!$isstruct) {
                         $return[] =& $this->_decode($item);
-                    } else if (isset($return[$item->name])) {
+                    } elseif (isset($return[$item->name])) {
                         $isstruct = FALSE;
                         $d =& $this->_decode($item);
                         $return = array($return[$item->name], $d);
@@ -828,7 +870,7 @@ class SOAP_Base extends SOAP_Base_Object
             } else {
                 $soapval->value = FALSE;
             }
-        } else if ($soapval->type && array_key_exists($soapval->type, $this->_typemap[SOAP_XML_SCHEMA_VERSION])) {
+        } elseif ($soapval->type && array_key_exists($soapval->type, $this->_typemap[SOAP_XML_SCHEMA_VERSION])) {
             # if we can, lets set php's variable type
             settype($soapval->value, $this->_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
         }
@@ -842,33 +884,37 @@ class SOAP_Base extends SOAP_Base_Object
      * @return associative array (headers,body)
      * @access private
      */
-    function &_makeEnvelope(&$method, &$headers, $encoding = SOAP_DEFAULT_ENCODING,$options = array())
+    function &_makeEnvelope(&$method, &$headers, $encoding = SOAP_DEFAULT_ENCODING, $options = array())
     {
         $smsg = $header_xml = $ns_string = '';
 
         if ($headers) {
             $c = count($headers);
-            for ($i=0; $i < $c; $i++) {
+            for ($i = 0; $i < $c; $i++) {
                 $header_xml .= $headers[$i]->serialize($this);
             }
             $header_xml = "<SOAP-ENV:Header>\r\n$header_xml\r\n</SOAP-ENV:Header>\r\n";
         }
+
         if (!isset($options['input']) || $options['input'] == 'parse') {
             if (is_array($method)) {
                 $c = count($method);
                 for ($i = 0; $i < $c; $i++) {
                     $smsg .= $method[$i]->serialize($this);
                 }
-            }  else {
+            } else {
                 $smsg =& $method->serialize($this);
             }
         } else {
             $smsg =& $method;
         }
-        $body = "<SOAP-ENV:Body>\r\n".$smsg."\r\n</SOAP-ENV:Body>\r\n";
+        $body = "<SOAP-ENV:Body>\r\n" . $smsg . "\r\n</SOAP-ENV:Body>\r\n";
 
         foreach ($this->_namespaces as $k => $v) {
             $ns_string .= " xmlns:$v=\"$k\"\r\n";
+        }
+        if ($this->_namespace) {
+            $ns_string .= " xmlns=\"{$this->_namespace}\"\r\n";
         }
 
         /* if use='literal', we do not put in the encodingStyle.  This is denoted by
@@ -878,7 +924,7 @@ class SOAP_Base extends SOAP_Base_Object
         */
         $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
             "<SOAP-ENV:Envelope $ns_string".
-            ($this->_section5?" SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\"":'').
+            ($this->_section5 ? ' SOAP-ENV:encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
             ">\r\n".
             "$header_xml$body</SOAP-ENV:Envelope>\r\n";
 
@@ -908,7 +954,7 @@ class SOAP_Base extends SOAP_Base_Object
         $c = count($this->__attachments);
         for ($i=0; $i < $c; $i++) {
             $attachment =& $this->__attachments[$i];
-            $msg->addSubPart($attachment['body'],$attachment);
+            $msg->addSubPart($attachment['body'], $attachment);
         }
         return $msg->encode();
     }
@@ -926,13 +972,13 @@ class SOAP_Base extends SOAP_Base_Object
         // see http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // now we have to DIME encode the message
         $dime =& new Net_DIME_Message();
-        $msg =& $dime->encodeData($xml,SOAP_ENVELOP,NULL,NET_DIME_TYPE_URI);
+        $msg =& $dime->encodeData($xml,SOAP_ENVELOP,null,NET_DIME_TYPE_URI);
 
         // add the attachements
         $c = count($this->__attachments);
         for ($i=0; $i < $c; $i++) {
             $attachment =& $this->__attachments[$i];
-            $msg .= $dime->encodeData($attachment['body'],$attachment['content_type'],$attachment['cid'],NET_DIME_TYPE_MEDIA);
+            $msg .= $dime->encodeData($attachment['body'], $attachment['content_type'], $attachment['cid'],NET_DIME_TYPE_MEDIA);
         }
         $msg .= $dime->endMessage();
         return $msg;
@@ -958,9 +1004,9 @@ class SOAP_Base extends SOAP_Base_Object
             $data = $structure->body;
             $headers = $structure->headers;
             return;
-        } else if (isset($structure->parts)) {
+        } elseif (isset($structure->parts)) {
             $data = $structure->parts[0]->body;
-            $headers = array_merge($structure->headers,$structure->parts[0]->headers);
+            $headers = array_merge($structure->headers, $structure->parts[0]->headers);
             if (count($structure->parts) > 1) {
                 $mime_parts = array_splice($structure->parts,1);
                 // prepare the parts for the soap parser
@@ -995,27 +1041,28 @@ class SOAP_Base extends SOAP_Base_Object
         // should handle parsing DIME ;)
         $dime =& new Net_DIME_Message();
         $err = $dime->decodeData($data);
-        if ( PEAR::isError($err) ) {
+        if (PEAR::isError($err)) {
             $this->_raiseSoapFault('Failed to decode the DIME message!','','','Server');
             return;
         }
-        if (strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0) {
+        if (strcasecmp($dime->parts[0]['type'], SOAP_ENVELOP) != 0) {
             $this->_raiseSoapFault('DIME record 1 is not a SOAP envelop!','','','Server');
             return;
         }
 
-            $data = $dime->parts[0]['data'];
-            $headers['content-type'] = 'text/xml'; // fake it for now
-            $c = count($dime->parts);
-            for ($i = 0; $i < $c; $i++) {
-                $part =& $dime->parts[$i];
-                // XXX we need to handle URI's better
-            $id = strncmp( $part['id'], 'cid:', 4 ) ? 'cid:'.$part['id'] : $part['id'];
+        $data = $dime->parts[0]['data'];
+        // fake it for now
+        $headers['content-type'] = 'text/xml';
+        $c = count($dime->parts);
+        for ($i = 0; $i < $c; $i++) {
+            $part =& $dime->parts[$i];
+            // XXX we need to handle URI's better.
+            $id = strncmp($part['id'], 'cid:', 4) ? 'cid:' . $part['id'] : $part['id'];
             $attachments[$id] = $part['data'];
         }
     }
 
-    function __set_type_translation($type, $class=NULL)
+    function __set_type_translation($type, $class = null)
     {
         $tq =& new QName($type);
         if (!$class) {
@@ -1023,31 +1070,31 @@ class SOAP_Base extends SOAP_Base_Object
         }
         $this->_type_translation[$type]=$class;
     }
+
 }
 
 /**
-*  QName
-* class used to handle QNAME values in XML
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Client
-* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-*/
+ * Class used to handle QNAME values in XML.
+ *
+ * @access   public
+ * @package  SOAP::Client
+ * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ */
 class QName
 {
+
     var $name = '';
     var $ns = '';
     var $namespace='';
-    #var $arrayInfo = '';
 
-    function QName($name, $namespace = '') {
+    function QName($name, $namespace = '')
+    {
         if ($name && $name[0] == '{') {
-            preg_match('/\{(.*?)\}(.*)/',$name, $m);
+            preg_match('/\{(.*?)\}(.*)/', $name, $m);
             $this->name = $m[2];
             $this->namespace = $m[1];
-        } else if (strpos($name, ':') != FALSE) {
-            $s = split(':',$name);
+        } elseif (substr_count($name, ':') == 1) {
+            $s = explode(':', $name);
             $s = array_reverse($s);
             $this->name = $s[0];
             $this->ns = $s[1];
@@ -1057,12 +1104,12 @@ class QName
             $this->namespace = $namespace;
         }
 
-        # a little more magic than should be in a qname
+        // a little more magic than should be in a qname.
         $p = strpos($this->name, '[');
         if ($p) {
-            # XXX need to re-examine this logic later
-            # chop off []
-            $this->arraySize = split(',',substr($this->name,$p+1, strlen($this->name)-$p-2));
+            // XXX need to re-examine this logic later
+            // chop off []
+            $this->arraySize = explode(',', substr($this->name, $p + 1, strlen($this->name) - $p - 2));
             $this->arrayInfo = substr($this->name, $p);
             $this->name = substr($this->name, 0, $p);
         }
@@ -1071,12 +1118,11 @@ class QName
     function fqn()
     {
         if ($this->namespace) {
-            return '{'.$this->namespace.'}'.$this->name;
-        } else if ($this->ns) {
-            return $this->ns.':'.$this->name;
+            return '{' . $this->namespace . '}' . $this->name;
+        } elseif ($this->ns) {
+            return $this->ns . ':' . $this->name;
         }
         return $this->name;
     }
 
 }
-?>
