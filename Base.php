@@ -415,13 +415,20 @@ class SOAP_Base extends SOAP_Base_Object
             $name = 'item';
         }
 
-        if ($this->_wsdl)
+        if ($this->_wsdl) {
             list($ptype, $arrayType, $array_type_ns, $array_depth)
-                    = $this->_wsdl->getSchemaType($type, $name, $typeNamespace);
+                = $this->_wsdl->getSchemaType($type, $name, $typeNamespace);
+        }
 
-        if (!$arrayType) $arrayType = $artype;
-        if (!$ptype) $ptype = $this->_getType($value);
-        if (!$type) $type = $ptype;
+        if (!$arrayType) {
+            $arrayType = $artype;
+        }
+        if (!$ptype) {
+            $ptype = $this->_getType($value);
+        }
+        if (!$type) {
+            $type = $ptype;
+        }
 
         if (strcasecmp($ptype,'Struct') == 0 || strcasecmp($type,'Struct') == 0) {
             // struct
@@ -440,7 +447,7 @@ class SOAP_Base extends SOAP_Base_Object
                         } else {
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
-                            // should realy do, but php-soap is on it's way.
+                            // should really do.
                             $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5 ? null : $elNamespace);
                         }
                     } else {
@@ -454,9 +461,11 @@ class SOAP_Base extends SOAP_Base_Object
             $orig_type = $type;
             $type = 'Array';
             $numtypes = 0;
-            // XXX this will be slow on larger array's.  Basicly, it flattens array's to allow us
-            // to serialize multi-dimensional array's.  We only do this if arrayType is set,
-            // which will typicaly only happen if we are using WSDL
+            // XXX this will be slow on larger arrays. Basically, it
+            // flattens arrays to allow us to serialize
+            // multi-dimensional arrays. We only do this if arrayType
+            // is set, which will typically only happen if we are
+            // using WSDL
             if (isset($options['flatten']) || ($arrayType && (strchr($arrayType,',') || strstr($arrayType,'][')))) {
                 $numtypes = $this->_multiArrayType($value, $arrayType, $ar_size, $xmlout_value);
             }
@@ -475,8 +484,6 @@ class SOAP_Base extends SOAP_Base_Object
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
                         $array_type_ns = $array_val->type_namespace;
-                        // $xmlout_value .= $array_val->serialize($this);
-                        // PEAR BUG #3456
                         $xmlout_value .= $this->_serializeValue($array_val, $array_val->name, $array_type, $array_type_ns);
                     } else {
                         $array_type = $this->_getType($array_val);
@@ -601,10 +608,12 @@ class SOAP_Base extends SOAP_Base_Object
     /**
      * SOAP::Value::_getType
      *
-     * convert php type to soap type
-     * @param    string  value
+     * Convert a php type to a soap type.
      *
-     * @return   string  type  - soap type
+     * @param string &$value  The value to inspect.
+     *
+     * @return string  Soap type.
+     *
      * @access   private
      */
     function _getType(&$value)
