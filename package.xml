@@ -32,8 +32,9 @@
   <release>
     <state>beta</state>
     <version>0.8.2</version>
-    <date>2004-xx-xx</date>
+    <date>2005-04-01</date>
     <notes>
+      - Fixes for ...
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
