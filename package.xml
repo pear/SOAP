@@ -63,6 +63,9 @@
         parsing in SOAP_WSDL_Parser objects.
 
       - Pass $this->docs to child SOAP_WSDL_Parser objects.
+
+      - Successfully parse the <schema> sections of XSD documents
+        imported via <wsdl:import>.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

@@ -355,22 +355,25 @@ class SOAP_WSDL extends SOAP_Base
 
     function getNamespaceAttributeName($namespace)
     {
-        /* if it doesn't exist at first, flip the array and check again */
-        if (!array_key_exists($namespace, $this->ns)) {
+        /* If it doesn't exist at first, flip the array and check
+         * again. */
+        if (empty($this->ns[$namespace])) {
             $this->ns = array_flip($this->namespaces);
         }
-        /* if it doesn't exist now, add it */
-        if (!array_key_exists($namespace, $this->ns)) {
+        /* If it doesn't exist now, add it. */
+        if (empty($this->ns[$namespace])) {
             return $this->addNamespace($namespace);
         }
+
         return $this->ns[$namespace];
     }
 
     function addNamespace($namespace)
     {
-        if (array_key_exists($namespace, $this->ns)) {
+        if (!empty($this->ns[$namespace])) {
             return $this->ns[$namespace];
         }
+
         $n = count($this->ns);
         $attr = 'ns' . $n;
         $this->namespaces['ns' . $n] = $namespace;
@@ -734,7 +737,7 @@ class SOAP_WSDL extends SOAP_Base
                 if ($arrayType = $this->complexTypes[$p][$type]['arrayType']) {
                     $type = 'Array';
                 } elseif ($this->complexTypes[$p][$type]['order']=='sequence' &&
-                           array_key_exists('elements', $this->complexTypes[$p][$type])) {
+                          array_key_exists('elements', $this->complexTypes[$p][$type])) {
                     reset($this->complexTypes[$p][$type]['elements']);
                     // assume an array
                     if (count($this->complexTypes[$p][$type]['elements']) == 1) {
@@ -1021,7 +1024,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
      */
     function startElement($parser, $name, $attrs)
     {
-        // get element prefix
+        // Get element prefix.
         $qname =& new QName($name);
         if ($qname->ns) {
             $ns = $qname->ns;
@@ -1032,25 +1035,25 @@ class SOAP_WSDL_Parser extends SOAP_Base
         $this->currentTag = $qname->name;
         $this->parentElement = '';
         $stack_size = count($this->element_stack);
-        if ($stack_size > 0) {
-            $this->parentElement = $this->element_stack[$stack_size-1];
+        if ($stack_size) {
+            $this->parentElement = $this->element_stack[$stack_size - 1];
         }
         $this->element_stack[] = $this->currentTag;
 
-        // find status, register data
+        // Find status, register data.
         switch ($this->status) {
         case 'types':
             // sect 2.2 wsdl:types
             // children: xsd:schema
             $parent_tag = '';
             $stack_size = count($this->schema_stack);
-            if ($stack_size > 0) {
-                $parent_tag = $this->schema_stack[$stack_size-1];
+            if ($stack_size) {
+                $parent_tag = $this->schema_stack[$stack_size - 1];
             }
 
             switch ($qname->name) {
             case 'schema':
-                // no parent should be in the stack
+                // No parent should be in the stack.
                 if (!$parent_tag || $parent_tag == 'types') {
                     if (array_key_exists('targetNamespace', $attrs)) {
                         $this->schema = $this->wsdl->getNamespaceAttributeName($attrs['targetNamespace']);
@@ -1086,7 +1089,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 if (isset($attrs['type'])) {
                     $qn =& new QName($attrs['type']);
                     $attrs['type'] = $qn->name;
-                    //$this->wsdl->getNamespaceAttributeName
                     if ($qn->ns && array_key_exists($qn->ns, $this->wsdl->namespaces)) {
                         $attrs['namespace'] = $qn->ns;
                     }
@@ -1448,11 +1450,13 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 case SCHEMA_WSDL_HTTP:
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='http';
                     break;
+
                 case SCHEMA_SOAP:
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='soap';
                     break;
+
                 default:
-                    // shouldn't happen, we'll assume soap
+                    // Shouldn't happen, we'll assume SOAP.
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='soap';
                 }
 
@@ -1492,6 +1496,20 @@ class SOAP_WSDL_Parser extends SOAP_Base
 
         case 'types':
             // sect 2.2 wsdl:types
+            $this->status = 'types';
+            break;
+
+        case 'schema':
+            // We can hit this at the top level if we've been asked to
+            // import an XSD file.
+            if (!empty($attrs['targetNamespace'])) {
+                $this->schema = $this->wsdl->getNamespaceAttributeName($attrs['targetNamespace']);
+            } else {
+                $this->schema = $this->wsdl->getNamespaceAttributeName($this->wsdl->tns);
+            }
+            $this->wsdl->complexTypes[$this->schema] = array();
+            $this->wsdl->elements[$this->schema] = array();
+            $this->schema_stack[] = $qname->name;
             $this->status = 'types';
             break;
 
@@ -1570,8 +1588,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
     function endElement($parser, $name)
     {
         $stacksize = count($this->element_stack);
-        if ($stacksize > 0) {
-            if ($this->element_stack[count($this->element_stack)-1] ==  'definitions') {
+        if ($stacksize) {
+            if ($this->element_stack[$stacksize - 1] ==  'definitions') {
                 $this->status = '';
             }
             array_pop($this->element_stack);
@@ -1583,7 +1601,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
         if ($this->schema) {
             array_pop($this->schema_stack);
             if (count($this->schema_stack) <= 1) {
-                /* correct the type for sequences with multiple elements */
+                /* Correct the type for sequences with multiple
+                 * elements. */
                 if (isset($this->currentComplexType) && isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'])
                     && $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] == 'Array'
                     && array_key_exists('elements', $this->wsdl->complexTypes[$this->schema][$this->currentComplexType])
