@@ -28,7 +28,7 @@ require_once 'SOAP/Fault.php';
 require_once 'SOAP/Parser.php';
 
 // Arnaud: the following code was taken from DataObject
-// and adapted to suit 
+// and adapted to suit
 
 // this will be horrifically slow!!!!
 // NOTE: Overload SEGFAULTS ON PHP4 + Zend Optimizer
@@ -51,15 +51,14 @@ if (substr(phpversion(), 0, 1) == 5) {
     eval('
         class SOAP_Client_Overload extends SOAP_Base {
             function __call($method, $args, &$return) {
-                return $this->_call($method, $args, $return); 
+                return $this->_call($method, $args, $return);
             }
         }
     ');
 }
 
-
 /**
- *  SOAP Client Class
+ * SOAP Client Class
  * this class is the main interface for making soap requests
  *
  * basic usage:
@@ -154,7 +153,8 @@ class SOAP_Client extends SOAP_Client_Overload
     */
     var $__proxy_params = array();
 
-    var $_soap_transport = NULL;
+    var $_soap_transport = null;
+
     /**
      * SOAP_Client constructor
      *
@@ -186,12 +186,12 @@ class SOAP_Client extends SOAP_Client_Overload
 
     function _reset()
     {
-        $this->xml = NULL;
-        $this->wire = NULL;
-        $this->__last_request = NULL;
-        $this->__last_response = NULL;
-        $this->headersIn = NULL;
-        $this->headersOut = NULL;
+        $this->xml = null;
+        $this->wire = null;
+        $this->__last_request = null;
+        $this->__last_response = null;
+        $this->headersIn = null;
+        $this->headersOut = null;
     }
 
     /**
@@ -200,14 +200,14 @@ class SOAP_Client extends SOAP_Client_Overload
      * set the character encoding, limited to 'UTF-8', 'US_ASCII' and 'ISO-8859-1'
      *
      * @param string encoding
-     * @return mixed returns NULL or SOAP_Fault
+     * @return mixed returns null or SOAP_Fault
      * @access public
      */
     function setEncoding($encoding)
     {
         if (in_array($encoding, $this->_encodings)) {
             $this->_encoding = $encoding;
-            return NULL;
+            return null;
         }
         return $this->_raiseSoapFault('Invalid Encoding');
     }
@@ -228,7 +228,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->headersOut[] =& $soap_value;
         } else if (gettype($soap_value) == 'array') {
             // name, value, namespace, mustunderstand, actor
-            $this->headersOut[] =& new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3]);;
+            $this->headersOut[] =& new SOAP_Header($soap_value[0], null, $soap_value[1], $soap_value[2], $soap_value[3]);;
         } else {
             $this->_raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
@@ -268,7 +268,7 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->__last_request = null;
         $this->__last_response = null;
         $this->wire = null;
-        $this->xml = NULL;
+        $this->xml = null;
 
         $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
@@ -284,7 +284,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
             if (PEAR::isError($this->_soap_transport)) {
                 $fault =& $this->_soap_transport;
-                $this->_soap_transport = NULL;
+                $this->_soap_transport = null;
                 return $this->_raiseSoapFault($fault);
             }
         }
@@ -309,7 +309,7 @@ class SOAP_Client extends SOAP_Client_Overload
 
         if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
 
-        return $this->__parse($this->xml, $this->__result_encoding,$this->__attachments);
+        return $this->__parse($this->xml, $this->__result_encoding, $this->__attachments);
     }
 
     /**
@@ -400,11 +400,14 @@ class SOAP_Client extends SOAP_Client_Overload
             $params = array($params);
         }
         if (gettype($namespace) == 'array') {
-            foreach ($namespace as $optname=>$opt) {
-                $this->__options[strtolower($optname)]=$opt;
+            foreach ($namespace as $optname => $opt) {
+                $this->__options[strtolower($optname)] = $opt;
             }
-            if (isset($this->__options['namespace'])) $namespace = $this->__options['namespace'];
-            else $namespace = false;
+            if (isset($this->__options['namespace'])) {
+                $namespace = $this->__options['namespace'];
+            } else {
+                $namespace = false;
+            }
         } else {
             // we'll place soapaction into our array for usage in the transport
             $this->__options['soapaction'] = $soapAction;
@@ -440,68 +443,71 @@ class SOAP_Client extends SOAP_Client_Overload
 
             // set input params
             if ($this->__options['input'] == 'parse') {
-            $this->__options['parameters'] = $opData['parameters'];
-            $nparams = array();
-            if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
-                $i = 0;
-                reset($params);
-                foreach ($opData['input']['parts'] as $name => $part) {
-                    $xmlns = '';
-                    $attrs = array();
-                    // is the name actually a complex type?
-                    if (isset($part['element'])) {
-                        $xmlns = $this->_wsdl->namespaces[$part['namespace']];
-                        $part = $this->_wsdl->elements[$part['namespace']][$part['type']];
-                        $name = $part['name'];
-                    }
-                    if (array_key_exists($name,$params) ||
-                        $this->_wsdl->getDataHandler($name,$part['namespace'])) {
-                        $nparams[$name] =& $params[$name];
-                    } else {
-                        # we now force an associative array for parameters if using wsdl
-                        return $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
-                    }
-                    if (gettype($nparams[$name]) != 'object' ||
-                        !is_a($nparams[$name],'soap_value')) {
-                        // type is a qname likely, split it apart, and get the type namespace from wsdl
-                        $qname =& new QName($part['type']);
-                        if ($qname->ns)
-                            $type_namespace = $this->_wsdl->namespaces[$qname->ns];
-                        else if (isset($part['namespace']))
-                            $type_namespace = $this->_wsdl->namespaces[$part['namespace']];
-                        else
-                            $type_namespace = NULL;
-                        $qname->namespace = $type_namespace;
-                        $type = $qname->name;
-                        $pqname = $name;
-                        if ($xmlns) $pqname = '{'.$xmlns.'}'.$name;
-                        $nparams[$name] =& new SOAP_Value($pqname, $qname->fqn(), $nparams[$name],$attrs);
-                    } else {
-                        // wsdl fixups to the soap value
+                $this->__options['parameters'] = $opData['parameters'];
+                $nparams = array();
+                if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
+                    $i = 0;
+                    reset($params);
+                    foreach ($opData['input']['parts'] as $name => $part) {
+                        $xmlns = '';
+                        $attrs = array();
+                        // is the name actually a complex type?
+                        if (isset($part['element'])) {
+                            $xmlns = $this->_wsdl->namespaces[$part['namespace']];
+                            $part = $this->_wsdl->elements[$part['namespace']][$part['type']];
+                            $name = $part['name'];
+                        }
+                        if (array_key_exists($name, $params) ||
+                            $this->_wsdl->getDataHandler($name, $part['namespace'])) {
+                            $nparams[$name] =& $params[$name];
+                        } else {
+                            // we now force an associative array for
+                            // parameters if using wsdl.
+                            return $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
+                        }
+                        if (gettype($nparams[$name]) != 'object' ||
+                            !is_a($nparams[$name],'soap_value')) {
+                            // type is a qname likely, split it apart, and get the type namespace from wsdl
+                            $qname =& new QName($part['type']);
+                            if ($qname->ns) {
+                                $type_namespace = $this->_wsdl->namespaces[$qname->ns];
+                            } else if (isset($part['namespace'])) {
+                                $type_namespace = $this->_wsdl->namespaces[$part['namespace']];
+                            } else {
+                                $type_namespace = null;
+                            }
+                            $qname->namespace = $type_namespace;
+                            $type = $qname->name;
+                            $pqname = $name;
+                            if ($xmlns) {
+                                $pqname = '{' . $xmlns . '}' . $name;
+                            }
+                            $nparams[$name] =& new SOAP_Value($pqname, $qname->fqn(), $nparams[$name], $attrs);
+                        } else {
+                            // wsdl fixups to the soap value.
+                        }
                     }
                 }
-            }
-            $params =& $nparams;
-            unset($nparams);
+                $params =& $nparams;
+                unset($nparams);
             }
         } else {
             $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
 
-        // serialize the message
-        $this->_section5 = TRUE; // assume we encode with section 5
-        if (isset($this->__options['use']) && $this->__options['use']=='literal') $this->_section5 = FALSE;
+        // serialize the message.
+        $this->_section5 = (isset($this->__options['use']) && $this->__options['use'] == 'literal');
 
         if (!isset($this->__options['style']) || $this->__options['style'] == 'rpc') {
             $this->__options['style'] = 'rpc';
             $this->docparams = true;
             $mqname =& new QName($method, $namespace);
             $methodValue =& new SOAP_Value($mqname->fqn(), 'Struct', $params);
-            $soap_msg =& $this->_makeEnvelope($methodValue, $this->headersOut, $this->_encoding,$this->__options);
+            $soap_msg =& $this->_makeEnvelope($methodValue, $this->headersOut, $this->_encoding, $this->__options);
         } else {
             if (!$params) {
                 $mqname =& new QName($method, $namespace);
-                $mynull = NULL;
+                $mynull = null;
                 $params =& new SOAP_Value($mqname->fqn(), 'Struct', $mynull);
             } elseif ($this->__options['input'] == 'parse') {
                 if (is_array($params)) {
@@ -521,7 +527,7 @@ class SOAP_Client extends SOAP_Client_Overload
                     $params =& new SOAP_Value($mqname->fqn(), 'Struct', $params);
                 }
             }
-            $soap_msg =& $this->_makeEnvelope($params, $this->headersOut, $this->_encoding,$this->__options);
+            $soap_msg =& $this->_makeEnvelope($params, $this->headersOut, $this->_encoding, $this->__options);
         }
         unset($this->headersOut);
 
@@ -550,7 +556,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $soap_data =& $soap_msg['body'];
             if (count($soap_msg['headers'])) {
                 if (isset($this->__options['headers'])) {
-                    $this->__options['headers'] = array_merge($this->__options['headers'],$soap_msg['headers']);
+                    $this->__options['headers'] = array_merge($this->__options['headers'], $soap_msg['headers']);
                 } else {
                     $this->__options['headers'] = $soap_msg['headers'];
                 }
@@ -577,9 +583,11 @@ class SOAP_Client extends SOAP_Client_Overload
         return $this->__decodeResponse($return);
     }
 
-    function &__decodeResponse(&$response,$shift=true)
+    function &__decodeResponse(&$response, $shift=true)
     {
-        if (!$response) return NULL;
+        if (!$response) {
+            return null;
+        }
         // check for valid response
         if (PEAR::isError($response)) {
             return $this->_raiseSoapFault($response);
@@ -622,13 +630,9 @@ class SOAP_Client extends SOAP_Client_Overload
             return "OUTGOING:\n\n".
             $this->__last_request.
             "\n\nINCOMING\n\n".
-            preg_replace("/></",">\r\n<",$this->__last_response);
+            preg_replace("/></",">\r\n<", $this->__last_response);
         }
-        return NULL;
+        return null;
     }
-}
 
-#if (extension_loaded('overload')) {
-#    overload('SOAP_Client');
-#}
-?>
+}
