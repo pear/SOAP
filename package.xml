@@ -52,6 +52,9 @@
       - E_ALL warnings during WSDL parsing are fixed.
 
       - ref="" elements in WSDL are correctly treated as QNames now.
+
+      - Save the outgoing payload when sending by HTTPS as well as by
+        HTTP (for tracing).
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

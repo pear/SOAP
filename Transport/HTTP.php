@@ -591,8 +591,13 @@ class SOAP_Transport_HTTP extends SOAP_Base
             }
         }
 
+        // Save the outgoing XML. This doesn't quite match _sendHTTP
+        // as CURL generates the headers, but having the XML is
+        // usually the most important part for tracing/debugging.
+        $this->outgoing_payload = $msg;
+
         $this->incoming_payload = curl_exec($ch);
-        if (! $this->incoming_payload ) {
+        if (!$this->incoming_payload) {
             $m = 'curl_exec error ' . curl_errno($ch) . ' ' . curl_error($ch);
             curl_close($ch);
             return $this->_raiseSoapFault($m);
