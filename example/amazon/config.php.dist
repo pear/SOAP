@@ -1,0 +1,4 @@
+<?php
+/* you need to get an id from amazon to run this */
+$amazon_id = 'XXXXXXXXXXXXXXX';
+?>
