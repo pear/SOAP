@@ -19,9 +19,10 @@
 //
 // $Id$
 //
-require_once('SOAP/globals.php');
-require_once('SOAP/Type/dateTime.php');
-require_once('SOAP/Type/hexBinary.php');
+require_once 'SOAP/Base.php';
+require_once 'SOAP/globals.php';
+require_once 'SOAP/Type/dateTime.php';
+require_once 'SOAP/Type/hexBinary.php';
 /**
 *  SOAP::Value
 * this class converts values between PHP and SOAP
@@ -35,29 +36,30 @@ require_once('SOAP/Type/hexBinary.php');
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
 
-class SOAP_Value
+class SOAP_Value extends SOAP_Base
 {
     var $convert_strings = FALSE;
     var $value = '';
     var $type_code = 0;
     var $type_prefix = false;
     var $array_type = '';
-    var $debug_flag = true;
-    var $debug_str = '';
     var $name = '';
     var $type;
     var $soapTypes;
     var $namespace = '';
     var $prefix = '';
+    var $wsdl;
     
-    function SOAP_Value($name='',$type=false,$value=-1,$namespace=false,$type_namespace=false)
+    function SOAP_Value($name='',$type=false,$value=-1,$namespace=NULL,$type_namespace=NULL, $wsdl=NULL)
     {
         global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace;
+        parent::SOAP_Base('Value');
         // detect type if not passed
         
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
         $this->soapTypes = $soapTypes;
         $this->name = $name;
+        $this->wsdl = $wsdl;
         $this->type = $this->_getSoapType($value, $type);
         #$this->debug("Entering SOAP_Value - name: '$name' type: '$type' value: $value");
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
@@ -83,7 +85,7 @@ class SOAP_Value
 
             $this->type_prefix = $SOAP_namespaces[$type_namespace];
         // if type namespace was not explicitly passed, and we're not in a method struct:
-        } elseif (!$this->type_prefix && $type != 'struct' /*!isset($type_namespace)*/) {
+        } elseif (!$this->type_prefix && $type != 'Struct' /*!isset($type_namespace)*/) {
             // try to get type prefix from typeMap
             if ($ns = $this->verifyType($this->type)) {
                 $this->type_prefix = $SOAP_namespaces[$ns];
@@ -98,12 +100,12 @@ class SOAP_Value
             $this->type_code = VALUE_SCALAR;
             $this->addScalar($value,$this->type,$name);
         // if array
-        } elseif (strcasecmp('array',$this->type) == 0 ||
+        } elseif (strcasecmp('Array',$this->type) == 0 ||
              strcasecmp('ur-type',$this->type) == 0) {
             $this->type_code = VALUE_ARRAY;
             $this->addArray($value);
         // if struct
-        } elseif (stristr($this->type,'struct')) {
+        } elseif (stristr($this->type,'Struct')) {
             $this->type_code = VALUE_STRUCT;
             $this->addStruct($value);
         } elseif (is_array($value)) {
@@ -134,13 +136,13 @@ class SOAP_Value
                 // if SOAP_Value, add..
                 if (strcasecmp(get_class($v),'SOAP_Value')==0) {
                     $this->value[] = $v;
-                    $this->debug($v->debug_str);
+                    $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     $type = '';
                     $type = $this->_getSoapType($v, $type);
                     $new_val =  new SOAP_Value('item',$type,$v);
-                    $this->debug($new_val->debug_str);
+                    $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
             }
@@ -156,13 +158,13 @@ class SOAP_Value
                 // if serialize, if SOAP_Value
                 if (strcasecmp(get_class($v),'SOAP_Value')==0) {
                     $this->value[] = $v;
-                    $this->debug($v->debug_str);
+                    $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     $type = NULL;
                     $type = $this->_getSoapType($v, $type);
                     $new_val = new SOAP_Value($k,$type,$v);
-                    $this->debug($new_val->debug_str);
+                    $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
             }
@@ -261,7 +263,7 @@ class SOAP_Value
             // to serialize multi-dimensional array's
             $numtypes = $this->_getArrayType($soapval->value, $array_type, $ar_size, $xml);
             #$numtypes = 0;
-
+            $array_type_prefix = '';
             if ($numtypes != 1) {
                 $xml ='';
                 foreach ($soapval->value as $array_val) {
@@ -270,17 +272,19 @@ class SOAP_Value
                 }
 
                 $ar_size = count($soapval->value);
-
-                if (count($array_types) > 1) {
-                    $array_type = 'xsd:ur-type';
-                } elseif (count($array_types) == 1) {
-                    if ($array_val->type_prefix != '') {
-                        $array_type = $array_val->type_prefix.':'.$array_val->type;
-                    } else {
-                        $array_type = $array_val->type;
-                    }
-                }
+                $numtypes = count($array_types);
+                $array_type = $array_val->type;
+                $array_type_prefix = $array_val->type_prefix;
                 $offset = " SOAP-ENC:offset=\"[0]\"";
+            }
+            if ($numtypes > 1) {
+                $array_type = 'xsd:ur-type';
+            } elseif ($numtypes == 1) {
+                if ($array_type_prefix != '') {
+                    $array_type = $array_type_prefix.':'.$array_type;
+                } elseif ($array_type_prefix = $this->getPrefix($array_type)) {
+                    $array_type = $array_type_prefix.':'.$array_type;
+                }
             }
             
             $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
@@ -369,10 +373,7 @@ class SOAP_Value
             return $soapval->value;
         }
         # couldn't decode, return a fault!
-        return array('faultcode'   => 'SOAP-ENV:Value',
-                        'faultstring' => 'couldn\'t decode response, invalid type_code',
-                        'faultdetail' => ''
-                    );
+        return $this->raiseSoapFault('couldn\'t decode response, invalid type_code');
     }
     
     // pass it a type, and it attempts to return a namespace uri
@@ -398,10 +399,11 @@ class SOAP_Value
     // alias for verifyType() - pass it a type, and it returns it's prefix
     function getPrefix($type)
     {
-        if ($prefix = $this->verifyType($type)) {
-            return $prefix;
+        global $SOAP_namespaces;
+        if ($uri = $this->verifyType($type)) {
+            return $SOAP_namespaces[$uri];
         }
-        return false;
+        return NULL;
     }
     
     
@@ -417,7 +419,11 @@ class SOAP_Value
     */
     function _getSoapType(&$value, &$type) {
         $doconvert = FALSE;
-        if (!$type) {
+        #if (!$type && $this->wsdl && $this->name) {
+        #    # look up the name in the wsdl
+        #    print "WSDL";
+        #}
+        if (!$type || !$this->verifyType($type)) {
             if (is_object($value)) {
                 # allows for creating special classes to handle soap types
                 $type = get_class($value);
@@ -426,9 +432,9 @@ class SOAP_Value
             } elseif (isArray($value)) {
                 foreach ($value as $k => $v) {
                     if (preg_match("/^[0-9]+$/",$k)) {
-                        $type = 'array';
+                        $type = 'Array';
                     } else {
-                        $type = 'struct';
+                        $type = 'Struct';
                     }
                     break;
                 }
@@ -474,12 +480,6 @@ class SOAP_Value
         return $type;
     }
 
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_str .= 'SOAP_Value: '.preg_replace("/>/","/>\r\n/",$string)."\n";
-        }
-    }
 }
 
 // support functions

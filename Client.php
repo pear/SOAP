@@ -20,11 +20,12 @@
 // $Id$
 //
 
-require_once 'PEAR.php';
+require_once 'SOAP/Value.php';
+require_once 'SOAP/Base.php';
 require_once 'SOAP/Transport.php';
 require_once 'SOAP/Message.php';
-require_once 'SOAP/Value.php';
 require_once 'SOAP/WSDL.php';
+require_once 'SOAP/Fault.php';
 
 /**
 *  SOAP Client Class
@@ -43,7 +44,7 @@ require_once 'SOAP/WSDL.php';
 * @author Stig Bakken <ssb@fast.no> Conversion to PEAR
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_Client extends PEAR
+class SOAP_Client extends SOAP_Base
 {
     var $fault, $faultcode, $faultstring, $faultdetail;
     var $endpoint, $portName;
@@ -61,7 +62,7 @@ class SOAP_Client extends PEAR
     */
     function SOAP_Client($endpoint,$wsdl=false,$portName=false)
     {
-        parent::PEAR();
+        parent::SOAP_Base('Client');
         $this->endpoint = $endpoint;
         $this->portName = $portName;
         
@@ -70,28 +71,11 @@ class SOAP_Client extends PEAR
             $this->endpointType = 'wsdl';
             // instantiate wsdl class
             $this->wsdl = new SOAP_WSDL($this->endpoint);
+            if ($this->wsdl->fault) {
+                $this->raiseSoapFault($this->wsdl->fault);
+            }
         }
     }
-    
-    /**
-    * SOAP_Client::_setFault
-    *
-    * @params string method
-    * @params array params
-    * @params string namespace  (not required if using wsdl)
-    * @params string soapAction   (not required if using wsdl)
-    *
-    * @return array of results
-    * @access public
-    function _setFault($code, $summary, $detail = '')
-    {
-        $this->debug("FAULT: $summary<br>\n");
-        $this->fault = true;
-        $this->faultcode = $code;
-        $this->faultstring = $summary;
-        $this->faultdetail = $detail;
-    }
-    */
     
     /**
     * SOAP_Client::call
@@ -106,39 +90,58 @@ class SOAP_Client extends PEAR
     */
     function call($method,$params=array(),$namespace=false,$soapAction=false)
     {
-        $this->fault = FALSE;
+        $this->fault = null;
 
         if ($this->endpointType == 'wsdl') {
             // get portName
             if (!$this->portName) {
                 $this->portName = $this->wsdl->getPortName($method);
+                if (PEAR::isError($this->portName)) {
+                    return $this->raiseSoapFault($this->portName);
+                }
             }
             // get endpoint
-            if (!$this->endpoint = $this->wsdl->getEndpoint($this->portName)) {
-                return $this->raiseError("no port of name '$this->portName' in the wsdl at that location!", -1);
+            $this->endpoint = $this->wsdl->getEndpoint($this->portName);
+            if (PEAR::isError($this->endpoint)) {
+                return $this->raiseSoapFault($this->endpoint);
             }
             $this->debug("endpoint: $this->endpoint");
             $this->debug("portName: $this->portName");
             // get operation data
-            if ($opData = $this->wsdl->getOperationData($this->portName,$method)) {
-                $soapAction = $opData['soapAction'];
+            $opData = $this->wsdl->getOperationData($this->portName,$method);
+            if (PEAR::isError($opData)) {
+                return $this->raiseSoapFault($opData);
+            }
+            $soapAction = $opData['soapAction'];
 
-                // set input params
-                $i = count($opData['input']['parts'])-1;
-
+            // set input params
+            $nparams = array();
+            if (count($opData['input']['parts']) > 0) {
+                $i=0;
+                // XXX this seems very wrong, we should be creating SOAP_Value
+                // classes at this point, setting the correct type defined by the wsdl
                 foreach ($opData['input']['parts'] as $name => $type) {
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
                     } else {
-                        $nparams[$name] = $params[$i];
+                        // XXX assuming it's an array, not a hash
+                        $nparams[$name] = $params[$i++];
+                    }
+                    if (gettype($nparams[$name]) != 'soap_value') {
+                        // type is a qname likely, split it apart, and get the type namespace from wsdl
+                        $type_namespace = NULL;
+                        if ($qname = split(':', $type)) {
+                            $type_namespace = $this->wsdl->namespaces[$qname[0]];
+                            $type = $qname[1];
+                        }
+                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], NULL, $type_namespace, $this->wsdl);
                     }
                 }
-                $params = $nparams;
-            } else {
-                return $this->raiseError("could not get operation info from wsdl for operation: $method", -1);
-                return false;
             }
+            $params = $nparams;
         }
+        
+        
         $this->debug("soapAction: $soapAction");
         // get namespace
         if (!$namespace && $this->endpointType == 'wsdl') {
@@ -152,71 +155,74 @@ class SOAP_Client extends PEAR
         $this->debug("namespace: $namespace");
         
         // make message
-        $soapmsg = new SOAP_Message($method,$params,$namespace);
+        $soapmsg = new SOAP_Message($method,$params,$namespace, NULL, $this->wsdl);
+        if ($soapmsg->fault) {
+            return $this->raiseSoapFault($soapmsg->fault);
+        }
+
         //$this->debug( "<xmp>".$soapmsg->serialize()."</xmp>");
         // instantiate client
         $dbg = "calling server at '$this->endpoint'...";
         
         $soap_transport = new SOAP_Transport($this->endpoint, $this->debug_flag);
-
+        if ($soap_transport->fault) {
+            return $this->raiseSoapFault($soap_transport->fault);
+        }
+        
         $this->debug($dbg.'instantiated client successfully');
         $this->debug("endpoint: $this->endpoint<br>\n");
 
         // send
         $dbg = "sending msg w/ soapaction '$soapAction'...";
         
+        // serialize the message
         $soap_data = $soapmsg->serialize();
-        $result = $soap_transport->send($this->response,$soap_data,$soapAction);
-        if ($result && !PEAR::isError($result)) {
-            // parse the response
-            $return = $soapmsg->parseResponse($this->response);
-            $this->debug($soap_transport->debug_str);
-            $this->debug($dbg.'sent message successfully and got a(n) '.gettype($return).' back');
+        if (PEAR::isError($soap_data)) {
+            return $this->raiseSoapFault($soap_data);
+        }
+        
+        // send the message
+        $this->response = $soap_transport->send($soap_data,$soapAction);
+        if ($soap_transport->fault) {
+            return $this->raiseSoapFault($this->response);
+        }
 
-            // check for valid response
-            if (strcasecmp(get_class($return),'SOAP_Value')==0) {
-                // decode to native php datatype
-                $returnArray = $return->decode();
-                // fault?
-                if (is_array($returnArray)) {
-                    if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
-                        $this->debug('got fault');
-                        $this->fault = true;
-                        foreach ($returnArray as $k => $v) {
-                            //print "$k = $v<br>";
-                            if (stristr($k,'faultcode')) $this->faultcode = $v;
-                            if (stristr($k,'faultstring')) $this->faultstring = $v;
-                            if (stristr($k,'faultdetail')) $this->faultdetail = $v;
-                            $this->debug("$k = $v<br>");
-                        }
-                        return false;
-                    }
-                    // return array of return values
-                    if (count($returnArray) == 1) {
-                        return array_shift($returnArray);
-                    }
-                    return $returnArray;
+        // parse the response
+        $return = $soapmsg->parseResponse($this->response);
+        $this->debug($soap_transport->debug_str);
+        $this->debug($dbg.'sent message successfully and got a(n) '.gettype($return).' back');
+
+        // check for valid response
+        if (PEAR::isError($return)) {
+            return $this->raiseSoapFault($return);
+        } else
+        if (strcasecmp(get_class($return),'SOAP_Value')!=0) {
+            return $this->raiseSoapFault('didn\'t get SOAP_Value object back from client');
+        }
+
+        // decode to native php datatype
+        $returnArray = $return->decode();
+        // fault?
+        if (PEAR::isError($returnArray)) {
+            return $this->raiseSoapFault($returnArray);
+        }
+        if (is_array($returnArray)) {
+            if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
+                foreach ($returnArray as $k => $v) {
+                    if (stristr($k,'faultcode')) $this->faultcode = $v;
+                    if (stristr($k,'faultstring')) $this->faultstring = $v;
+                    if (stristr($k,'faultdetail')) $this->faultdetail = $v;
+                    if (stristr($k,'faultactor')) $this->faultactor = $v;
                 }
-                return $returnArray;
-            } else {
-                return $this->raiseError('didn\'t get SOAP_Value object back from client', -1);
+                return $this->raiseSoapFault($this->faultstring, $this->faultdetail, $this->faultactor, $this->faultcode);
             }
+            // return array of return values
+            if (count($returnArray) == 1) {
+                return array_shift($returnArray);
+            }
+            return $returnArray;
         }
-
-        return $this->raiseError('client send/recieve error', -1);
-    }
-    
-    /**
-    * maintains a string of debug data
-    *
-    * @params string data
-    * @access private
-    */
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_data .= 'SOAP_Client: '.preg_replace("/>/","/>\r\n/",$string)."\n";
-        }
+        return $returnArray;
     }
 }
 

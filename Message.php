@@ -20,9 +20,10 @@
 // $Id$
 //
 
-require_once('SOAP/globals.php');
-require_once('SOAP/Parser.php');
-require_once('SOAP/Value.php');
+require_once 'SOAP/globals.php';
+require_once 'SOAP/Base.php';
+require_once 'SOAP/Parser.php';
+require_once 'SOAP/Value.php';
 
 /**
 *  SOAP Message Class
@@ -36,7 +37,7 @@ require_once('SOAP/Value.php');
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_Message
+class SOAP_Message extends SOAP_Base
 {
     /**
     * SOAP::Message constructor
@@ -50,14 +51,15 @@ class SOAP_Message
     *
     * @access public
     */
-    function SOAP_Message($method,$params,$method_namespace='http://testuri.org',$new_namespaces=NULL)
+    function SOAP_Message($method,$params,$method_namespace='http://testuri.org',$new_namespaces=NULL, $wsdl=NULL)
     {
         // globalize method namespace
         global $methodNamespace;
         $methodNamespace = $method_namespace;
 
+        parent::SOAP_Base('Message');
         // make method struct
-        $this->value = new SOAP_Value($method,'struct',$params,$method_namespace);
+        $this->value = new SOAP_Value($method,'Struct',$params,$method_namespace, NULL, $wsdl);
 
         if (is_array($new_namespaces)) {
             global $SOAP_namespaces;
@@ -163,19 +165,6 @@ class SOAP_Message
         $ret = $response->getResponse();
         $this->debug($response->debug_str);
         return $ret;
-    }
-    
-    /**
-    * maintains a string of debug data
-    *
-    * @params string data
-    * @access private
-    */
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_str .= 'SOAP_Message: '.preg_replace("/>/","/>\r\n/",$string)."\n";
-        }
     }
     
     /**

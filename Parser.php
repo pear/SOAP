@@ -241,7 +241,7 @@ class SOAP_Parser
                 }
 
                 $this->root_struct[] = $this->curent_root_struct = $pos;
-                $this->message[$pos]['type'] = 'struct';
+                $this->message[$pos]['type'] = 'Struct';
             }
         }
 
@@ -331,7 +331,7 @@ class SOAP_Parser
         // XXX check on integrating wsdl validation here
         if ($this->message[$pos]['type'] == '') {
             if ($this->message[$pos]['children'] != '') {
-                $this->message[$pos]['type'] = 'struct';
+                $this->message[$pos]['type'] = 'Struct';
             } else {
                 $parent = $this->message[$pos]['parent'];
                 if ($this->message[$parent]['type'] == 'array' &&
@@ -415,7 +415,7 @@ class SOAP_Parser
             $this->debug('ERROR: did not successfully eval the msg');
             $this->fault = true;
 
-            return new SOAP_Value('Fault','struct',array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'),new SOAP_Value('faultstring','string',"couldn't build response")));
+            return new SOAP_Value('Fault','Struct',array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'),new SOAP_Value('faultstring','string',"couldn't build response")));
         }
     }
     

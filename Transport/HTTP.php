@@ -19,7 +19,8 @@
 // $Id$
 //
 
-require_once('SOAP/globals.php');
+require_once 'SOAP/globals.php';
+require_once 'SOAP/Base.php';
 
 /**
 *  HTTP Transport for SOAP
@@ -29,7 +30,7 @@ require_once('SOAP/globals.php');
 * @package SOAP::Transport::HTTP
 * @author Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport_HTTP
+class SOAP_Transport_HTTP extends SOAP_Base
 {
     var $credentials = '';
     var $_userAgent;
@@ -49,6 +50,7 @@ class SOAP_Transport_HTTP
     */
     function SOAP_Transport_HTTP($URL)
     {
+        parent::SOAP_Base('HTTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
         $this->_userAgent = SOAP_LIBRARY_NAME;
@@ -58,25 +60,24 @@ class SOAP_Transport_HTTP
     * send and receive soap data
     *
     * @param string &$msg       outgoing post data
-    * @param string &$response   response data, minus http headers
     * @param string $action      SOAP Action header data
     * @param int $timeout  socket timeout, default 0 or off
     *
-    * @return boolean (success or failure)
+    * @return string|fault response
     * @access public
     */
-    function send(&$msg, &$response, $action = '', $timeout=0)
+    function &send(&$msg, $action = '', $timeout=0)
     {
         if (!$this->_validateUrl()) {
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg);
         }
         if ($timeout) $this->timeout = $timeout;
         if (strcasecmp($this->urlparts['scheme'],'HTTP') == 0) {
-            return $this->_sendHTTP($msg, $response, $action);
+            return $this->_sendHTTP($msg, $action);
         } else if (strcasecmp($this->urlparts['scheme'],'HTTPS') == 0) {
-            return $this->_sendHTTPS($msg, $response, $action);
+            return $this->_sendHTTPS($msg, $action);
         }
-        return FALSE;
+        return $this->raiseSoapFault('Invalid url scheme '.$this->url);
     }
 
     /**
@@ -110,6 +111,7 @@ class SOAP_Transport_HTTP
             return FALSE;
         }
         if (!isset($this->urlparts['host'])) {
+            $this->errmsg = "No host in URL $url";
             return FALSE;
         }
         if (!isset($this->urlparts['port'])) {
@@ -143,7 +145,7 @@ class SOAP_Transport_HTTP
     * @return string outgoing_payload
     * @access private
     */
-    function _getRequest(&$msg, $action)
+    function &_getRequest(&$msg, $action)
     {
         $this->outgoing_payload = 
                 "POST {$this->urlparts['path']} HTTP/1.0\r\n".
@@ -161,13 +163,12 @@ class SOAP_Transport_HTTP
     * send outgoing request, and read/parse response
     *
     * @param string &$msg   outgoing SOAP package
-    * @param string &$response   response data, minus http headers
     * @param string $action   SOAP Action
     *
-    * @return boolean
+    * @return string &$response   response data, minus http headers
     * @access private
     */
-    function _sendHTTP(&$msg, &$response, $action = '')
+    function &_sendHTTP(&$msg, $action = '')
     {
         $this->_getRequest($msg, $action);
         
@@ -179,11 +180,11 @@ class SOAP_Transport_HTTP
         }
         if (!$fp) {
             $this->errmsg = "Unable to connect to {$this->urlparts['host']}:{$this->urlparts['port']}";
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg);
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
             $this->errmsg = "Error POSTing Data to {$this->urlparts['host']}";
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg);
         }
         
         // get reponse
@@ -195,23 +196,21 @@ class SOAP_Transport_HTTP
 
         if (!$this->_parseResponse()) {
             $this->errmsg = 'Invalid HTTP Response';
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg, $this->outgoing_payload."\n\n".$this->incoming_payload);
         }
-        $response = $this->response;
-        return TRUE;
+        return $this->response;
     }
 
     /**
     * send outgoing request, and read/parse response, via HTTPS
     *
     * @param string &$msg   outgoing SOAP package
-    * @param string &$response   response data, minus http headers
     * @param string $action   SOAP Action
     *
-    * @return boolean
+    * @return string &$response   response data, minus http headers
     * @access private
     */
-    function _sendHTTPS(&$msg, &$response, $action)
+    function &_sendHTTPS(&$msg, $action)
     {
         /* NOTE This function uses the CURL functions
         *  Your php must be compiled with CURL
@@ -219,7 +218,7 @@ class SOAP_Transport_HTTP
         if (!extension_loaded('php_curl')) {
             $this->errno = -1;
             $this->errmsg = 'CURL Extension is required for HTTPS';
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg);
         }
         
         $this->_getRequest($msg, $action);
@@ -234,10 +233,10 @@ class SOAP_Transport_HTTP
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); 
         curl_setopt($ch, CURLOPT_VERBOSE,1); 
-        $response=curl_exec($ch); 
+        $this->response=curl_exec($ch); 
         curl_close($ch);
         
-        return TRUE;
+        return $this->response;
     }
 }; // end SOAP_Transport_HTTP
 ?>

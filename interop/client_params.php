@@ -74,9 +74,9 @@ $method_params["base"]['soapval']["echoStruct"]["inputStruct"] =
         );
 
 $method_params["base"]['php']["echoStructArray"]["inputStructArray"] = array(
-        "item" => array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325),
-        "item" => array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325),
-        "item" => array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325)
+        array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325),
+        array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325),
+        array("varString"=>"arg", "varInt"=>34, "varFloat"=>325.325)
         );
 $method_params["base"]['soapval']["echoStructArray"]["inputStructArray"] =
     new SOAP_Value("inputStructArray","Array",

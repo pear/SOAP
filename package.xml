@@ -26,6 +26,7 @@
       <dir name="/" baseinstalldir="SOAP">
 	<file role="php">Client.php</file>
 	<file role="php">Server.php</file>
+	<file role="php">Fault.php</file>
 	<file role="php">Message.php</file>
 	<file role="php">Value.php</file>
 	<file role="php">Parser.php</file>
@@ -46,6 +47,8 @@
 	<dir name="interop" role="test"> 
 	  <file role="test">client_params.php</file>
 	  <file role="test">client_round2_base.php</file>
+	  <file role="test">client_library.php</file>
+	  <file role="test">client_round2_pretty.php</file>
 	  <file role="test">interop.php</file>
 	  <file role="test">server_soapinterop_base.php</file>
 	  <file role="test">server_soapinterop_groupB.php</file>

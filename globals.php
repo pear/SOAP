@@ -22,122 +22,122 @@
 // make errors handle properly in windows (thx, thong@xmethods.com)
 error_reporting(2039);
 
-if (!function_exists("version_compare") ||
-    version_compare(phpversion(), "4.1", "<")) {
-    die("requires PHP 4.1 or higher\n");
+if (!function_exists('version_compare') ||
+    version_compare(phpversion(), '4.1', '<')) {
+    die('requires PHP 4.1 or higher\n');
 }
-if (version_compare(phpversion(), "4.1", ">=") &&
-    version_compare(phpversion(), "4.2", "<")) {
-    define("FLOAT","double");
+if (version_compare(phpversion(), '4.1', '>=') &&
+    version_compare(phpversion(), '4.2', '<')) {
+    define('FLOAT','double');
 } else {
-    define("FLOAT","float");
+    define('FLOAT','float');
 }
 
 # for float support
 # is there a way to calculate INF for the platform?
-define("INF", 1.8e307); 
-define("NAN", 0.0);
+define('INF', 1.8e307); 
+define('NAN', 0.0);
 
 # define types for value
-define("VALUE_SCALAR",1);
-define("VALUE_ARRAY",2);
-define("VALUE_STRUCT",3);
+define('VALUE_SCALAR',1);
+define('VALUE_ARRAY',2);
+define('VALUE_STRUCT',3);
 
-define("SOAP_LIBRARY_NAME","PEAR-SOAPx4 0.6");
+define('SOAP_LIBRARY_NAME','PEAR-SOAPx4 0.6');
 // set schema version
-define("SOAP_XML_SCHEMA_VERSION","http://www.w3.org/2001/XMLSchema");
-define("SOAP_XML_SCHEMA_1999","http://www.w3.org/1999/XMLSchema");
-define("SOAP_SCHEMA","http://schemas.xmlsoap.org/wsdl/soap/");
-define("SOAP_SCHEMA_ENCODING","http://schemas.xmlsoap.org/soap/encoding/");
-define("SOAP_ENVELOP","http://schemas.xmlsoap.org/soap/envelope/");
-define("SOAP_INTEROPORG","http://soapinterop.org/xsd");
+define('SOAP_XML_SCHEMA_VERSION','http://www.w3.org/2001/XMLSchema');
+define('SOAP_XML_SCHEMA_1999','http://www.w3.org/1999/XMLSchema');
+define('SOAP_SCHEMA','http://schemas.xmlsoap.org/wsdl/soap/');
+define('SOAP_SCHEMA_ENCODING','http://schemas.xmlsoap.org/soap/encoding/');
+define('SOAP_ENVELOP','http://schemas.xmlsoap.org/soap/envelope/');
+define('SOAP_INTEROPORG','http://soapinterop.org/xsd');
 
 // load types into typemap array
 /*
-$SOAP_typemap["http://www.w3.org/2001/XMLSchema"] = array(
-	"string","boolean","float","double","decimal","duration","dateTime","time",
-	"date","gYearMonth","gYear","gMonthDay","gDay","gMonth","hexBinary","base64Binary",
+$SOAP_typemap['http://www.w3.org/2001/XMLSchema'] = array(
+	'string','boolean','float','double','decimal','duration','dateTime','time',
+	'date','gYearMonth','gYear','gMonthDay','gDay','gMonth','hexBinary','base64Binary',
 	// derived datatypes
-	"normalizedString","token","language","NMTOKEN","NMTOKENS","Name","NCName","ID",
-	"IDREF","IDREFS","ENTITY","ENTITIES","integer","nonPositiveInteger",
-	"negativeInteger","long","int","short","byte","nonNegativeInteger",
-	"unsignedLong","unsignedInt","unsignedShort","unsignedByte","positiveInteger");
-$SOAP_typemap["http://www.w3.org/1999/XMLSchema"] = array(
-	"i4","int","boolean","string","double","float","dateTime",
-	"timeInstant","base64Binary","base64","ur-type");
-$SOAP_typemap[SOAP_INTEROPORG] = array("SOAPStruct");
-$SOAP_typemap[SOAP_SCHEMA_ENCODING] = array("base64","array","Array");
+	'normalizedString','token','language','NMTOKEN','NMTOKENS','Name','NCName','ID',
+	'IDREF','IDREFS','ENTITY','ENTITIES','integer','nonPositiveInteger',
+	'negativeInteger','long','int','short','byte','nonNegativeInteger',
+	'unsignedLong','unsignedInt','unsignedShort','unsignedByte','positiveInteger');
+$SOAP_typemap['http://www.w3.org/1999/XMLSchema'] = array(
+	'i4','int','boolean','string','double','float','dateTime',
+	'timeInstant','base64Binary','base64','ur-type');
+$SOAP_typemap[SOAP_INTEROPORG] = array('SOAPStruct');
+$SOAP_typemap[SOAP_SCHEMA_ENCODING] = array('base64','array','Array');
 */
 $SOAP_typemap[SOAP_XML_SCHEMA_VERSION] = array(
-	"string" => "string",
-        "boolean" => "boolean",
-        "float" => FLOAT,
-        "double" => "double",
-        "decimal" => "integer",
-        "duration" => "integer",
-        "dateTime" => "string",
-        "time" => "string",
-	"date" => "string",
-        "gYearMonth" => "integer",
-        "gYear" => "integer",
-        "gMonthDay" => "integer",
-        "gDay" => "integer",
-        "gMonth" => "integer",
-        "hexBinary" => "string",
-        "base64Binary" => "string",
+	'string' => 'string',
+        'boolean' => 'boolean',
+        'float' => FLOAT,
+        'double' => 'double',
+        'decimal' => 'integer',
+        'duration' => 'integer',
+        'dateTime' => 'string',
+        'time' => 'string',
+	'date' => 'string',
+        'gYearMonth' => 'integer',
+        'gYear' => 'integer',
+        'gMonthDay' => 'integer',
+        'gDay' => 'integer',
+        'gMonth' => 'integer',
+        'hexBinary' => 'string',
+        'base64Binary' => 'string',
 	// derived datatypes
-	"normalizedString" => "string",
-        "token" => "string",
-        "language" => "string",
-        "NMTOKEN" => "string",
-        "NMTOKENS" => "string",
-        "Name" => "string",
-        "NCName" => "string",
-        "ID" => "string",
-	"IDREF" => "string",
-        "IDREFS" => "string",
-        "ENTITY" => "string",
-        "ENTITIES" => "string",
-        "integer" => "integer",
-        "nonPositiveInteger" => "integer",
-	"negativeInteger" => "integer",
-        "long" => "integer",
-        "int" => "integer",
-        "short" => "integer",
-        "byte" => "string",
-        "nonNegativeInteger" => "integer",
-	"unsignedLong" => "integer",
-        "unsignedInt" => "integer",
-        "unsignedShort" => "integer",
-        "unsignedByte" => "integer",
-        "positiveInteger"  => "integer"
+	'normalizedString' => 'string',
+        'token' => 'string',
+        'language' => 'string',
+        'NMTOKEN' => 'string',
+        'NMTOKENS' => 'string',
+        'Name' => 'string',
+        'NCName' => 'string',
+        'ID' => 'string',
+	'IDREF' => 'string',
+        'IDREFS' => 'string',
+        'ENTITY' => 'string',
+        'ENTITIES' => 'string',
+        'integer' => 'integer',
+        'nonPositiveInteger' => 'integer',
+	'negativeInteger' => 'integer',
+        'long' => 'integer',
+        'int' => 'integer',
+        'short' => 'integer',
+        'byte' => 'string',
+        'nonNegativeInteger' => 'integer',
+	'unsignedLong' => 'integer',
+        'unsignedInt' => 'integer',
+        'unsignedShort' => 'integer',
+        'unsignedByte' => 'integer',
+        'positiveInteger'  => 'integer'
         );
 $SOAP_typemap[SOAP_XML_SCHEMA_1999] = array(
-	"i4" => "integer",
-        "int" => "integer",
-        "boolean" => "boolean",
-        "string" => "string",
-        "double" => "double",
-        "float" => FLOAT,
-        "dateTime" => "string",
-	"timeInstant" => "string",
-        "base64Binary" => "string",
-        "base64" => "string",
-        "ur-type" => "string"
+	'i4' => 'integer',
+        'int' => 'integer',
+        'boolean' => 'boolean',
+        'string' => 'string',
+        'double' => 'double',
+        'float' => FLOAT,
+        'dateTime' => 'string',
+	'timeInstant' => 'string',
+        'base64Binary' => 'string',
+        'base64' => 'string',
+        'ur-type' => 'string'
         );
-$SOAP_typemap[SOAP_INTEROPORG] = array("SOAPStruct" => "array");
-$SOAP_typemap[SOAP_SCHEMA_ENCODING] = array("base64" => "string","array" => "array","Array" => "array");
+$SOAP_typemap[SOAP_INTEROPORG] = array('SOAPStruct' => 'array');
+$SOAP_typemap[SOAP_SCHEMA_ENCODING] = array('base64' => 'string','array' => 'array','Array' => 'array', 'Struct'=>'array');
 
 // load namespace uris into an array of uri => prefix
 $SOAP_namespaces = array(
-	SOAP_ENVELOP => "SOAP-ENV",
-	SOAP_XML_SCHEMA_VERSION => "xsd",
-	SOAP_XML_SCHEMA_VERSION."-instance" => "xsi",
-	SOAP_SCHEMA_ENCODING => "SOAP-ENC",
-	SOAP_INTEROPORG=>"si");
+	SOAP_ENVELOP => 'SOAP-ENV',
+	SOAP_XML_SCHEMA_VERSION => 'xsd',
+	SOAP_XML_SCHEMA_VERSION.'-instance' => 'xsi',
+	SOAP_SCHEMA_ENCODING => 'SOAP-ENC',
+	SOAP_INTEROPORG=>'si');
 
-$SOAP_xmlEntities = array("quot" => '"',"amp" => "&",
-	"lt" => "<","gt" => ">","apos" => "'");
+$SOAP_xmlEntities = array('quot' => '"','amp' => '&',
+	'lt' => '<','gt' => '>','apos' => "'");
 
 
 ?>

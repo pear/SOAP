@@ -27,8 +27,9 @@
 //  ability to define smtp options (encoding, from, etc.)
 //
 
-require_once('SOAP/globals.php');
-require_once('SOAP/Message.php');
+require_once 'SOAP/globals.php';
+require_once 'SOAP/Message.php';
+require_once 'SOAP/Base.php';
 
 /**
 *  SMTP Transport for SOAP
@@ -38,7 +39,7 @@ require_once('SOAP/Message.php');
 * @package SOAP::Transport::SMTP
 * @author Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport_SMTP
+class SOAP_Transport_SMTP extends SOAP_Base
 {
     var $credentials = '';
     var $_userAgent;
@@ -58,6 +59,7 @@ class SOAP_Transport_SMTP
     */
     function SOAP_Transport_SMTP($URL)
     {
+        parent::SOAP_Base('SMTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
         $this->_userAgent = SOAP_LIBRARY_NAME;
@@ -67,17 +69,16 @@ class SOAP_Transport_SMTP
     * send and receive soap data
     *
     * @param string &$msg       outgoing post data
-    * @param string &$response   response data, minus http headers
     * @param string $action      SOAP Action header data
     * @param int $timeout  socket timeout, default 0 or off
     *
-    * @return boolean (success or failure)
+    * @return string &$response   response data, minus http headers
     * @access public
     */
-    function send(&$msg, &$response, $action = '', $timeout=0)
+    function send(&$msg, $action = '', $timeout=0)
     {
         if (!$this->_validateUrl()) {
-            return FALSE;
+            return $this->raiseSoapFault($this->errmsg);
         }
 
         $headers = "From: $action\n".
@@ -94,7 +95,7 @@ class SOAP_Transport_SMTP
             $val = new SOAP_Value('return','boolean',TRUE);
         } else {
             $val = new SOAP_Value('Fault','struct',array(
-                new SOAP_Value('faultcode','string','SOAP-ENV:Transport'),
+                new SOAP_Value('faultcode','string','SOAP-ENV:Transport:SMTP'),
                 new SOAP_Value('faultstring','string',"couldn't send message to $action")
                 ));
         }

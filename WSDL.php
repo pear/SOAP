@@ -19,7 +19,8 @@
 //
 // $Id$
 //
-require_once('SOAP/globals.php');
+require_once 'SOAP/Base.php';
+require_once 'SOAP/globals.php';
 
 /**
 *  SOAP_WSDL
@@ -38,68 +39,148 @@ require_once('SOAP/globals.php');
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_WSDL {
-    // define internal arrays of bindings, ports, operations, messages, etc.
+class SOAP_WSDL extends SOAP_Base
+{
+    var $tns = NULL;
+    var $definition = array();
+    var $namespaces = array();
     var $complexTypes = array();
     var $messages = array();
-    var $currentMessage;
-    var $currentOperation;
     var $portTypes = array();
-    var $currentPortType;
     var $bindings = array();
-    var $currentBinding;
     var $ports = array();
     var $imports = array();
+    
+    function SOAP_WSDL($uri=false) {
+        parent::SOAP_Base('WSDL');
+        $this->uri = $uri;
+        $this->parse($uri);
+    }
+
+    function parse($uri) {
+        $parser = new SOAP_WSDL_Parser($uri, $this);
+        if ($parser->fault) {
+            $this->raiseSoapFault($parser->fault);
+        }
+    }
+    
+    function getEndpoint($portName)
+    {
+        if ($endpoint = $this->ports[$portName]['location']) {
+            return $endpoint;
+        }
+        return $this->raiseSoapFault("no endpoint for port for $portName",$this->uri);
+    }
+    
+    // find the name of the first port that contains an operation of name $operation
+    function getPortName($operation)
+    {
+        foreach($this->ports as $port => $portAttrs) {
+            if ($this->bindings[$portAttrs['binding']]['operations'][$operation] != '') {
+                return $port;
+            }
+        }
+        return $this->raiseSoapFault("no operation $operation in wsdl", $this->uri);
+    }
+    
+    function getOperationData($portName,$operation)
+    {
+        if ($binding = $this->ports[$portName]['binding']) {
+            // get operation data from binding
+            if (is_array($this->bindings[$binding]['operations'][$operation])) {
+                $opData = $this->bindings[$binding]['operations'][$operation];
+            }
+            // get operation data from porttype
+            $portType = $this->bindings[$binding]['type'];
+            if (!$portType) {
+                return $this->raiseSoapFault("no port type for binding $binding in wsdl ".$this->uri);
+            }
+            if (is_array($this->portTypes[$portType][$operation])) {
+                $opData['parameterOrder'] = $this->portTypes[$portType][$operation]['parameterOrder'];
+                $opData['input'] = array_merge($opData['input'],$this->portTypes[$portType][$operation]['input']);
+                $opData['output'] = array_merge($opData['output'],$this->portTypes[$portType][$operation]['output']);
+            }
+            // message data from messages
+            $inputMsg = $opData['input']['message'];
+            $opData['input']['parts'] = $this->messages[$inputMsg];
+            $outputMsg = $opData['output']['message'];
+            $opData['output']['parts'] = $this->messages[$outputMsg];
+            return $opData;
+        }
+        return $this->raiseSoapFault("no binding for port $portName in wsdl", $this->uri);
+    }
+    
+    function getSoapAction($portName,$operation)
+    {
+        if ($soapAction = $this->bindings[$this->ports[$portName]['binding']]['operations'][$operation]['soapAction']) {
+            return $soapAction;
+        }
+        return false;
+    }
+    
+    function getNamespace($portName,$operation)
+    {
+        if ($namespace = $this->bindings[$this->ports[$portName]['binding']]['operations'][$operation]['input']['namespace']) {
+            return $namespace;
+        }
+        return false;
+    }
+}
+
+class SOAP_WSDL_Parser extends SOAP_Base
+{
+    // define internal arrays of bindings, ports, operations, messages, etc.
+    var $currentMessage;
+    var $currentOperation;
+    var $currentPortType;
+    var $currentBinding;
     var $currentPort;
-    // debug switch
-    var $debug_flag = false;
     // parser vars
     var $position;
     var $depth;
     var $depth_array = array();
     var $tns = NULL;
     var $soapns = 'soap';
-    var $fault = FALSE;
+    var $uri = '';
+    
     
     // constructor
-    function SOAP_WSDL($wsdl=false) {
-        $this->parse($wsdl);
+    function SOAP_WSDL_Parser($uri, &$wsdl) {
+        parent::SOAP_Base('WSDLPARSER');
+        $this->uri = $uri;
+        $this->wsdl = &$wsdl;
+        $this->parse($uri);
     }
     
-    function parse($wsdl) {
+    function parse($uri) {
         // Check whether content has been read.
-        if ($wsdl) {
-            // XXX implement caching
-            $fd = @file($wsdl);
-            if (!$fd) {
-                $this->fault = true;
-                $this->debug('Unable to retreive WSDL file');
-                return false;
-            }
-            $wsdl_string = join('',$fd);
-            // Create an XML parser.
-            $parser = xml_parser_create();
-            // Set the options for parsing the XML data.
-            //xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1); 
-            xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-            // Set the object for the parser.
-            xml_set_object($parser, $this);
-            // Set the element handlers for the parser.
-            xml_set_element_handler($parser, 'startElement','endElement');
-            xml_set_character_data_handler($parser,'characterData');
-            //xml_set_default_handler($this->parser, 'defaultHandler');
-        
-            // Parse the XML file.
-            if (!xml_parse($parser,$wsdl_string,true)) {
-                // Display an error message.
-                $this->debug(sprintf('XML error on line %d: %s',
-                xml_get_current_line_number($parser),
-                xml_error_string(xml_get_error_code($parser))));
-                $this->fault = true;
-            }
-            xml_parser_free($parser);
+        // XXX implement caching
+        $fd = @file($uri);
+        if (!$fd) {
+            return $this->raiseSoapFault('Unable to retreive WSDL file', $uri);
         }
-        return $this->fault;
+        $wsdl_string = join('',$fd);
+        // Create an XML parser.
+        $parser = xml_parser_create();
+        // Set the options for parsing the XML data.
+        //xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1); 
+        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+        // Set the object for the parser.
+        xml_set_object($parser, $this);
+        // Set the element handlers for the parser.
+        xml_set_element_handler($parser, 'startElement','endElement');
+        xml_set_character_data_handler($parser,'characterData');
+        //xml_set_default_handler($this->parser, 'defaultHandler');
+    
+        // Parse the XML file.
+        if (!xml_parse($parser,$wsdl_string,true)) {
+            $detail = sprintf('XML error on line %d: %s',
+                                    xml_get_current_line_number($parser),
+                                    xml_error_string(xml_get_error_code($parser)));
+            return $this->raiseSoapFault("Unable to parse WSDL file $uri",$detail);
+        }
+        xml_parser_free($parser);
+        return TRUE;
     }
     
     // start-element handler
@@ -132,65 +213,65 @@ class SOAP_WSDL {
                 $this->schemaStatus = 'complexType';
             break;
             case 'element':
-                $this->complexTypes[$this->currentElement]['elements'][$attrs['name']] = $attrs;
+                $this->wsdl->complexTypes[$this->currentElement]['elements'][$attrs['name']] = $attrs;
             break;
             case 'complexContent':
                     
             break;
             case 'restriction':
-                $this->complexTypes[$this->currentElement]['restrictionBase'] = $attrs['base'];
+                $this->wsdl->complexTypes[$this->currentElement]['restrictionBase'] = $attrs['base'];
             break;
             case 'sequence':
-                $this->complexTypes[$this->currentElement]['order'] = 'sequence';
+                $this->wsdl->complexTypes[$this->currentElement]['order'] = 'sequence';
             break;
             case 'all':
-                $this->complexTypes[$this->currentElement]['order'] = 'all';
+                $this->wsdl->complexTypes[$this->currentElement]['order'] = 'all';
             break;
             case 'attribute':
                 if ($attrs['ref']) {
-                    $this->complexTypes[$this->currentElement]['attrs'][$attrs['ref']] = $attrs;
+                    $this->wsdl->complexTypes[$this->currentElement]['attrs'][$attrs['ref']] = $attrs;
                 } elseif ($attrs['name']) {
-                    $this->complexTypes[$this->currentElement]['attrs'][$attrs['name']] = $attrs;
+                    $this->wsdl->complexTypes[$this->currentElement]['attrs'][$attrs['name']] = $attrs;
                 }
             break;
             }
         break;
         case 'message':
             if ($name == 'part') {
-                $this->messages[$this->currentMessage][$attrs['name']] = $attrs['type'];
+                $this->wsdl->messages[$this->currentMessage][$attrs['name']] = $attrs['type'];
             }
         break;
         case 'portType':
             switch($name) {
             case 'operation':
                 $this->currentOperation = $attrs['name'];
-                $this->portTypes[$this->currentPortType][$attrs['name']]['parameterOrder'] = $attrs['parameterOrder'];
+                $this->wsdl->portTypes[$this->currentPortType][$attrs['name']]['parameterOrder'] = $attrs['parameterOrder'];
             break;
             default:
-                $this->portTypes[$this->currentPortType][$this->currentOperation][$name]= $attrs;
+                $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]= $attrs;
                 $qname = split(':',$attrs['message']);
                 $qname = array_reverse($qname); // this way, the type will always be zero
-                $this->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qname[0];
-                $this->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qname[1];
+                $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qname[0];
+                $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qname[1];
             break;
             }
         break;
         case 'binding':
             switch($name) {
                 case $this->soapns.':binding':
-                    $this->bindings[$this->currentBinding] = array_merge($this->bindings[$this->currentBinding],$attrs);
+                    $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding],$attrs);
                 break;
                 case 'operation':
                     $this->currentOperation = $attrs['name'];
-                    $this->bindings[$this->currentBinding]['operations'][$attrs['name']] = array();
+                    $this->wsdl->bindings[$this->currentBinding]['operations'][$attrs['name']] = array();
                 break;
                 case $this->soapns.':operation':
-                    $this->bindings[$this->currentBinding]['operations'][$this->currentOperation]['soapAction'] = $attrs['soapAction'];
+                    $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation]['soapAction'] = $attrs['soapAction'];
                 break;
                 case 'input':
                     $this->opStatus = 'input';
                 case $this->soapns.':body':
-                    $this->bindings[$this->currentBinding]['operations'][$this->currentOperation][$this->opStatus] = $attrs;
+                    $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation][$this->opStatus] = $attrs;
                 break;
                 case 'output':
                     $this->opStatus = 'output';
@@ -201,21 +282,21 @@ class SOAP_WSDL {
             switch($name) {
             case 'port':
                 $this->currentPort = $attrs['name'];
-                $this->ports[$attrs['name']] = $attrs;
+                $this->wsdl->ports[$attrs['name']] = $attrs;
                 // XXX hack to deal with binding namespaces
                 $qname = split(':',$attrs['binding']);
                 $qname = array_reverse($qname); // this way, the type will always be zero
-                $this->ports[$attrs['name']]['binding'] = $qname[0];
-                $this->ports[$attrs['name']]['namespace'] = $qname[1];
+                $this->wsdl->ports[$attrs['name']]['binding'] = $qname[0];
+                $this->wsdl->ports[$attrs['name']]['namespace'] = $qname[1];
             break;
             case $this->soapns.':address':
-                $this->ports[$this->currentPort]['location'] = $attrs['location'];
+                $this->wsdl->ports[$this->currentPort]['location'] = $attrs['location'];
             break;
             }
         case 'import':
             switch($name) {
             case 'documentation':
-                $this->imports[$attrs['namespace']]['documentation'] = $attrs;
+                $this->wsdl->imports[$attrs['namespace']]['documentation'] = $attrs;
             default:
                 $this->debug('ERROR, only documentation allowed inside IMPORT\n');
             }
@@ -227,10 +308,13 @@ class SOAP_WSDL {
             //XXX
             $import = '';
             if ($attrs['location']) {
-                $this->parse($attrs['location']);
+                $result = $this->parse($attrs['location'], $this->wsdl);
+                if (PEAR::isError($result)) {
+                    return $result;
+                }
             }
             
-            $this->imports[$attrs['namespace']] = array(
+            $this->wsdl->imports[$attrs['namespace']] = array(
                         'location' => $attrs['location'],
                         'namespace' => $attrs['namespace']);
             $this->currentImport = $attrs['namespace'];
@@ -240,12 +324,12 @@ class SOAP_WSDL {
         break;
         case 'message':
             $this->status = 'message';
-            $this->messages[$attrs['name']] = array();
+            $this->wsdl->messages[$attrs['name']] = array();
             $this->currentMessage = $attrs['name'];
         break;
         case 'portType':
             $this->status = 'portType';
-            $this->portTypes[$attrs['name']] = array();
+            $this->wsdl->portTypes[$attrs['name']] = array();
             $this->currentPortType = $attrs['name'];
         break;
         case 'binding':
@@ -253,15 +337,15 @@ class SOAP_WSDL {
             $this->currentBinding = $attrs['name'];
             $qname = split(':',$attrs['type']);
             $qname = array_reverse($qname); // this way, the type will always be zero
-            $this->bindings[$attrs['name']]['type'] = $qname[0];
-            $this->bindings[$attrs['name']]['namespace'] = $qname[1];
+            $this->wsdl->bindings[$this->currentBinding]['type'] = $qname[0];
+            $this->wsdl->bindings[$this->currentBinding]['namespace'] = $qname[1];
         break;
         case 'service':
-            $this->serviceName = $attrs['name'];
+            $this->wsdl->serviceName = $attrs['name'];
             $this->status = 'service';
         break;
         case 'definitions':
-            $this->wsdl_info = $attrs;
+            $this->wsdl->definition = $attrs;
             foreach ($attrs as $name=>$value) {
                 if (strcasecmp($value,SOAP_SCHEMA)==0) {
                     $s = split(':',$name);
@@ -271,9 +355,8 @@ class SOAP_WSDL {
             }
             if ($ns) {
                 $namespace = 'xmlns:'.$ns;
-                if (!$this->wsdl_info[$namespace]) {
-                    $this->debug("WSDL Parse Error, no namespace for $namespace\n");
-                    return;
+                if (!$this->wsdl->definition[$namespace]) {
+                    return $this->raiseSoapFault("parse error, no namespace for $namespace",$this->uri);
                 }
                 $this->tns = $ns;
             }
@@ -281,62 +364,6 @@ class SOAP_WSDL {
         }
     }
     
-    function getEndpoint($portName)
-    {
-        if ($endpoint = $this->ports[$portName]['location']) {
-            return $endpoint;
-        }
-        return false;
-    }
-    
-    // find the name of the first port that contains an operation of name $operation
-    function getPortName($operation)
-    {
-        foreach($this->ports as $port => $portAttrs) {
-            if ($this->bindings[$portAttrs['binding']]['operations'][$operation] != '') {
-                return $port;
-            }
-        }
-    }
-    
-    function getOperationData($portName,$operation)
-    {
-        if ($binding = $this->ports[$portName]['binding']) {
-            // get operation data from binding
-            if (is_array($this->bindings[$binding]['operations'][$operation])) {
-                $opData = $this->bindings[$binding]['operations'][$operation];
-            }
-            // get operation data from porttype
-            $portType = $this->bindings[$binding]['type'];
-            if (is_array($this->portTypes[$portType][$operation])) {
-                $opData['parameterOrder'] = $this->portTypes[$portType][$operation]['parameterOrder'];
-                $opData['input'] = array_merge($opData['input'],$this->portTypes[$portType][$operation]['input']);
-                $opData['output'] = array_merge($opData['output'],$this->portTypes[$portType][$operation]['output']);
-            }
-            // message data from messages
-            $inputMsg = $opData['input']['message'];
-            $opData['input']['parts'] = $this->messages[$inputMsg];
-            $outputMsg = $opData['output']['message'];
-            $opData['output']['parts'] = $this->messages[$outputMsg];
-        }
-        return $opData;
-    }
-    
-    function getSoapAction($portName,$operation)
-    {
-        if ($soapAction = $this->bindings[$this->ports[$portName]['binding']]['operations'][$operation]['soapAction']) {
-            return $soapAction;
-        }
-        return false;
-    }
-    
-    function getNamespace($portName,$operation)
-    {
-        if ($namespace = $this->bindings[$this->ports[$portName]['binding']]['operations'][$operation]['input']['namespace']) {
-            return $namespace;
-        }
-        return false;
-    }
     
     // end-element handler
     function endElement($parser, $name)
@@ -350,18 +377,11 @@ class SOAP_WSDL {
     // element content handler
     function characterData($parser, $data)
     {
-        $pos = $this->depth_array[$this->depth];
-        $this->message[$pos]['cdata'] .= $data;
-    }
-    
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_str .= "wsdl: $string\n";
-        }
+        #$pos = $this->depth_array[$this->depth];
+        #$this->wsdl->messages[$pos]['cdata'] .= $data;
     }
 }
 
-#$wsdl = new wsdl("http://www.whitemesa.net/wsdl/std/interop.wsdl");
+#$wsdl = new SOAP_WSDL("http://www.apache.org/~rubys/ApacheSoap.wsdl");
 #print "end";
 ?>

@@ -20,7 +20,7 @@
 // $Id$
 //
 
-require_once('PEAR.php');
+require_once 'SOAP/Base.php';
 
 /**
 * SOAP Transport Layer
@@ -33,11 +33,9 @@ require_once('PEAR.php');
 * @package SOAP::Transport
 * @author Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport extends PEAR
+class SOAP_Transport extends SOAP_Base
 {
     var $transport = NULL;
-    var $outgoing_payload = '';
-    var $incoming_payload = '';
     var $errmsg = '';
 
     /**
@@ -49,6 +47,7 @@ class SOAP_Transport extends PEAR
     */
     function SOAP_Transport($url, $debug = 0)
     {
+        parent::SOAP_Base('TRANSPORT');
         /* only HTTP transport for now, later look at url for scheme */
         $this->debug_flag = $debug;
 
@@ -64,32 +63,33 @@ class SOAP_Transport extends PEAR
             return;
         }
         $this->errmsg = "No Transport for {$urlparts['scheme']}";
+        $this->raiseSoapFault($this->errmsg);
     }
     
     /**
     * send a soap package, get a soap response
     *
-    * @param string &$response   soap response (in xml)
     * @param string &$soap_data   soap data to be sent (in xml)
     * @param string $action SOAP Action
     * @param int $timeout protocol timeout in seconds
     *
-    * @return boolean
+    * @return string &$response   soap response (in xml)
     * @access public
     */
-    function send(&$response, &$soap_data, $action = '', $timeout=0)
+    function &send(&$soap_data, $action = '', $timeout=0)
     {
-        if (!$this->transport) return $this->raiseError($this->errmsg, -1);
-        
-        if (!$this->transport->send($soap_data, $response, $action, $timeout)) {
-            $this->errmsg = $this->transport->errmsg;
-            return $this->raiseError($this->transport->errmsg, -1);
+        if (!$this->transport) {
+            return $this->raiseSoapFault($this->errmsg);
         }
-        $this->outgoing_payload = $this->transport->outgoing_payload;
+        
+        $response = $this->transport->send($soap_data, $action, $timeout);
+        if (PEAR::isError($response)) {
+            return $this->raiseSoapFault($response);
+        }
+        
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
-        #echo "\n INCOMING: ".$this->transport->incoming_payload."\n\n";
         #echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
-        return TRUE;
+        return $response;
     }
 
 } // end SOAP_Transport
