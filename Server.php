@@ -195,11 +195,18 @@ class SOAP_Server extends SOAP_Base
             }
         }
         
+        // make distinction between the different choice of installation,
+        // running php as cgi or as a module
+        if(stristr(php_sapi_name(),'cgi')==0)
+            $hdrs_type = 'Status:';
+        else
+            $hdrs_type = 'HTTP/1.1';
+
         if ($this->fault) {
-            $hdrs = "HTTP/1.1 500 Soap Fault\r\n";
+            $hdrs = "$hdrs_type 500 Soap Fault\r\n";
             $response = $this->fault->message();
         } else {
-           $hdrs = "HTTP/1.1 200 OK\r\n";
+           $hdrs = "$hdrs_type 200 OK\r\n";
         }
         header($hdrs);
 
