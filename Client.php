@@ -147,6 +147,8 @@ class SOAP_Client extends SOAP_Base
         $this->_portName = $portName;
         $this->__proxy_params = $proxy_params;
 
+        $wsdl = $wsdl?$wsdl:strcasecmp('wsdl',substr($endpoint,strlen($endpoint)-4))==0;
+
         // make values
         if ($wsdl) {
             $this->__endpointType = 'wsdl';
@@ -251,7 +253,9 @@ class SOAP_Client extends SOAP_Base
         if (!$this->_soap_transport) {
             $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
             if (PEAR::isError($this->_soap_transport)) {
-                return $this->_raiseSoapFault($this->_soap_transport);
+                $fault =& $this->_soap_transport;
+                $this->_soap_transport = NULL;
+                return $this->_raiseSoapFault($fault);
             }
         }
         $this->_soap_transport->encoding = $this->_encoding;
@@ -319,7 +323,13 @@ class SOAP_Client extends SOAP_Base
     */
     function &__call($method, &$args, &$return_value)
     {
-        if ($this->_wsdl) $this->_wsdl->matchMethod($method);
+        // XXX overloading lowercases the method name, we
+        // need to look into the wsdl and try to find
+        // the correct method name to get the correct
+        // case for the call.
+        if ($this->_wsdl)
+            $this->_wsdl->matchMethod($method);
+        
         $return_value =& $this->call($method, $args);
         return TRUE;
     }

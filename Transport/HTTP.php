@@ -403,6 +403,7 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
      */
     function &_sendHTTP(&$msg, $options)
     {
+        $this->incoming_payload = '';
         $this->_getRequest($msg, $options);
         $host = $this->urlparts['host'];
         $port = $this->urlparts['port'];

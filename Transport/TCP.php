@@ -89,6 +89,7 @@ class SOAP_Transport_TCP extends SOAP_Base_Object
     */
     function &send(&$msg, $options = NULL)
     {
+        $this->incoming_payload = '';
         $this->outgoing_payload = &$msg;
         if (!$this->_validateUrl()) return $this->fault;
 

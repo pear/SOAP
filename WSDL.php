@@ -407,7 +407,7 @@ class SOAP_WSDL extends SOAP_Base
                                 }*/
                                 if($el['complex'] && $argarray) {
                                     $wrapname = '{'.$this->namespaces[$_argtype['namespace']].'}'.$el['name'];
-                                    $comments .= "        \${$el['name']} =& new SOAP_Value('$wrapname',false,array($argarray));\n";
+                                    $comments .= "        \${$el['name']} =& new SOAP_Value('$wrapname',false,\$v=array($argarray));\n";
                                     $argarray = "'{$el['name']}'=>\${$el['name']}";
                                 }
                         } else 
@@ -431,7 +431,7 @@ class SOAP_WSDL extends SOAP_Base
             else $argarray = 'NULL';
             $class .= "    function $opname($args) {\n$comments$wrappers".
             "        return \$this->call(\"$opname\", \n".
-            "                        $argarray, \n".
+            "                        \$v = $argarray, \n".
             "                        array('namespace'=>'$namespace',\n".
             "                            'soapaction'=>'$soapaction',\n".
             "                            'style'=>'$opstyle',\n".

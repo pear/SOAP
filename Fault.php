@@ -63,10 +63,14 @@ class SOAP_Fault extends PEAR_Error
         $msg =& new SOAP_Base();
         $params = array();
         $params[] =& new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code);
-        $params[] =& new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code);
         $params[] =& new SOAP_Value('faultstring', 'string', $this->message);
         $params[] =& new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix);
-        $params[] =& new SOAP_Value('detail', 'string', $this->userinfo);
+        if (isset($this->backtrace)) {
+            $params[] =& new SOAP_Value('detail', 'string', $this->backtrace);
+        } else {
+            $params[] =& new SOAP_Value('detail', 'string', $this->userinfo);
+        }
+        
         $methodValue =& new SOAP_Value('{'.SOAP_ENVELOP.'}Fault', 'Struct', $params);
         $headers = NULL;
         return $msg->_makeEnvelope($methodValue, $headers);

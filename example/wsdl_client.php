@@ -25,34 +25,24 @@ include("SOAP/Client.php");
  * it does not use WSDL to run these requests, but that can be changed easily by simply
  * adding '?wsdl' to the end of the url.
  */
-$soapclient = new SOAP_Client("http://localhost/SOAP/example/server.php");
-// this namespace is the same as declared in server.php
-$options = array('namespace' => 'urn:SOAP_Example_Server',
-                 'trace' => 1);
+$wsdl = new SOAP_WSDL("http://localhost/SOAP/example/server.php?wsdl");
+$soapclient = $wsdl->getProxy();
 
-$ret = $soapclient->call("echoStringSimple",
-                         $params = array("inputStringSimple"=>"this is a test string"),
-                         $options);
+$ret = $soapclient->echoStringSimple("this is a test string");
 #print $soapclient->__get_wire();
 print_r($ret);echo "<br>\n";
 
-$ret = $soapclient->call("echoString",
-                         $params = array("inputString"=>"this is a test string"),
-                         $options);
+$ret = $soapclient->echoString("this is a test string");
 print_r($ret);echo "<br>\n";
 
-$ret = $soapclient->call("divide",
-                         $params = array("dividend"=>22,"divisor"=>7),
-                         $options);
+$ret = $soapclient->divide(22,7);
 # print $soapclient->__get_wire();
 if (PEAR::isError($ret))
     print("Error: " . $ret->getMessage() . "<br>\n");
 else
     print("Quotient is " . $ret . "<br>\n");
 
-$ret = $soapclient->call("divide",
-                         $params = array("dividend"=>22,"divisor"=>0),
-                         $options);
+$ret = $soapclient->divide(22,0);
 if (PEAR::isError($ret))
     print("Error: " . $ret->getMessage() . "<br>\n");
 else
@@ -73,9 +63,7 @@ $soapclient->_auto_translation = true;
    and may not be desireable.  both can be used on client or
    server */
 $soapclient->__set_type_translation('{http://soapinterop.org/xsd}SOAPStruct','SOAPStruct');
-$ret = $soapclient->call("echoStruct",
-                         $p = array('inputStruct' => $struct->__to_soap()),
-                         $options);
+$ret = $soapclient->echoStruct($struct->__to_soap());
 #print $soapclient->__get_wire();
 print_r($ret);
 
@@ -84,9 +72,7 @@ print_r($ret);
  * must do a little work to make it happen here.  This requires knowledge on the
  * developers part to figure out how they want to deal with it.
  */
-$ret = $soapclient->call("echoStructAsSimpleTypes",
-                         $p = array('inputStruct' => $struct->__to_soap()),
-                         $options);
+$ret = $soapclient->echoStructAsSimpleTypes($struct->__to_soap());
 if (PEAR::isError($ret)) {
     print("Error: " . $ret->getMessage() . "<br>\n");
 } else {

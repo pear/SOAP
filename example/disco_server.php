@@ -216,7 +216,6 @@ class MP3DB_Class {
 
 $server = new SOAP_Server;
 $server->_auto_translation = true;
-$server->method_namespace = "urn:MP3DB";
 $MP3DB_Class = new MP3DB_Class();
 $server->addObjectMap($MP3DB_Class,$server->method_namespace);
 
@@ -230,9 +229,9 @@ if (isset($_SERVER['REQUEST_METHOD']) &&
     header("Content-type: text/xml");
     if (isset($_SERVER['QUERY_STRING']) &&
        strcasecmp($_SERVER['QUERY_STRING'],'wsdl')==0) {
-        echo $disco->wsdl;
+        echo $disco->getWSDL();
     } else {
-        echo $disco->disco;
+        echo $disco->getDISCO();
     }
     exit;
 }

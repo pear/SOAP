@@ -30,7 +30,8 @@ $soap_server_fault = NULL;
 function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
     global $soap_server_fault;
     $detail = "Errno: $errno\nFilename: $filename\nLineno: $linenum\n";
-    $soap_server_fault =& new SOAP_Fault($errmsg, 'Server', 'PHP', $detail);
+    // XXX very strange behaviour with error handling if we =& here.
+    $soap_server_fault = new SOAP_Fault($errmsg, 'Server', 'PHP', $detail);
 }
 
 
@@ -56,6 +57,7 @@ class SOAP_Server extends SOAP_Base
     var $dispatch_map = array(); // create empty dispatch map
     var $dispatch_objects = array();
     var $soapobject = NULL;
+    var $call_methodname = NULL;
     
     /**
     *
@@ -214,9 +216,10 @@ class SOAP_Server extends SOAP_Base
         print $response;
     }
     
-    function callMethod($methodname, &$args) {
+    function &callMethod($methodname, &$args) {
         global $soap_server_fault;
-        set_error_handler("SOAP_ServerErrorHandler");
+        unset($soap_server_fault);
+        set_error_handler('SOAP_ServerErrorHandler');
         if ($args) {
             // call method with parameters
             if (isset($this->soapobject) && is_object($this->soapobject)) {
@@ -233,7 +236,7 @@ class SOAP_Server extends SOAP_Base
             }
         }
         restore_error_handler();
-        return $soap_server_fault?$soap_server_fault:$ret;
+        return isset($soap_server_fault)?$soap_server_fault:$ret;
     }
     
     // create soap_val object w/ return values from method, use method signature to determine type
@@ -314,7 +317,7 @@ class SOAP_Server extends SOAP_Base
                     $header_method = $header_val->name;
                     $header_data = array($this->_decode($header_val));
                     // if there are parameters to pass
-                    $hr = $this->callMethod($header_method, $header_data);
+                    $hr =& $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
                     if (PEAR::isError($hr)) {
                         return $hr->message();
@@ -329,7 +332,7 @@ class SOAP_Server extends SOAP_Base
         // handle the method call
         
         // evaluate message, getting back a SOAP_Value object
-        $this->methodname = $parser->root_struct_name[0];
+        $this->call_methodname = $this->methodname = $parser->root_struct_name[0];
 
         // figure out the method_namespace
         $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
@@ -386,7 +389,7 @@ class SOAP_Server extends SOAP_Base
 
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname,$this->method_namespace)) {
-            $this->_raiseSoapFault("method '\{$this->method_namespace\}$this->methodname' not defined in service",'','','Server');
+            $this->_raiseSoapFault("method '{{$this->method_namespace}}$this->methodname' not defined in service",'','','Server');
             return NULL;
         }
 
@@ -410,7 +413,7 @@ class SOAP_Server extends SOAP_Base
         if (PEAR::isError($request_data)) {
             return $this->_raiseSoapFault($request_data);
         }
-        $method_response = $this->callMethod($this->methodname, $request_data);
+        $method_response =& $this->callMethod($this->call_methodname, $request_data);
 
         if (PEAR::isError($method_response)) {
             return $method_response->message();
@@ -482,12 +485,23 @@ class SOAP_Server extends SOAP_Base
         $map = NULL;
         if (array_key_exists($this->methodname, $this->dispatch_map)) {
             $map = $this->dispatch_map[$this->methodname];
-        } else if ($this->soapobject &&
-           method_exists($this->soapobject, '__dispatch')) {
-            $map = $this->soapobject->__dispatch($this->methodname);
+        } else if (isset($this->soapobject)) {
+            if (method_exists($this->soapobject, '__dispatch')) {
+                $map = $this->soapobject->__dispatch($this->methodname);
+            } else if (method_exists($this->soapobject, $this->methodname)) {
+                // no map, all public functions are soap functions
+                return TRUE;
+            }
+        } else {
+            $this->_raiseSoapFault("soap request specified an unhandled method '$this->methodname'",'','','Client');
+            return FALSE;
         }
-        // we'll let it through
-        if (!$map) return TRUE;
+        
+        // if we aliased the soap method name to a php function,
+        // change the call_method so we do the right thing.
+        if (array_key_exists('alias',$map)) {
+            $this->call_methodname = $map['alias'];
+        }
         
         // if there are input parameters required...
         if ($sig = $map['in']) {
@@ -567,6 +581,15 @@ class SOAP_Server extends SOAP_Base
             $c = count($this->dispatch_objects[$namespace]);
             for ($i=0; $i < $c; $i++) {
                 $obj =& $this->dispatch_objects[$namespace][$i];
+                // if we have a dispatch map, and the function is not
+                // in the dispatch map, then it is not callable!
+                if (method_exists($obj, '__dispatch')) {
+                    if ($obj->__dispatch($methodname)) {
+                        $this->method_namespace = $namespace;
+                        $this->soapobject =& $obj;
+                        return TRUE;
+                    }
+                } else
                 if (method_exists($obj, $methodname)) {
                     $this->method_namespace = $namespace;
                     $this->soapobject =& $obj;
@@ -596,7 +619,7 @@ class SOAP_Server extends SOAP_Base
     }
     
     // add a method to the dispatch map
-    function addToMap($methodname, $in, $out, $namespace = NULL)
+    function addToMap($methodname, $in, $out, $namespace = NULL, $alias=NULL)
     {
         if (!function_exists($methodname)) {
             $this->_raiseSoapFault("error mapping function\n",'','','Server');
@@ -604,6 +627,7 @@ class SOAP_Server extends SOAP_Base
         }
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;
+        $this->dispatch_map[$methodname]['alias'] = $alias;
         if ($namespace) $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
     }

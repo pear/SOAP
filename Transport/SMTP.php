@@ -82,6 +82,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
     */
     function send(&$msg,  /*array*/ $options = NULL)
     {
+        $this->incoming_payload = '';
         $this->outgoing_payload = &$msg;
         if (!$this->_validateUrl()) {
             return $this->fault;

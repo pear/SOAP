@@ -22,9 +22,13 @@
     <version>0.7.2</version>
     <date>2003-04-01</date>
     <notes>
-      New DISCO support for WSDL generation
-      New TCP Client/Server Protocol implementation
+      New DISCO support for WSDL generation (Dmitri Vinogradov).
+      New TCP Client/Server Protocol implementation (Shane Hanna).
+      New method alias support for server classes (ie. use php keywords as soap function names).
+      New cookie support for HTTP soap clients.
       Many fixes and patches.
+      Incompatibility note: The client call method now expects the second
+      argument to a reference.  
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -43,6 +47,7 @@
           <file role="doc" name="disco_server.php"/>
           <file role="doc" name="server.php"/>
           <file role="doc" name="example_server.php"/>
+          <file role="doc" name="example_types.php"/>
           <file role="doc" name="client.php"/>
           <file role="doc" name="smtp.php"/>
           <file role="doc" name="email_server.php"/>
@@ -50,6 +55,7 @@
           <file role="doc" name="tcp_client.php"/>
           <file role="doc" name="tcp_server.php"/>
           <file role="doc" name="tcp_daemon.pl"/>
+          <file role="doc" name="wsdl_client.pl"/>
         </dir>
         <dir name="tools"> 
           <file role="php" name="genproxy.php"/>
