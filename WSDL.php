@@ -34,6 +34,7 @@ DEFINE("WSDL_CACHE_USE",0); // set to zero to turn off caching
 *
 * TODO:
 *    add wsdl caching
+*   refactor namespace handling ($namespace/$ns)
 *    implement IDL type syntax declaration so we can generate WSDL
 *
 * @access public
@@ -89,9 +90,11 @@ class SOAP_WSDL extends SOAP_Base
     // find the name of the first port that contains an operation of name $operation
     function getPortName($operation)
     {
-        foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
-            if ($this->bindings[$portAttrs['binding']]['operations'][$operation] != '') {
-                return $port;
+        if (isset($this->services[$this->service]['ports'])) {
+            foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
+                if ($this->bindings[$portAttrs['binding']]['operations'][$operation] != '') {
+                    return $port;
+                }
             }
         }
         return $this->raiseSoapFault("no operation $operation in wsdl", $this->uri);
@@ -170,9 +173,9 @@ class SOAP_WSDL extends SOAP_Base
         if (array_key_exists($namespace, $this->ns)) {
             return $this->ns[$namespace];
         }
-        $this->nsc++;
-        $attr = 'ns'.$this->nsc;
-        $this->namespaces['ns'.$this->nsc] = $namespace;
+        $n = count($this->ns);
+        $attr = 'ns'.$n;
+        $this->namespaces['ns'.$n] = $namespace;
         $this->ns[$namespace] = $attr;
         return $attr;
     }
@@ -507,7 +510,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
             default:
                 if ($this->currentOperation) {
-                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name] = array_merge($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name],$attrs);
+                    if (isset($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name])) {
+                        $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name] = array_merge($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name],$attrs);
+                    } else {
+                        $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name] = $attrs;
+                    }
                     if (array_key_exists('message',$attrs)) {
                         $qn = new QName($attrs['message']);
                         $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qn->name;
@@ -607,7 +614,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
             foreach ($attrs as $key => $value) {
                 if (strstr($key,'xmlns:') !== FALSE) {
                     $qn = new QName($key);
+                    // XXX need to refactor ns handling
                     $this->wsdl->namespaces[$qn->name] = $value;
+                    $this->wsdl->ns[$value] = $qn->name;
                     if ($key == 'targetNamespace' ||
                         strcasecmp($value,SOAP_SCHEMA)==0) {
                         $this->soapns[] = strtolower($qn->name);
@@ -638,7 +647,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
             array_pop($this->schema_stack);
             if (count($this->schema_stack) <= 1) {
                 /* correct the type for sequences with multiple elements */
-                if ($this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] == 'Array'
+                if (isset($this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'])
+                    && $this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] == 'Array'
                     && array_key_exists('elements',$this->wsdl->complexTypes[$this->schema][$this->currentElement])
                     && count($this->wsdl->complexTypes[$this->schema][$this->currentElement]['elements']) > 1) {
                         $this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] = 'Struct';
