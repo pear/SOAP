@@ -23,8 +23,8 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/Fault.php';
 require_once 'HTTP/Request.php';
 
-DEFINE('WSDL_CACHE_MAX_AGE', 43200);
-DEFINE('WSDL_CACHE_USE',     0); // set to zero to turn off caching
+define('WSDL_CACHE_MAX_AGE', 43200);
+define('WSDL_CACHE_USE',     0); // set to zero to turn off caching
 
 /**
  *  SOAP_WSDL
@@ -71,14 +71,14 @@ class SOAP_WSDL extends SOAP_Base
     var $trace = 0;
 
     /**
-     * Use cache
+     * Use WSDL cache
      *
      * @var boolean
      */
     var $cacheUse = null;
 
     /**
-     * Cache max ligetime
+     * Cache max lifetime (in seconds)
      *
      * @var int
      */
@@ -89,11 +89,13 @@ class SOAP_WSDL extends SOAP_Base
     *
     * @param string  endpoint_uri (URL)
     * @param array   contains options for HTTP_Request class (see HTTP/Request.php)
-    * @param boolean use caching
-    * @param int     cache max lifetime
+    * @param boolean use WSDL caching
+    * @param int     cache max lifetime (in seconds)
     * @access public
     */
-    function SOAP_WSDL($uri = false, $proxy = array(), $cacheUse = false, $cacheMaxAge = 43200) {
+    function SOAP_WSDL($uri = false, $proxy = array(),
+                       $cacheUse    = WSDL_CACHE_USE,
+                       $cacheMaxAge = WSDL_CACHE_MAX_AGE) {
         parent::SOAP_Base('WSDL');
         $this->uri         = $uri;
         $this->proxy       = $proxy;
@@ -681,9 +683,36 @@ class SOAP_WSDL extends SOAP_Base
 
 class SOAP_WSDL_Cache extends SOAP_Base
 {
-    function SOAP_WSDL_Cache() {
+    // Cache settings
+
+    /**
+     * Use WSDL cache
+     *
+     * @var boolean
+     */
+    var $_cacheUse = null;
+
+    /**
+     * Cache max lifetime (in seconds)
+     *
+     * @var int
+     */
+    var $_cacheMaxAge = null;
+
+    /**
+     * SOAP_WSDL_Cache constructor
+     *
+     * @param  boolean use caching
+     * @param  int     cache max lifetime (in seconds)
+     * @access public
+     */
+    function SOAP_WSDL_Cache($cacheUse = WSDL_CACHE_USE,
+                             $cacheMaxAge = WSDL_CACHE_MAX_AGE) {
         parent::SOAP_Base('WSDLCACHE');
+        $this->_cacheUse = $cacheUse;
+        $this->_cacheMaxAge = $cacheMaxAge;
     }
+
     /**
      * _cacheDir
      * return the path to the cache, if it doesn't exist, make it
@@ -696,23 +725,24 @@ class SOAP_WSDL_Cache extends SOAP_Base
     }
 
     /**
-     * get
-     * retreives file from cache if it exists, otherwise retreive from net,
-     * add to cache, and return from cache
+     * Retrieves a file from cache if it exists, otherwise retreive from net,
+     * add to cache, and return from cache.
      *
+     * @param  string   URL to WSDL
+     * @param  array    proxy parameters
+     * @param  int      expected MD5 of WSDL URL
      * @access public
-     * @param  string
-     * @param  array   proxy parameters
-     * @param  int     cache lifetime
      * @return string  data
      */
     function get($wsdl_fname, $proxy_params = array(), $cache = 0) {
         $cachename = $md5_wsdl = $file_data = '';
-        if ($this->cacheUse) {
+        if ($this->_cacheUse) {
+            // Try to retrieve WSDL from cache
             $cachename = SOAP_WSDL_Cache::_cacheDir() . '/' . md5($wsdl_fname). '.wsdl';
             if (file_exists($cachename)) {
                 $wf = fopen($cachename,'rb');
                 if ($wf) {
+                    // Reading cached file
                     $file_data = fread($wf, filesize($cachename));
                     $md5_wsdl = md5($file_data);
                     fclose($wf);
@@ -725,14 +755,17 @@ class SOAP_WSDL_Cache extends SOAP_Base
                     $fi = stat($cachename);
                     $cache_mtime = $fi[8];
                     #print cache_mtime, time()
-                    if ($cache_mtime + $this->cacheMaxAge < time()) {
+                    if ($cache_mtime + $this->_cacheMaxAge < time()) {
                         # expired
                         $md5_wsdl = ''; # refetch
                     }
                 }
             }
         }
+
         if (!$md5_wsdl) {
+            // Not cached or not using cache. Retrieve WSDL from URL
+
             // is it a local file?
             // this section should be replace by curl at some point
             if (!preg_match('/^(https?|file):\/\//',$wsdl_fname)) {
@@ -768,13 +801,13 @@ class SOAP_WSDL_Cache extends SOAP_Base
 
             $md5_wsdl = md5($file_data);
 
-            if (WSDL_CACHE_USE) {
+            if ($this->_cacheUse) {
                 $fp = fopen($cachename, "wb");
                 fwrite($fp, $file_data);
                 fclose($fp);
             }
         }
-        if (WSDL_CACHE_USE && $cache && $cache != $md5_wsdl) {
+        if ($this->_cacheUse && $cache && $cache != $md5_wsdl) {
             return $this->_raiseSoapFault("WSDL Checksum error!", $wsdl_fname);
         }
         return $file_data;
@@ -812,7 +845,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
     // constructor
     function SOAP_WSDL_Parser($uri, &$wsdl, $docs = false) {
         parent::SOAP_Base('WSDLPARSER');
-        $this->cache =& new SOAP_WSDL_Cache();
+        $this->cache =& new SOAP_WSDL_Cache($wsdl->cacheUse, $wsdl->cacheMaxAge);
         $this->uri = $uri;
         $this->wsdl = &$wsdl;
         $this->docs = $docs;
@@ -1472,5 +1505,4 @@ class SOAP_WSDL_Parser extends SOAP_Base
         return $pwd;
     }
 }
-
 ?>
