@@ -26,12 +26,12 @@ class SOAP_Interop_GroupC {
     
     function echoMeStringRequest($string)
     {
-	return new SOAP_Value('echoMeStringResponse','string',$string, $this->method_namespace);
+	return new SOAP_Value('{'.$this->method_namespace.'}echoMeStringResponse','string',$string);
     }
 
     function echoMeStructRequest($struct)
     {
-	return new SOAP_Value('echoMeStructResponse','SOAPStruct',$struct, $this->method_namespace);
+	return new SOAP_Value('{'.$this->method_namespace.'}echoMeStructResponse','SOAPStruct',$struct);
     }
 }
 

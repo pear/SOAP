@@ -74,6 +74,11 @@ define('SOAP_SCHEMA',               'http://schemas.xmlsoap.org/wsdl/soap/');
 define('SOAP_SCHEMA_ENCODING',      'http://schemas.xmlsoap.org/soap/encoding/');
 define('SOAP_ENVELOP',              'http://schemas.xmlsoap.org/soap/envelope/');
 
+define('SCHEMA_SOAP',               'http://schemas.xmlsoap.org/wsdl/soap/');
+define('SCHEMA_HTTP',               'http://schemas.xmlsoap.org/wsdl/http/');
+define('SCHEMA_MIME',               'http://schemas.xmlsoap.org/wsdl/mime/');
+define('SCHEMA_WSDL',               'http://schemas.xmlsoap.org/wsdl/');
+
 define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
 if (!function_exists('is_a'))
@@ -208,6 +213,14 @@ class SOAP_Base extends PEAR
     var $fault = NULL;
     
     var $wsdl = NULL;
+    
+    /**
+    * section5
+    *
+    * @var  boolean  defines if we use section 5 encoding, or false if this is literal
+    */
+    var $section5 = TRUE;
+    
     /**
     * Constructor
     *
@@ -318,7 +331,9 @@ class SOAP_Base extends PEAR
         if (!$name || is_numeric($name)) $name = 'item';
         
         if (!is_null($value)) {
-            list($ptype,$arrayType,$array_type_ns) = $this->_getSchemaType($type, $name, $typeNamespace);
+            $ptype = $arrayType = $array_type_ns = '';
+            if ($this->wsdl)
+                list($ptype,$arrayType,$array_type_ns) = $this->wsdl->getSchemaType($type, $name, $typeNamespace);
             if (!$ptype) $ptype = $this->_getType($value);
             if (!$type) $type = $ptype;
             
@@ -365,17 +380,19 @@ class SOAP_Base extends PEAR
                     }
 
                     $ar_size = count($value);
-                    $numtypes = count($array_types);
                     $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
-                    if ($numtypes == 1) $arrayType = $array_type;
-                    // using anyType is more interoperable
-                    if ($array_type == 'Struct') {
-                        $array_type = '';
-                    } else if ($array_type == 'Array') {
-                        $arrayType = 'anyType';
-                        $array_type_prefix = 'xsd';
-                    } else
-                    if (!$arrayType) $arrayType = $array_type;
+                    if (!$arrayType) {
+                        $numtypes = count($array_types);
+                        if ($numtypes == 1) $arrayType = $array_type;
+                        // using anyType is more interoperable
+                        if ($array_type == 'Struct') {
+                            $array_type = '';
+                        } else if ($array_type == 'Array') {
+                            $arrayType = 'anyType';
+                            $array_type_prefix = 'xsd';
+                        } else
+                        if (!$arrayType) $arrayType = $array_type;
+                    }
                 }
                 if (!isset($arrayType) || $numtypes > 1) {
                     $arrayType = 'xsd:anyType'; // should reference what schema we're using
@@ -398,8 +415,13 @@ class SOAP_Base extends PEAR
         }
         // add namespaces
         if ($elNamespace) {
-            $elPrefix = $this->getNamespacePrefix($elNamespace);
-            $xmlout_name = "$elPrefix:$name";
+            if ($this->section5) {
+                $elPrefix = $this->getNamespacePrefix($elNamespace);
+                $xmlout_name = "$elPrefix:$name";
+            } else {
+                $xmlns = " xmlns=\"$elNamespace\"";
+                $xmlout_name = $name;
+            }
         } else {
             $xmlout_name = $name;
         }
@@ -414,7 +436,7 @@ class SOAP_Base extends PEAR
 
         // handle additional attributes
         $xml_attr = '';
-        if (count($attributes)) {
+        if (count($attributes) > 0) {
             foreach ($attributes as $k => $v) {
                 $kqn = new QName($k);
                 $vqn = new QName($v);
@@ -426,75 +448,25 @@ class SOAP_Base extends PEAR
         if (isset($options['attachment']))
             $this->attachments[] = $options['attachment'];
             
-        if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
-        if (is_null($xmlout_value)) {
-            $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xml_attr/>";
+        if ($this->section5) {
+            if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
+            if (is_null($xmlout_value)) {
+                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xml_attr/>";
+            } else {
+                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xmlout_offset$xml_attr>".
+                    $xmlout_value."</$xmlout_name>";
+            }
         } else {
-            $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xmlout_offset$xml_attr>".
-                $xmlout_value."</$xmlout_name>";
-        }        
+            if (is_null($xmlout_value)) {
+                $xml = "\r\n<$xmlout_name$xmlns$xml_attr/>";
+            } else {
+                $xml = "\r\n<$xmlout_name$xmlns$xml_attr>".
+                    $xmlout_value."</$xmlout_name>";
+            }
+        }
         return $xml;
     }
     
-    function _getSchemaType($type, $name, $type_namespace)
-    {
-        if ($this->wsdl) {
-            # see if it's a complex type so we can deal properly with SOAPENC:arrayType
-            if ($name && $type) {
-                # XXX TODO:
-                # look up the name in the wsdl and validate the type
-                foreach ($this->wsdl->complexTypes as $ns=> $types) {
-                    if (array_key_exists($type, $types)) {
-                        if (array_key_exists('base', $types[$type])) {
-                            return array($types[$type]['base'],$types[$type]['type'],$this->wsdl->namespaces[$types[$type]['namespace']]);
-                        }
-                        if (array_key_exists('arrayType', $types[$type])) {
-                            return array('Array',$types[$type]['arrayType'],$this->wsdl->namespaces[$types[$type]['namespace']]);
-                        }
-                        if (array_key_exists('elements', $types[$type]) &&
-                            array_key_exists($name, $types[$type]['elements'])) {
-                            $type = $types[$this->type]['elements']['type'];
-                            return array($type,NULL,$this->wsdl->namespaces[$types[$type]['namespace']]);
-                        }
-                    }
-                }
-            }
-            if ($type && $type_namespace) {
-                $arrayType = NULL;
-                # XXX TODO:
-                # this code currently handles only one way of encoding array types in wsdl
-                # need to do a generalized function to figure out complex types
-                $p = $this->wsdl->ns[$type_namespace];
-                if ($p &&
-                    array_key_exists($p, $this->wsdl->complexTypes) &&
-                    array_key_exists($type, $this->wsdl->complexTypes[$p])) {
-                    if ($arrayType = $this->wsdl->complexTypes[$p][$type]['arrayType']) {
-                        $type = 'Array';
-                    } else if ($this->wsdl->complexTypes[$p][$type]['order']=='sequence' &&
-                               array_key_exists('elements', $this->wsdl->complexTypes[$p][$type])) {
-                        reset($this->wsdl->complexTypes[$p][$type]['elements']);
-                        # assume an array
-                        if (count($this->wsdl->complexTypes[$p][$type]['elements']) == 1) {
-                            $arg = current($this->wsdl->complexTypes[$p][$type]['elements']);
-                            $arrayType = $arg['type'];
-                            $type = 'Array';
-                        } else {
-                            foreach($this->wsdl->complexTypes[$p][$type]['elements'] as $element) {
-                                if ($element['name'] == $type) {
-                                    $arrayType = $element['type'];
-                                    $type = $element['type'];
-                                }
-                            }
-                        }
-                    } else {
-                        $type = 'Struct';
-                    }
-                    return array($type,$arrayType,$type_namespace);
-                }
-            }
-        }
-        return array(NULL,NULL,NULL);
-    }
     
     /**
     * SOAP::Value::_getType
@@ -672,24 +644,33 @@ class SOAP_Base extends PEAR
      * @return associative array (headers,body)
      * @access private
      */
-    function _makeEnvelope($method, $headers=NULL, $encoding = SOAP_DEFAULT_ENCODING)
+    function _makeEnvelope($method, $headers=NULL, $encoding = SOAP_DEFAULT_ENCODING,$options = array())
     {
-        $header_xml = $ns_string = '';
+        $smsg = $header_xml = $ns_string = '';
 
         if ($headers) {
             foreach ($headers as $header) {
                 $header_xml .= $header->serialize($this);
             }
             $header_xml = "<SOAP-ENV:Header>\r\n$header_xml\r\n</SOAP-ENV:Header>\r\n";
-        }        
-        $body = "<SOAP-ENV:Body>\r\n".$method->serialize($this)."\r\n</SOAP-ENV:Body>\r\n";
+        }
+        if (is_array($method)) {
+            foreach ($method as $part) {
+                $smsg .= $part->serialize($this);
+            }
+        }  else {
+            $smsg = $method->serialize($this);
+        }
+        $body = "<SOAP-ENV:Body>\r\n".$smsg."\r\n</SOAP-ENV:Body>\r\n";
         
         foreach ($this->_namespaces as $k => $v) {
-            $ns_string .= " xmlns:$v=\"$k\"\r\n ";
+            $ns_string .= " xmlns:$v=\"$k\"\r\n";
         }
         
         $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
-            "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\r\n".
+            "<SOAP-ENV:Envelope $ns_string".
+            ($options['style'] == 'rpc'?" SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\"":'').
+            ">\r\n".
             "$header_xml$body</SOAP-ENV:Envelope>\r\n";
         
         return $xml;

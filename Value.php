@@ -79,7 +79,7 @@ class SOAP_Value
     * @param    mixed   soap value {namespace}type, if not set an automatic 
     * @param    mixed   value to set
     */
-    function SOAP_Value($name = '', $type = false, $value)
+    function SOAP_Value($name = '', $type = false, $value, $attributes = array())
     {
         // detect type if not passed
         $qn = new QName($name);
@@ -90,6 +90,7 @@ class SOAP_Value
         $this->type_prefix = $qn->ns;
         $this->type_namespace = $qn->namespace;
         $this->value = $value;
+        $this->attributes = $attributes;
     }
     
    

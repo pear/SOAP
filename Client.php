@@ -106,6 +106,7 @@ class SOAP_Client extends SOAP_Base
     var $encoding = SOAP_DEFAULT_ENCODING;
     
     var $headers = NULL;
+    
     /**
     * SOAP_Client constructor
     *
@@ -246,7 +247,7 @@ class SOAP_Client extends SOAP_Base
             if (count($opData['input']['parts']) > 0) {
                 $i = 0;
                 reset($params);
-                foreach ($opData['input']['parts'] as $name => $type) {
+                foreach ($opData['input']['parts'] as $name => $part) {
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
                     } else {
@@ -259,9 +260,11 @@ class SOAP_Client extends SOAP_Base
                     if (gettype($nparams[$name]) != 'object' ||
                         !is_a($nparams[$name],'soap_value')) {
                         // type is a qname likely, split it apart, and get the type namespace from wsdl
-                        $qname = new QName($type);
+                        $qname = new QName($part['type']);
                         if ($qname->ns) 
                             $type_namespace = $this->wsdl->namespaces[$qname->ns];
+                        else if (isset($part['namespace']))
+                            $type_namespace = $this->wsdl->namespaces[$part['namespace']];
                         else
                             $type_namespace = NULL;
                         $qname->namespace = $type_namespace;
@@ -276,9 +279,17 @@ class SOAP_Client extends SOAP_Base
         }
         
         // serialize the message
-        $mqname = new QName($method, $namespace);
-        $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
-        $soap_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding);
+        $this->section5 = TRUE; // assume we encode with section 5
+        if (isset($options['use']) && $options['use']=='literal') $this->section5 = FALSE;
+        
+        if (!isset($options['style']) || $options['style'] == 'rpc') {
+            $options['style'] = 'rpc';
+            $mqname = new QName($method, $namespace);
+            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
+            $soap_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding,$options);
+        } else {
+            $soap_msg = $this->_makeEnvelope($params, $this->headers, $this->encoding,$options);
+        }
 
         if (PEAR::isError($soap_msg)) {
             return $this->raiseSoapFault($soap_msg);
