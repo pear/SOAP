@@ -1733,7 +1733,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             return false;
         }
 
-        if (isset($parsed['scheme'])) {
+        if (!empty($parsed['scheme']) && strlen($parsed['scheme']) > 1) {
             $sep = (strtolower($parsed['scheme']) == 'mailto' ? ':' : '://');
             $uri = $parsed['scheme'] . $sep;
         } else {
