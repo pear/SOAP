@@ -1,4 +1,4 @@
-<?
+<?php
 //
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -22,10 +22,7 @@
 include("SOAP/Client.php");
 
 $soapclient = new SOAP_Client("mailto:shane@caraveo.com");
-$options = array('namespace'=>'http://soapinterop.org/','from'=>'shane@caraveo.com');
-$return = $soapclient->call("echoString",array("inputString"=>"this is a test"), $options);
+$options = array('namespace' => 'http://soapinterop.org/', 'from' => 'shane@caraveo.com');
+$return = $soapclient->call("echoString", array("inputString" => "this is a test"), $options);
 print_r($return);
 unset($soapclient);
-
-?>
-
