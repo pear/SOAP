@@ -34,22 +34,75 @@ error_reporting(2039);
 *
 * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
 *
-* @access public
-* @version $Id$
-* @package SOAP::Client
-* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+* @access   public
+* @version  $Id$
+* @package  SOAP::Client
+* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
 class SOAP_Server {
+
+    /**
+    *
+    * @var  array
+    */    
     var $dispatch_map = array(); // create empty dispatch map
+    
+    /**
+    * Store debugging messages in $debug_str?
+    * 
+    * @var  boolean
+    * @see  $debug_str, SOAP_Server()
+    */
     var $debug_flag = true;
+    
+    /**
+    * Debugging messages
+    *
+    * @var  string
+    * @see  $debug_flag, SOAP_Server()
+    */
     var $debug_str = '';
+    
+    /**
+    *
+    * @var  string
+    */
     var $headers = '';
+    
+    /**
+    *
+    * @var  string
+    */
     var $request = '';
+    
+    /**
+    *
+    * @var  string  XML-Encoding
+    */
     var $xml_encoding = 'UTF-8';
+    
+    /**
+    * 
+    * @var  boolean
+    */
     var $fault = false;
+    
+    /**
+    *
+    * @var  string  fault-code
+    */
     var $fault_code = '';
+    
+    /**
+    *
+    * @var  string  fault-string
+    */
     var $fault_str = '';
+    
+    /**
+    * 
+    */
     var $fault_actor = '';
     var $result = 'successful'; // for logging interop results to db
 
@@ -357,7 +410,7 @@ class SOAP_Server {
     }
     
     // add a method to the dispatch map
-    function addToMap($methodname,$in,$out)
+    function addToMap($methodname, $in, $out)
     {
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;
@@ -377,12 +430,11 @@ class SOAP_Server {
         );
     }
     
-    function makeFault($fault_code,$fault_string)
+    function makeFault($fault_code, $fault_string)
     {
         $this->fault_code = $fault_code;
         $this->fault_str = $fault_string;
         $this->fault = true;
     }
 }
-
 ?>

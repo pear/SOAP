@@ -21,7 +21,7 @@
 //
 
 // make errors handle properly in windows (thx, thong@xmethods.com)
-#error_reporting(2039);
+error_reporting(2039);
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
@@ -36,22 +36,22 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 
 # for float support
 # is there a way to calculate INF for the platform?
-define('INF', 1.8e307); 
-define('NAN', 0.0);
+define('INF',   1.8e307); 
+define('NAN',   0.0);
 
 # define types for value
-define('VALUE_SCALAR', 1);
-define('VALUE_ARRAY', 2);
-define('VALUE_STRUCT', 3);
+define('VALUE_SCALAR',  1);
+define('VALUE_ARRAY',   2);
+define('VALUE_STRUCT',  3);
 
 define('SOAP_LIBRARY_NAME', 'PEAR-SOAPx4 0.6');
 // set schema version
-define('SOAP_XML_SCHEMA_VERSION', 'http://www.w3.org/2001/XMLSchema');
-define('SOAP_XML_SCHEMA_1999', 'http://www.w3.org/1999/XMLSchema');
-define('SOAP_SCHEMA', 'http://schemas.xmlsoap.org/wsdl/soap/');
-define('SOAP_SCHEMA_ENCODING', 'http://schemas.xmlsoap.org/soap/encoding/');
-define('SOAP_ENVELOP', 'http://schemas.xmlsoap.org/soap/envelope/');
-define('SOAP_INTEROPORG', 'http://soapinterop.org/xsd');
+define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
+define('SOAP_XML_SCHEMA_1999',      'http://www.w3.org/1999/XMLSchema');
+define('SOAP_SCHEMA',               'http://schemas.xmlsoap.org/wsdl/soap/');
+define('SOAP_SCHEMA_ENCODING',      'http://schemas.xmlsoap.org/soap/encoding/');
+define('SOAP_ENVELOP',              'http://schemas.xmlsoap.org/soap/envelope/');
+define('SOAP_INTEROPORG',           'http://soapinterop.org/xsd');
 
 // load types into typemap array
 /*

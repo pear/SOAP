@@ -32,8 +32,8 @@ require_once 'SOAP/Fault.php';
 * this class is the main interface for making soap requests
 *
 * basic usage: 
-*   $soapclient = new SOAP_Client( string path [ ,boolean wsdl] );
-*   echo $soapclient->call( string methodname [ ,array parameters] );
+*   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
+*   echo $soapclient->call( string methodname [ , array parameters] );
 *
 * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
 *

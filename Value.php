@@ -23,6 +23,7 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/globals.php';
 require_once 'SOAP/Type/dateTime.php';
 require_once 'SOAP/Type/hexBinary.php';
+
 /**
 *  SOAP::Value
 * this class converts values between PHP and SOAP
@@ -35,89 +36,183 @@ require_once 'SOAP/Type/hexBinary.php';
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-
 class SOAP_Value extends SOAP_Base
 {
+    /**
+    *
+    * @var  boolean
+    */
     var $convert_strings = FALSE;
+    
+    /**
+    *
+    *
+    * @var  string
+    */
     var $value = '';
+    
+    /**
+    * 
+    * @var  int
+    */
     var $type_code = 0;
+    
+    /**
+    *
+    * @var  boolean
+    */
     var $type_prefix = false;
+    
+    /**
+    * 
+    * @var  string
+    */
     var $array_type = '';
+    
+    /**
+    *
+    * @var  string
+    */
     var $name = '';
+    
+    /**
+    *
+    * @var  string
+    */
     var $type;
+    
+    /**
+    *
+    * @var  
+    */
     var $soapTypes;
+    
+    /**
+    * Namespace
+    *
+    * @var  string
+    */
     var $namespace = '';
+    
+    /**
+    *
+    * @var  string
+    */
     var $prefix = '';
+    
+    /**
+    *
+    * @var  
+    */
     var $wsdl;
     
-    function SOAP_Value($name='',$type=false,$value=-1,$namespace=NULL,$type_namespace=NULL, $wsdl=NULL)
+    /**
+    *
+    *
+    * @param    string  
+    * @param    boolean
+    * @param    int
+    * @param    mixed
+    * @param    mixed
+    * @param    mixed
+    * @global   $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace
+    */
+    function SOAP_Value($name = '', $type = false, $value = -1, $namespace = NULL, $type_namespace = NULL, $wsdl = NULL)
     {
         global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace;
+        // WARNING: soapTypes seems to be missing in globals.php ?!
+        // WARNING: methodNamespace seems to be missing in globals.php ?!
+        
         parent::SOAP_Base('Value');
         // detect type if not passed
         
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
+
+        // WARNING: soapTypes seems to be missing in globals.php !?
         $this->soapTypes = $soapTypes;
         $this->name = $name;
         $this->wsdl = $wsdl;
         $this->type = $this->_getSoapType($value, $type);
+
         #$this->debug("Entering SOAP_Value - name: '$name' type: '$type' value: $value");
-        #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
         
         if ($namespace) {
             $this->namespace = $namespace;
 
             if (!isset($SOAP_namespaces[$namespace])) {
-                $SOAP_namespaces[$namespace] = 'ns'.(count($SOAP_namespaces)+1);
+                $SOAP_namespaces[$namespace] = 'ns' . (count($SOAP_namespaces) + 1);
             }
 
             $this->prefix = $SOAP_namespaces[$namespace];
         }
         
         // get type prefix
-        if (strpos($type,':')!==false) {
-            $this->type = substr(strrchr($type,':'),1,strlen(strrchr($type,':')));
-            $this->type_prefix = substr($type,0,strpos($type,':'));
+        if (strpos($type , ':') !== false) {
+        
+            $this->type = substr(strrchr($type , ':'), 1, strlen(strrchr($type, ':')));
+            $this->type_prefix = substr($type, 0, strpos($type, ':'));
+            
         } elseif ($type_namespace) {
+        
             if (!isset($SOAP_namespaces[$type_namespace])) {
                 $SOAP_namespaces[$type_namespace] = 'ns'.(count($SOAP_namespaces)+1);
             }
-
             $this->type_prefix = $SOAP_namespaces[$type_namespace];
+            
         // if type namespace was not explicitly passed, and we're not in a method struct:
         } elseif (!$this->type_prefix && $type != 'Struct' /*!isset($type_namespace)*/) {
+        
             // try to get type prefix from typeMap
             if ($ns = $this->verifyType($this->type)) {
                 $this->type_prefix = $SOAP_namespaces[$ns];
             } else {
                 // else default to method namespace
+                // WARNING: $methodNamespace is not defined in globals.php!
+                // WARNING: undefined index ?
                 $this->type_prefix = $SOAP_namespaces[$methodNamespace];
             }
         }
         
-        // if scalar
-        if (in_array($this->type,$SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
+        if (in_array($this->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
+            // scalar
+
             $this->type_code = VALUE_SCALAR;
-            $this->addScalar($value,$this->type,$name);
-        // if array
-        } elseif (strcasecmp('Array',$this->type) == 0 ||
-             strcasecmp('ur-type',$this->type) == 0) {
+            $this->addScalar($value, $this->type, $name);
+
+        } elseif (strcasecmp('Array', $this->type) == 0 || strcasecmp('ur-type', $this->type) == 0) {
+            // array
+            
             $this->type_code = VALUE_ARRAY;
             $this->addArray($value);
-        // if struct
-        } elseif (stristr($this->type,'Struct')) {
+            
+        } elseif (stristr($this->type, 'Struct')) {
+            // struct
+            
             $this->type_code = VALUE_STRUCT;
             $this->addStruct($value);
+            
         } elseif (is_array($value)) {
+        
             $this->type_code = VALUE_STRUCT;
             $this->addStruct($value);
+            
         } else {
+        
             $this->type_code = VALUE_SCALAR;
-            $this->addScalar($value,'string',$name);
+            $this->addScalar($value, 'string', $name);
+            
         }
     }
     
-    function addScalar($value, $type, $name='')
+    /**
+    *
+    *
+    * @param    
+    * @param    
+    * @param
+    * @return   boolean
+    */
+    function addScalar($value, $type, $name = '')
     {
         $this->debug("adding scalar '$name' of type '$type'");
         
@@ -125,23 +220,30 @@ class SOAP_Value extends SOAP_Base
         return true;
     }
     
+    /**
+    * 
+    * @param    array
+    * @return   boolean
+    */
     function addArray($vals)
     {
+        
         $this->debug("adding array '$this->name' with ".count($vals).' vals');
         $this->value = array();
+        
         if (is_array($vals) && count($vals) >= 1) {
             foreach ($vals as $k => $v) {
                 $this->debug("checking value $k : $v");
 
                 // if SOAP_Value, add..
-                if (strcasecmp(get_class($v),'SOAP_Value')==0) {
+                if (strcasecmp(get_class($v), 'SOAP_Value' ) == 0) {
                     $this->value[] = $v;
                     $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     $type = '';
                     $type = $this->_getSoapType($v, $type);
-                    $new_val =  new SOAP_Value('item',$type,$v);
+                    $new_val =  new SOAP_Value('item', $type, $v);
                     $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
@@ -150,20 +252,25 @@ class SOAP_Value extends SOAP_Base
         return true;
     }
 
+    /**
+    *
+    * @param   array
+    * @param    boolean
+    */
     function addStruct($vals)
     {
-        $this->debug("adding struct '$this->name' with ".count($vals).' vals');
+        $this->debug("adding struct '$this->name' with " . count($vals) . ' vals');
         if (is_array($vals) && count($vals) >= 1) {
             foreach ($vals as $k => $v) {
                 // if serialize, if SOAP_Value
-                if (strcasecmp(get_class($v),'SOAP_Value')==0) {
+                if (strcasecmp(get_class($v), 'SOAP_Value') == 0) {
                     $this->value[] = $v;
                     $this->debug($v->debug_data);
                 // else make obj and serialize
                 } else {
                     $type = NULL;
                     $type = $this->_getSoapType($v, $type);
-                    $new_val = new SOAP_Value($k,$type,$v);
+                    $new_val = new SOAP_Value($k, $type, $v);
                     $this->debug($new_val->debug_data);
                     $this->value[] = $new_val;
                 }
@@ -174,6 +281,14 @@ class SOAP_Value extends SOAP_Base
         return true;
     }
     
+    /**
+    *
+    * @param    
+    * @param    
+    * @param    
+    * @param    
+    * @return   int
+    */
     function _getArrayType(&$value, &$type, &$size, &$xml)
     {
         foreach ($value as $array_val) {
@@ -182,7 +297,7 @@ class SOAP_Value extends SOAP_Base
         }
 
         if ($array_val->type_prefix) {
-            $type = $array_val->type_prefix.':'.$array_val->type;
+            $type = $array_val->type_prefix . ':' . $array_val->type;
         } else {
             $type = $array_val->type;
         }
@@ -190,11 +305,12 @@ class SOAP_Value extends SOAP_Base
         $sz = count($value);
 
         if (count($array_types) == 1) {
-            if (array_key_exists('array',$array_types)) {
+            if (array_key_exists('array', $array_types)) {
                 // seems we have a multi dimensional array, figure it out if we do
                 foreach ($value as $array_val) {
                     $numtypes = $this->_getArrayType($array_val->value, $type, $size, $xml);
-                    if ($numtypes > 1) return $numtypes;
+                    if ($numtypes > 1) 
+                        return $numtypes;
                 }
 
                 if ($sz) {
@@ -214,8 +330,13 @@ class SOAP_Value extends SOAP_Base
         return count($array_types);
     }
     
-    // turn SOAP_Value's into xml, woohoo!
-    function serializeval($soapval=false)
+    /**
+    * Turn SOAP_Value's into xml, woohoo!
+    * 
+    * @param    mixed
+    * @return   string  xml representation
+    */
+    function serializeval($soapval = false)
     {
         if (!$soapval) {
             $soapval = $this;
@@ -254,9 +375,10 @@ class SOAP_Value extends SOAP_Base
                 $xml .= "</$soapval->name>\n";
             }
             break;
+            
         case 2:
             // array
-            $offset ='';
+            $offset = '';
 
             // XXX this will be slow on larger array's.  We can probably move this
             // out to an external helper function.  Basicly, it flattens array's to allow us
@@ -281,14 +403,15 @@ class SOAP_Value extends SOAP_Base
                 $array_type = 'xsd:ur-type';
             } elseif ($numtypes == 1) {
                 if ($array_type_prefix != '') {
-                    $array_type = $array_type_prefix.':'.$array_type;
+                    $array_type = $array_type_prefix . ':' . $array_type;
                 } elseif ($array_type_prefix = $this->getPrefix($array_type)) {
-                    $array_type = $array_type_prefix.':'.$array_type;
+                    $array_type = $array_type_prefix . ':' . $array_type;
                 }
             }
             
             $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
             break;
+            
         case 1:
             if ($soapval->prefix && $soapval->type_prefix) {
                 $xml .= "<$soapval->prefix:$soapval->name xsi:type=\"$soapval->type_prefix:$soapval->type\">$soapval->value</$soapval->prefix:$soapval->name>\n";
@@ -308,25 +431,35 @@ class SOAP_Value extends SOAP_Base
         return $xml;
     }
     
-    // serialize
+    /**
+    * Serialize
+    * 
+    * @return   string  xml representation
+    */
     function serialize()
     {
         return $this->serializeval($this);
     }
     
-    function decode($soapval=false)
+    /**
+    *
+    * @param    mixed
+    * @global   $SOAP_typemap
+    */
+    function decode($soapval = false)
     {
         global $SOAP_typemap;
+        
         if (!$soapval) {
             $soapval = $this;
         }
+        
         $this->debug("inside SOAP_Value->decode for $soapval->name of type $soapval->type and value: $soapval->value");
         // scalar decode
         if ($soapval->type_code == VALUE_SCALAR) {
             if ($soapval->type == 'boolean') {
                 #echo strcasecmp($soapval->value,'false');
-                if ($soapval->value != '0' &&
-                    strcasecmp($soapval->value,'false') !=0) {
+                if ($soapval->value != '0' && strcasecmp($soapval->value,'false') !=0) {
                     $soapval->value = TRUE;
                 } else {
                     $soapval->value = FALSE;
@@ -339,7 +472,7 @@ class SOAP_Value extends SOAP_Base
             #    $soapval->value = $dt->toUnixtime();
             } else if (in_array($soapval->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION], TRUE)) {
                 # if we can, lets set php's variable type
-                settype($soapval->value,$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
+                settype($soapval->value, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
             #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]}\n";
             return $soapval->value;
@@ -373,13 +506,18 @@ class SOAP_Value extends SOAP_Base
             return $soapval->value;
         }
         # couldn't decode, return a fault!
-        return $this->raiseSoapFault('couldn\'t decode response, invalid type_code');
+        return $this->raiseSoapFault("couldn't decode response, invalid type_code");
     }
     
-    // pass it a type, and it attempts to return a namespace uri
+    /**
+    * pass it a type, and it attempts to return a namespace uri
+    *
+    * @param    
+    * @global   $SOAP_typemap, $SOAP_namespaces
+    */
     function verifyType($type)
     {
-        global $SOAP_typemap,$SOAP_namespaces;
+        global $SOAP_typemap, $SOAP_namespaces;
         /*foreach ($SOAP_typemap as $namespace => $types) {
             if (is_array($types) && in_array($type,$types)) {
                 return $namespace;
@@ -396,7 +534,11 @@ class SOAP_Value extends SOAP_Base
         return false;
     }
     
-    // alias for verifyType() - pass it a type, and it returns it's prefix
+    /** 
+    * alias for verifyType() - pass it a type, and it returns it's prefix
+    *
+    * @brother  varityType()
+    */
     function getPrefix($type)
     {
         global $SOAP_namespaces;
@@ -411,13 +553,14 @@ class SOAP_Value extends SOAP_Base
     * SOAP::Value::_getSoapType
     *
     * convert php type to soap type
-    * @params string value
-    * @params string type  - presumed php type
+    * @param    string  value
+    * @param    string  type  - presumed php type
     *
-    * @return string type  - soap type
-    * @access private
+    * @return   string  type  - soap type
+    * @access   private
     */
     function _getSoapType(&$value, &$type) {
+    
         $doconvert = FALSE;
         #if (!$type && $this->wsdl && $this->name) {
         #    # look up the name in the wsdl
@@ -474,8 +617,10 @@ class SOAP_Value extends SOAP_Base
             $type = 'int';
         } else
         if ($type == 'boolean') {
-            if (($value != 0 && $value !='0') || strcasecmp($value,'true')==0) $value = 'true';
-            else $value = 'false';
+            if (($value != 0 && $value != '0') || strcasecmp($value, 'true') == 0) 
+                $value = 'true';
+            else 
+                $value = 'false';
         }
         return $type;
     }
@@ -483,33 +628,63 @@ class SOAP_Value extends SOAP_Base
 }
 
 // support functions
+/**
+*
+* @param    string
+* @return   string
+*/
 function isBase64($value)
 {
     return $value[strlen($value)-1]=='=' && preg_match("/[A-Za-z=\/\+]+/",$value);
 }
 
+/**
+*
+* @param    mixed
+* @return   boolean
+*/
 function isBoolean($value)
 {
-    return gettype($value) == 'boolean' || strcasecmp($value, 'true')==0 || strcasecmp($value, 'false')==0;
+    return gettype($value) == 'boolean' || strcasecmp($value, 'true')==0 || strcasecmp($value, 'false') == 0;
 }
 
+/**
+* 
+* @param    mixed
+* @return   boolean
+*/
 function isFloat($value)
 {
     return gettype($value) == FLOAT ||
                 $value === 'NaN' ||  $value === 'INF' || $value === '-INF' ||
-                (is_numeric($value) && strstr($value,'.'));
+                (is_numeric($value) && strstr($value, '.'));
 }
 
+/**
+* 
+* @param    mixed
+* @return   boolean
+*/
 function isInt($value)
 {
     return gettype($value) == 'integer' || (is_numeric($value) && !strstr($value,'.'));
 }
 
+/**
+*
+* @param    array
+* @return   boolean
+*/
 function isArray($value)
 {
     return is_array($value) && count($value) >= 1;
 }
 
+/**
+*
+* @param    mixed
+* @return   boolean
+*/
 function isDateTime($value)
 {
     $dt = new SOAP_Type_dateTime($value);
