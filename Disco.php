@@ -81,7 +81,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
     {
         # WSDL
         if (is_array($this->soap_server->_namespaces)) {
-            # need to get: typens, xsd & soapenc
+            # need to get: typens, xsd & SOAP-ENC
             $flipped = array_flip($this->soap_server->_namespaces);
             $this->namespaces[$this->_service_ns] = 'tns';
             $this->namespaces[$flipped['xsd']] = 'xsd';
@@ -146,7 +146,8 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                 $this->addMethodsFromMap($object->__dispatch_map,$namespace,get_class($object));
             }
         }
-        $this->addMethodsFromMap($server->dispatch_map,$namespace);
+        if (isset($server->dispatch_map))
+            $this->addMethodsFromMap($server->dispatch_map,$namespace);
         
 
         # generate wsdl
@@ -191,10 +192,10 @@ class SOAP_DISCO_Server extends SOAP_Base_Object
                         $el['attr']['type'] = $_vartypens . ':' . $_vartype;
                     } else {
                         $ctype['complexContent']['attr'] = '';
-                        $ctype['complexContent']['restriction']['attr']['base'] = 'soapenc:Array';
+                        $ctype['complexContent']['restriction']['attr']['base'] = 'SOAP-ENC:Array';
                         foreach ($_vartype as $array_var => $array_type) {
                             list($_vartypens,$_vartype) = $this->_getTypeNs($array_type);
-                            $ctype['complexContent']['restriction']['attribute']['attr']['ref'] = 'soapenc:arrayType';
+                            $ctype['complexContent']['restriction']['attribute']['attr']['ref'] = 'SOAP-ENC:arrayType';
                             $ctype['complexContent']['restriction']['attribute']['attr']['wsdl:arrayType'] = $_vartypens . ':' . $_vartype . '[]';
                         }
                     }

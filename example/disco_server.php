@@ -217,7 +217,7 @@ class MP3DB_Class {
 $server = new SOAP_Server;
 $server->_auto_translation = true;
 $MP3DB_Class = new MP3DB_Class();
-$server->addObjectMap($MP3DB_Class,$server->method_namespace);
+$server->addObjectMap($MP3DB_Class,'urn:MP3DB');
 
 
 if (isset($_SERVER['REQUEST_METHOD']) &&

@@ -304,10 +304,14 @@ class SOAP_Client extends SOAP_Base
      * @return void
      * @see    SOAP_Client::__optionCategories
      */
-    function setOpt($category, $option, $value)
+    function setOpt($category, $option, $value=NULL)
     {
-        if (in_array($category, $this->__optionCategories)) {
-            $this->__options[$category][$option] = $value;
+        if ($value) {
+            if (in_array($category, $this->__optionCategories)) {
+                $this->__options[$category][$option] = $value;
+            }
+        } else {
+            $this->__options[$category] = $option;
         }
     }
 
