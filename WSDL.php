@@ -1032,7 +1032,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
 
                 if (isset($attrs['ref'])) {
-                    $this->currentElement = $attrs['ref'];
+                    $qn =& new QName($attrs['ref']);
+                    $this->currentElement = $qn->name;
                 } else {
                     $this->currentElement = $attrs['name'];
                 }
