@@ -29,7 +29,7 @@ $soap_server_fault = NULL;
 function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
     global $soap_server_fault;
     $detail = "Errno: $errno\nFilename: $filename\nLineno: $linenum\n";
-    $soap_server_fault = new SOAP_Fault($errmsg, 'Server', NULL,NULL, array('detail'=>$detail));
+    $soap_server_fault = new SOAP_Fault($errmsg, 'Server', 'PHP', $detail);
 }
 
 
@@ -226,11 +226,7 @@ class SOAP_Server extends SOAP_Base
             }
         }
         restore_error_handler();
-        if ($soap_server_fault) {
-            $this->soapfault = $soap_server_fault;
-            return $soap_server_fault->message();
-        }
-        return $ret;
+        return $soap_server_fault?$soap_server_fault:$ret;
     }
     
     // create soap_val object w/ return values from method, use method signature to determine type
@@ -298,7 +294,7 @@ class SOAP_Server extends SOAP_Base
                     $header_val->actor == $this->endpoint);
                 
                 if (!$f_exists && $header_val->mustunderstand && $myactor) {
-                    $this->makeFault('Server',"I don't understand header $header_val->name.");
+                    $this->makeFault('MustUnderstand',"I don't understand header $header_val->name.");
                     return NULL;
                 }
                 
@@ -312,9 +308,9 @@ class SOAP_Server extends SOAP_Base
                     // if there are parameters to pass
                     $hr = $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
-                    if (is_a($hr,'soap_value') && stristr($hr->value->name,'fault')) {
-                        return $this->_makeEnvelope($hr, NULL, $this->response_encoding);
-                    }
+                    if (PEAR::isError($hr)) {
+                        return $hr->message();
+                    }                    
                     $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
                 }
             }
@@ -355,6 +351,10 @@ class SOAP_Server extends SOAP_Base
 
         $method_response = $this->callMethod($this->methodname, $request_data);
 
+        if (PEAR::isError($method_response)) {
+            return $method_response->message();
+        }
+        
         // get the method result
         if (is_null($method_response))
             $return_val = NULL;
@@ -444,7 +444,7 @@ class SOAP_Server extends SOAP_Base
     
     function validateMethod($methodname, $namespace = NULL)
     {
-        $this->soapobject =  NULL;
+        unset($this->soapobject);
         $this->method_namespace = NULL;
         
         /* if it's in our function list, ok */
@@ -457,7 +457,10 @@ class SOAP_Server extends SOAP_Base
         }
         
         /* if it's in an object, it's ok */
-        foreach ($this->dispatch_objects as $obj) {
+        $c = count($this->dispatch_objects);
+        for ($i=0;$i<$c;$i++) {
+            $obj =& $this->dispatch_objects[$i];
+            
             if (method_exists($obj, $methodname) &&
                 (!$namespace || !$obj->method_namespace || $namespace == $obj->method_namespace)) {
                 $this->method_namespace = $obj->method_namespace;
@@ -467,7 +470,8 @@ class SOAP_Server extends SOAP_Base
                     array_key_exists('namespace', $obj->dispatch_map[$this->methodname])) {
                         $this->method_namespace = $obj->dispatch_map[$this->methodname]['namespace'];
                 }
-                $this->soapobject =  &$obj;
+                $this->soapobject =& $obj;
+                
                 return TRUE;
             }
         }
@@ -476,7 +480,7 @@ class SOAP_Server extends SOAP_Base
     
     function addObjectMap(&$obj)
     {
-        $this->dispatch_objects[] = &$obj;
+        $this->dispatch_objects[] =& $obj;
     }
     
     // add a method to the dispatch map

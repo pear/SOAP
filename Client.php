@@ -419,7 +419,7 @@ class SOAP_Client extends SOAP_Base
         }
         if (is_object($returnArray)) {
             $vars = get_object_vars($returnArray);
-            if (array_key_exists('Fault',$vars)) {
+            if (array_key_exists('faultcode',$vars) || array_key_exists('Fault',$vars)) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($returnArray as $k => $v) {
                     if (stristr($k,'faultcode')) $faultcode = $v;

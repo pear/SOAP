@@ -302,9 +302,10 @@ class SOAP_Base extends PEAR
                              $code,
                              $mode,
                              $options,
-                             array('actor' => $actorURI, 'detail' => $detail),
+                             $detail,
                              'SOAP_Fault',
                              $skipmsg);
+            $this->fault->error_message_prefix = $actorURI;
         }
         return $this->fault;
     }

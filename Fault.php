@@ -44,19 +44,10 @@ class SOAP_Fault extends PEAR_Error
      * @param    array   the userinfo array is used to pass in the
      *                   SOAP actor and detail for the fault
      */
-    function SOAP_Fault($message = 'unknown error', $code = null, $mode = null, $options = null, $userinfo = null)
+    function SOAP_Fault($faultstring = 'unknown error', $faultcode = 'Client', $faultactor=NULL, $detail=NULL, $mode = null, $options = null)
     {
-    
-        if (is_array($userinfo)) {
-            $actor = $userinfo['actor'];
-            $detail = $userinfo['detail'];
-        } else {
-            $actor = 'Unknown';
-            $detail = $userinfo;
-        }
-        parent::PEAR_Error($message, $code, $mode, $options, $detail);
-        $this->error_message_prefix = $actor;
-        
+        parent::PEAR_Error($faultstring, $faultcode, $mode, $options, $detail);
+        if ($faultactor) $this->error_message_prefix = $faultactor;
     }
     
     /**
@@ -95,7 +86,7 @@ class SOAP_Fault extends PEAR_Error
             $fault = new stdClass();
             $fault->faultcode = $this->code;
             $fault->faultstring = $this->message;
-            $fault->faultactor = $thiserror_message_prefix;
+            $fault->faultactor = $this->error_message_prefix;
             $fault->detail = $this->userinfo;
             return $fault;
         }
