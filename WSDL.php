@@ -415,7 +415,11 @@ class SOAP_WSDL extends SOAP_Base
                 }
                 $args .= '$' . $attrname;
             }
-            // $comments = $this->_complexTypeArg($args, $argarray, $el, $_argtype['type']);
+        } elseif (!empty($el['complex'])) {
+            $attrname = "{$_argtype['type']}_attr";
+            $comments .= "        \${$attrname}['xmlns'] = '{$this->namespaces[$_argtype['namespace']]}';\n";
+            $comments .= "        \${$_argtype['type']} =& new SOAP_Value('{$_argtype['type']}', false, \${$_argtype['type']}, \$$attrname);\n";
+            $this->_addArg($args, $argarray, $_argtype['type']);
         } elseif (isset($el['elements'])) {
             foreach ($el['elements'] as $ename => $element) {
                 $comments .= "        \$$ename =& new SOAP_Value('{{$this->namespaces[$element['namespace']]}}$ename', '" .
