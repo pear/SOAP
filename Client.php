@@ -158,6 +158,12 @@ class SOAP_Client extends SOAP_Base
                 $this->_raiseSoapFault($this->_wsdl->fault);
             }
         }
+        $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
+        if (PEAR::isError($this->_soap_transport)) {
+            $fault =& $this->_soap_transport;
+            $this->_soap_transport = NULL;
+            $this->_raiseSoapFault($fault);
+        }
     }
 
     function _reset()
@@ -240,6 +246,10 @@ class SOAP_Client extends SOAP_Base
      */
     function &call($method, &$params, $namespace = false, $soapAction = false)
     {
+        if (!$this->_soap_transport) {
+            return $this->_raiseSoapFault('No Transport for call');
+        }
+
         $this->headersIn = null;
         $this->__last_request = null;
         $this->__last_response = null;
@@ -249,14 +259,6 @@ class SOAP_Client extends SOAP_Base
         $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
             return $this->_raiseSoapFault($soap_data);
-        }
-        if (!$this->_soap_transport) {
-            $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
-            if (PEAR::isError($this->_soap_transport)) {
-                $fault =& $this->_soap_transport;
-                $this->_soap_transport = NULL;
-                return $this->_raiseSoapFault($fault);
-            }
         }
         $this->_soap_transport->encoding = $this->_encoding;
         
