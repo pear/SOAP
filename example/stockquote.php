@@ -24,8 +24,9 @@
 include("SOAP/Client.php");
 
 print "<br>\n<strong>wsdl:</strong>";
-$soapclient = new SOAP_Client("http://services.xmethods.net/soap/urn:xmethods-delayed-quotes.wsdl","wsdl");
-print_r($soapclient->call("getQuote",array("symbol"=>"ibm")));
+$wsdl = new SOAP_WSDL("http://services.xmethods.net/soap/urn:xmethods-delayed-quotes.wsdl");
+$soapclient = $wsdl->getProxy();
+print_r($soapclient->getQuote("ibm"));
 print "\n\n";
 
 if (extension_loaded('overload')) {

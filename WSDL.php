@@ -262,12 +262,13 @@ class SOAP_WSDL extends SOAP_Base
     {
         $comments = '';
         if (isset($this->complexTypes[$_argtype['namespace']][$_argtype['type']])) {
-            $comments = "        // $_argname is a ComplexType, refer to wsdl for more info\n";
+            $comments  = "        // $_argname is a ComplexType {$_argtype['type']},\n";
+            $comments .= "        //refer to wsdl for more info\n";
             if (isset($this->complexTypes[$_argtype['namespace']][$_argtype['type']]['attribute'])) {
                 $comments .= "        // $_argname may require attributes, refer to wsdl for more info\n";
             }
             $wrapname = '{'.$this->namespaces[$_argtype['namespace']].'}'.$_argtype['type'];
-            $comments .= "        \${$_argtype['type']} = new SOAP_Value('$wrapname',false,\${$_argtype['type']});\n";
+            $comments .= "        \$$_argname = new SOAP_Value('$_argname','$wrapname',\$$_argname);\n";
             
         }
         $this->_addArg($args,$argarray,$_argname);
@@ -287,7 +288,8 @@ class SOAP_WSDL extends SOAP_Base
         // XXX currentPort is BAD
         $clienturl = $port['address']['location']; 
         $classname = 'WebService_'.$this->service;
-
+        $classname = str_replace('.','_',$classname);
+        
         if (!$this->_validateString($classname)) return NULL;
         
         $class = "class $classname extends SOAP_Client {\n".
@@ -390,6 +392,7 @@ class SOAP_WSDL extends SOAP_Base
     function getProxy($port = '')
     {
         $classname = 'WebService_'.$this->service;
+        $classname = str_replace('.','_',$classname);
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port);
             eval($proxy);
