@@ -117,8 +117,8 @@ class SOAP_WSDL extends SOAP_Base
     /**
      * @deprecated use parseURL instead
      */
-    function parse($uri, $proxy = array()) {
-        $this->parseURL($uri, $proxy);
+    function parse($wsdl_uri, $proxy = array()) {
+        $this->parseURL($wsdl_uri, $proxy);
     }
 
     /**

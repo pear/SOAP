@@ -603,8 +603,31 @@ class SOAP_Server extends SOAP_Base
         $this->dispatch_objects[$namespace][] =& $obj;
 
         // Create internal WSDL structures for object
-        $this->addObjectWSDL($obj, $namespace, $service_name, $service_desc);
+        // XXX Because some internal workings of PEAR::SOAP decide whether to
+        // do certain things by the presence or absence of _wsdl, we should
+        // only create a _wsdl structure if we know we can fill it; if
+        // __dispatch_map or __typedef for the object is missing, we should
+        // avoid creating it. Later, when we are using PHP 5 introspection,
+        // we will be able to make the data for all objects without any extra
+        // information from the developers, and this condition should be
+        // dropped.
 
+        // XXX Known issue: if imported WSDL (bindWSDL) or another WSDL source
+        // is used to add _wsdl structure information, then addObjectWSDL is
+        // used, there is a high possibility of _wsdl data corruption;
+        // therefore you should avoid using __dispatch_map/__typedef definitions
+        // AND other WSDL data sources in the same service. We exclude classes
+        // that don't have __typedefs to allow external WSDL files to be used
+        // with classes with no internal type definitions (the types are defined
+        // in the WSDL file). When addObjectWSDL is refactored to not cause
+        // corruption, this restriction can be relaxed.
+
+        // In summry, if you add an object with both a dispatch map and type
+        // definitions, then previous WSDL file operation and type definitions
+        // will be overwritten.
+        if (isset($obj->__dispatch_map) && isset($obj->__typedef))
+            $this->addObjectWSDL($obj, $namespace, $service_name, $service_desc);
+        }
         return true;
     }
 
@@ -630,8 +653,8 @@ class SOAP_Server extends SOAP_Base
     /**
      * @deprecated use bindWSDL from now on
      */
-    function bind($wsdlurl) {
-        $this->bindWSDL($bindWSDL);
+    function bind($wsdl_url) {
+        $this->bindWSDL($wsdl_url);
     }
 
     /**
