@@ -59,7 +59,7 @@ class SOAP_Server {
         if ($args) {
             $ret = @call_user_func_array(array($service, $methodName),$args);
         } else {
-            $ret = @call_user_func(array($service, $methodname));
+            $ret = @call_user_func(array($service, $methodName));
         }
         return $ret;
     }
