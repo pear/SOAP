@@ -168,10 +168,18 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
 
     function addCookie($name, $value)
     {
-        $cookies = isset($this->cookies) ? $this->cookies. '; ' : '';
-        $this->cookies = $cookies . urlencode($name) . '=' . urlencode($value);
+        $this->cookies[$name]=$value;
     }
 
+    function _genCookieHeader()
+    {
+        foreach ($this->cookies as $name=>$value) {
+            $cookies = (isset($cookies) ? $cookies. '; ' : '') .
+                        urlencode($name) . '=' . urlencode($value);
+        }
+        return $cookies;
+    }
+    
     // private members
 
     /**
@@ -354,13 +362,13 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             $this->headers = array_merge($this->headers, $options['headers']);
         }
         
-        unset($this->cookies);
+        $this->cookies = array();
         if (!isset($options['nocookies']) || !$options['nocookies']) {
             // add the cookies we got from the last request
             if (isset($this->result_cookies)) {
                 foreach ($this->result_cookies as $cookie) {
                     if ($cookie['domain'] == $this->urlparts['host'])
-                        $this->addCookie($cookie['name'],$cookie['value']);
+                        $this->cookies[$cookie['name']]=$cookie['value'];
                 }
             }
         }
@@ -368,11 +376,11 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
         if (isset($options['cookies'])) {
             foreach ($options['cookies'] as $cookie) {
                 if ($cookie['domain'] == $this->urlparts['host'])
-                    $this->addCookie($cookie['name'],$cookie['value']);
+                    $this->cookies[$cookie['name']]=$cookie['value'];
             }
         }
-        if ($this->cookies) {
-            $this->headers['Cookie'] = $this->cookies;
+        if (count($this->cookies)) {
+            $this->headers['Cookie'] = $this->_genCookieHeader();
         }
         $headers = '';
         foreach ($this->headers as $k => $v) {

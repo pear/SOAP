@@ -52,8 +52,6 @@ class SOAP_Parser extends SOAP_Base
     var $header_struct_name = array();
     var $curent_root_struct_name = '';
     var $entities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
-    var $xml = '';
-    var $xml_encoding = '';
     var $root_struct = array();
     var $header_struct = array();
     var $curent_root_struct = 0;
@@ -68,36 +66,41 @@ class SOAP_Parser extends SOAP_Base
      * @param string xml content
      * @param string xml character encoding, defaults to 'UTF-8'
      */
-    function SOAP_Parser($xml, $encoding = SOAP_DEFAULT_ENCODING, $attachments=NULL)
+    function SOAP_Parser(&$xml, $encoding = SOAP_DEFAULT_ENCODING, $attachments=NULL)
     {
         parent::SOAP_Base('Parser');
         $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         
-        $this->xml = $xml;
-        $this->xml_encoding = $encoding;
         $this->attachments = $attachments;
         
         // check the xml tag for encoding
         if (preg_match('/<\?xml[^>]+encoding\s*?=\s*?(\'([^\']*)\'|"([^"]*)")[^>]*?[\?]>/',$xml,$m)) {
-            $this->xml_encoding = strtoupper($m[2]?$m[2]:$m[3]);
+            $encoding = strtoupper($m[2]?$m[2]:$m[3]);
         }
         
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
-        if (!empty($this->xml)) {
+        if (!empty($xml)) {
             // prepare the xml parser
-            $parser = xml_parser_create($this->xml_encoding);
+            $parser = xml_parser_create($encoding);
             xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
             xml_set_object($parser, $this);
             xml_set_element_handler($parser, 'startElement','endElement');
             xml_set_character_data_handler($parser,'characterData');
-
+            
+            // some lame soap implementations add null bytes at the
+            // end of the soap stream, and expat choaks on that
+            if ($xml[strlen($xml)-1]==0)
+                $xml = trim($xml);
+            
             // Parse the XML file.
-            if (!xml_parse($parser,$this->xml,true)) {
-                $err = sprintf('XML error on line %d: %s',
+            if (!xml_parse($parser,$xml,true)) {
+                $err = sprintf('XML error on line %d col %d byte %d %s',
                     xml_get_current_line_number($parser),
+                    xml_get_current_column_number($parser),
+                    xml_get_current_byte_index($parser),
                     xml_error_string(xml_get_error_code($parser)));
-                $this->_raiseSoapFault($err,htmlspecialchars($this->xml));
+                $this->_raiseSoapFault($err,htmlspecialchars($xml));
             }
             xml_parser_free($parser);
         }

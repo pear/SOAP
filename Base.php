@@ -184,10 +184,11 @@ class SOAP_Base_Object extends PEAR
     function &_raiseSoapFault($str, $detail = '', $actorURI = '', $code = null, $mode = null, $options = null, $skipmsg = false)
     {
         # pass through previous faults
+        $is_instance = isset($this);
         if (is_object($str)) {
             $fault =& $str;
         } else {
-            if (!$code) $code = 'Client';
+            if (!$code) $code = $is_instance?$this->_myfaultcode:'Client';
             $fault =& new SOAP_Fault($str, 
                                           $code, 
                                           $actorURI,
@@ -195,7 +196,7 @@ class SOAP_Base_Object extends PEAR
                                           $mode,
                                           $options);
         }
-        if (isset($this)) $this->fault =& $fault;
+        if ($is_instance) $this->fault =& $fault;
         return $fault;
     }
 
