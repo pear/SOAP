@@ -57,9 +57,10 @@ if (class_exists('Net_DIME_Message')) {
 /**
  * Enable debugging informations?
  *
- * @const    SOAP_DEBUG
+ * @name   $SOAP_DEBUG
+ * @global $GLOBALS['SOAP_DEBUG']
  */
-$GLOBALS['SOAP_DEBUG']=false;
+$GLOBALS['SOAP_DEBUG'] = false;
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
