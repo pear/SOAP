@@ -1183,7 +1183,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // sect 3.4
                     // soap:operation, attributes: soapAction(required), style(optional, default = soap:binding:style)
                     if (!isset($attrs['style'])) $attrs['style'] = $this->wsdl->bindings[$this->currentBinding]['style'];
-                    $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation] = $attrs;
+                    if (isset($this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation])) {
+                        $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation] = array_merge($this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation],$attrs);
+                    } else {
+                        $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation] = $attrs;
+                    }
                     break;
                 case 'body':
                     // sect 3.5
