@@ -1,3 +1,4 @@
+<html><body>
 <?
 //
 // +----------------------------------------------------------------------+
@@ -22,38 +23,25 @@
 // include soap client class
 include("SOAP/Client.php");
 
-print "<html><body><br>\n<strong>wsdl:</strong>";
+print "<br>\n<strong>wsdl:</strong>";
 $soapclient = new SOAP_Client("http://services.xmethods.net/soap/urn:xmethods-delayed-quotes.wsdl","wsdl");
-echo $soapclient->call("getQuote",array("symbol"=>"ibm"));
+print_r($soapclient->call("getQuote",array("symbol"=>"ibm")));
+print "\n\n";
+
+if (extension_loaded('overload')) {
+	print "\n<br><strong>overloaded:</strong>";
+	$ret = $soapclient->getQuote("ibm");
+	print_r($ret);
+	print "\n\n";
+}
 unset($soapclient);
 
 print "\n<br><strong>non wsdl:</strong>";
 $soapclient = new SOAP_Client("http://services.xmethods.net:80/soap");
 $ret = $soapclient->call("getQuote",array("symbol"=>"ibm"),"urn:xmethods-delayed-quotes","urn:xmethods-delayed-quotes#getQuote");
-print $ret."\n\n";
 print_r($ret);
+print "\n\n";
 unset($soapclient);
 
-/* low level api
-// create message
-$soapmsg = new soapmsg("getQuote",array("symbol"=>"ibm"),"urn:xmethods-delayed-quotes");
-// invoke the client
-$client = new soap_client("http://services.xmethods.net:80/soap");
-// send message and get response
-if($return = $client->send($soapmsg,"")){
-	if($return->name != "fault"){
-		echo array_shift($return->decode());
-	} else {
-		print "got fault<br>";
-		print "<b>Client Debug:</b><br>";
-		print "<xmp>$client->debug_str</xmp>";
-		die();
-	}
-} else {
-	print "send failed - could not get list of servers from xmethods<br>";
-}
-*/
-
-
 ?>
-
+</html></body>

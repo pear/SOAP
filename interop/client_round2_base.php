@@ -36,8 +36,8 @@ $parm = 'php'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
-$testfunc = 'echoStruct'; // test a single function
-$specificendpoint = '4s4c v2.0'; //"http://63.142.188.184:1122/"; // endpoint url
+#$testfunc = 'echoStruct'; // test a single function
+#$specificendpoint = '4s4c v2.0'; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
 $skip = array();
 

@@ -125,6 +125,17 @@ class SOAP_WSDL extends SOAP_Base
         return $this->raiseSoapFault("no binding for port $portName in wsdl", $this->uri);
     }
     
+    function matchMethod(&$operation) {
+        // Overloading lowercases function names :(
+        foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
+            foreach (array_keys($this->bindings[$portAttrs['binding']]['operations']) as $op) {
+                if (strcasecmp($op, $operation) == 0) {
+                    $operation = $op;
+                }
+            }
+        }
+    }
+    
     function getSoapAction($portName, $operation)
     {
         if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['soapAction']) &&

@@ -275,5 +275,35 @@ class SOAP_Client extends SOAP_Base
         }
         return $returnArray;
     }
+    
+    /**
+    * SOAP_Client::__call
+    *
+    * Overload extension support
+    * if the overload extension is loaded, you can call the client class
+    * with a soap method name
+    * $soap = new SOAP_Client(....);
+    * $value = $soap->getStockQuote('MSFT');
+    *
+    * @param string method
+    * @param array  args
+    * @param string retur_value
+    *
+    * @return boolean
+    * @access public
+    */
+    function __call($method, $args, &$return_value)
+    {
+        if (!$this->wsdl) return FALSE;
+        #$return_value = call_user_func_array(array(&$this, 'my_' . $method), $args);
+        $this->wsdl->matchMethod($method);
+        $return_value = $this->call($method, $args);
+        return TRUE;
+    }
+    
+}
+
+if (extension_loaded('overload')) {
+    overload('SOAP_Client');
 }
 ?>
