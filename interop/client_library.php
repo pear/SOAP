@@ -1,4 +1,6 @@
 <?php
+require_once 'SOAP/Client.php';
+
 $totals = array();
 function getInteropEndpoints($base = "base") {
     global $endpoints;

@@ -130,4 +130,21 @@ class SOAP_Base extends PEAR
     }
     
 }
+
+class QName
+{
+    var $name = '';
+    var $ns = '';
+    function QName($name) {
+        $s = split(':',$name);
+        $s = array_reverse($s);
+        $this->name = $s[0];
+        $this->ns = $s[1];
+        if (strpos($this->name, '[') != false) {
+            # XXX need to re-examine this logic later
+            # chop off []
+            $this->name = substr($this->name, 0, strlen($this->name)-2);
+        }
+    }
+}
 ?>

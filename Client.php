@@ -174,12 +174,16 @@ class SOAP_Client extends SOAP_Base
             $nparams = array();
             if (count($opData['input']['parts']) > 0) {
                 $i = 0;
+                reset($params);
                 foreach ($opData['input']['parts'] as $name => $type) {
                     if (isset($params[$name])) {
                         $nparams[$name] = $params[$name];
                     } else {
                         // XXX assuming it's an array, not a hash
-                        $nparams[$name] = $params[$i++];
+                        // XXX this is pretty pethetic, but "fixes" a problem where
+                        // paremeter names do not match correctly
+                        $nparams[$name] = current($params);
+                        next($params);
                     }
                     if (gettype($nparams[$name]) != 'object' &&
                         get_class($nparams[$name]) != 'soap_value') {

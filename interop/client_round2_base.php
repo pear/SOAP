@@ -29,15 +29,15 @@ require_once("SOAP/interop/client_library.php");
 error_reporting(E_ALL ^ E_NOTICE);
 
 $localonly = 0; // set to 1 to test only your local server
-$usebuiltin = 0; // use builtin list of endpoints
+$usebuiltin = 1; // use builtin list of endpoints
 $usewsdl = 1;
-$test = 'base';  // which test to do: base, GroupB, GroupC
+$test = 'GroupB';  // which test to do: base, GroupB, GroupC
 $parm = 'php'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
-#$testfunc = 'echoStructArray'; // test a single function
-#$specificendpoint = 'WASP for C++'; //"http://63.142.188.184:1122/"; // endpoint url
+#$testfunc = 'echo2DStringArray'; // test a single function
+#$specificendpoint = 'Apache Axis'; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
 $skip = array();
 
@@ -47,32 +47,17 @@ if ($localonly) {
             'endpointURL' => 'http://127.0.0.1/soap/interop.php',
             'name' => $SOAP_LibraryName);
 } elseif ($usebuiltin) {
-    $endpoints['ASP.NET Web Services'] = array(
-            'endpointURL' => 'http://www.mssoapinterop.org/asmx/simple.asmx',
-            'wsdlURL' => 'http://www.mssoapinterop.org/asmx/simple.asmx?wsdl',
-            'name' => 'ASP.NET Web Services');
-    $endpoints['4s4c'] = array(
-            'endpointURL' => 'http://soap.4s4c.com/ilab/soap.asp',
-            'wsdlURL' => 'http://www.pocketsoap.com/services/ilab.wsdl',
-            'name' => '4s4c');
-    $endpoints['Apache Axis'] = array(
-            'endpointURL' => 'http://nagoya.apache.org:5049/axis/services/echo',
-            'wsdlURL' => 'http://nagoya.apache.org:5049/axis/services/echo?wsdl',
-            'name' => 'Apache Axis');
-    $endpoints['Apache SOAP 2.2'] = array(
-            'endpointURL' => 'http://nagoya.apache.org:5049/soap/servlet/rpcrouter',
-            'wsdlURL' => 'http://www.apache.org/~rubys/ApacheSoap.wsdl',
-            'name' => 'Apache SOAP 2.2');
-    $endpoints["GLUE"] = array(
-            "endpointURL" => "http://www.themindelectric.net:8005/glue/round2",
-            'wsdlURL' => 'http://www.themindelectric.net:8005/glue/round2.wsdl',
-            "name" => "GLUE");
-    #$endpoints["HP SOAP"] = array(
-    #        "endpointURL" => "http://soap.bluestone.com/hpws/soap/EchoService",
-    #        "name" => "HP SOAP");
-    #$endpoints["IONA XMLBus"] = array(
-    #        "endpointURL" => "http://interop.xmlbus.com:7002/xmlbus/container/InteropTest/BaseService/BasePort",
-    #        "name" => "IONA XMLBus");
+    # NOTE: run endpoints_generate.php to generate 'builtin' files. 
+    include_once 'SOAP/interop/endpoints_'.$test.'.php';
+    
+    # overrides for when whitemesa is simply wrong
+    if ($test == 'base') {
+        $endpoints['MS SOAP ToolKit 2.0'] = array(
+                'endpointURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
+                'wsdlURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
+                'endpointName' => 'MS SOAP ToolKit 2.0');
+    }
+
 }
 
 /********************************************************************

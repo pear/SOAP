@@ -54,9 +54,7 @@ class SOAP_WSDL extends SOAP_Base
     var $bindings = array();
     var $ports = array();
     var $imports = array();
-    
-    // undefinied property friends - to be documented...
-    var $uri;
+    var $uri = '';
     
     function SOAP_WSDL($uri = false) {
         parent::SOAP_Base('WSDL');
@@ -286,7 +284,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
     var $depth = 0;
     var $depth_array = array();
     var $tns = NULL;
-    var $soapns = 'soap';
+    var $soapns = array('soap');
     var $uri = '';
     
     // undifined property & friends
@@ -368,7 +366,12 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 $this->schemaStatus = 'complexType';
             break;
             case 'element':
-                $this->wsdl->complexTypes[$this->currentElement]['elements'][$attrs['name']] = $attrs;
+                if (array_key_exists('type',$attrs)) {
+                    $qname = new QName($attrs['type']);
+                    $attrs['type'] = $qname->name;
+                    $attrs['namespace'] = $this->wsdl->namespaces[$qname->ns];
+                }
+                $this->wsdl->complexTypes[$this->currentElement]['elements'][] = $attrs;
             break;
             case 'complexContent':
                     
@@ -419,22 +422,27 @@ class SOAP_WSDL_Parser extends SOAP_Base
             }
         break;
         case 'binding':
-            switch($name) {
-                case $this->soapns.':binding':
-                    $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding],$attrs);
+            switch($qname->name) {
+                case 'binding':
+                    if (in_array($qname->ns, $this->soapns)) {
+                        $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding],$attrs);
+                    }
                 break;
                 case 'operation':
-                    $this->currentOperation = $attrs['name'];
-                    $this->wsdl->bindings[$this->currentBinding]['operations'][$attrs['name']] = array();
-                break;
-                case $this->soapns.':operation':
-                    $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation]['soapAction'] = $attrs['soapAction'];
+                    if (in_array($qname->ns, $this->soapns)) {
+                        $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation]['soapAction'] = $attrs['soapAction'];
+                    } else {
+                        $this->currentOperation = $attrs['name'];
+                        $this->wsdl->bindings[$this->currentBinding]['operations'][$attrs['name']] = array();
+                    }
                 break;
                 case 'input':
                     $this->opStatus = 'input';
                 break;
-                case $this->soapns.':body':
-                    $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation][$this->opStatus] = $attrs;
+                case 'body':
+                    if (in_array($qname->ns, $this->soapns)) {
+                        $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation][$this->opStatus] = $attrs;
+                    }
                 break;
                 case 'output':
                     $this->opStatus = 'output';
@@ -442,7 +450,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             }
         break;
         case 'service':
-            switch($name) {
+            switch($qname->name) {
             case 'port':
                 $this->currentPort = $attrs['name'];
                 $this->wsdl->ports[$attrs['name']] = $attrs;
@@ -451,8 +459,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 $this->wsdl->ports[$attrs['name']]['binding'] = $qn->name;
                 $this->wsdl->ports[$attrs['name']]['namespace'] = $qn->ns;
             break;
-            case $this->soapns.':address':
-                $this->wsdl->ports[$this->currentPort]['location'] = $attrs['location'];
+            case 'address':
+                if (in_array($qname->ns, $this->soapns)) {
+                    $this->wsdl->ports[$this->currentPort]['location'] = $attrs['location'];
+                }
             break;
             }
         case 'import':
@@ -514,7 +524,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $this->wsdl->namespaces[$qn->name] = $value;
                     if ($key == 'targetNamespace' ||
                         strcasecmp($value,SOAP_SCHEMA)==0) {
-                        $this->soapns = strtolower($qn->name);
+                        $this->soapns[] = strtolower($qn->name);
                     }
                 }
             }

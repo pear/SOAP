@@ -304,7 +304,7 @@ class SOAP_Value extends SOAP_Base
         $sz = count($value);
 
         if (count($array_types) == 1) {
-            if (array_key_exists('array', $array_types)) {
+            if (array_key_exists('Array', $array_types)) {
                 // seems we have a multi dimensional array, figure it out if we do
                 foreach ($value as $array_val) {
                     $numtypes = $this->_getArrayType($array_val->value, $type, $size, $xml);
@@ -530,6 +530,10 @@ class SOAP_Value extends SOAP_Base
                 return $namespace;
             }
         }*/
+        #if ($this->wsdl && array_key_exists($type, $this->wsdl->complexTypes)) {
+        #    # XXX should return the import uri if the complex type was imported
+        #    return $this->wsdl->uri;
+        #}
         foreach ($SOAP_namespaces as $uri => $prefix) {
             if (is_array($SOAP_typemap[$uri]) && isset($SOAP_typemap[$uri][$type])) {
                 #print "returning: $uri for type $type\n";
@@ -572,28 +576,47 @@ class SOAP_Value extends SOAP_Base
         if ($this->wsdl) {
             # see if it's a complex type so we can deal properly with SOAPENC:arrayType
             if (!$type && $this->name) {
-                # look up the name in the wsdl
+                # XXX TODO:
+                # look up the name in the wsdl and validate the type
                 $this->debug("SOAP_VALUE no type for $this->name!");
             } else if ($type) {
+                # XXX TODO:
+                # this code currently handles only one way of encoding array types in wsdl
+                # need to do a generalized function to figure out complex types
                 if (array_key_exists($type, $this->wsdl->complexTypes)) {
-                    $this->arrayType = $this->wsdl->complexTypes[$type]['arrayType'];
+                    if ($this->arrayType = $this->wsdl->complexTypes[$type]['arrayType']) {
+                        $type = 'Array';
+                    } else if ($this->wsdl->complexTypes[$type]['order']=='sequence' &&
+                               array_key_exists('elements', $this->wsdl->complexTypes[$type])) {
+                        reset($this->wsdl->complexTypes[$type]['elements']);
+                        # assume an array
+                        if (count($this->wsdl->complexTypes[$type]['elements']) == 1) {
+                            $arg = current($this->wsdl->complexTypes[$type]['elements']);
+                            $this->arrayType = $arg['type'];
+                            $type = 'Array';
+                        } else {
+                            foreach($this->wsdl->complexTypes[$type]['elements'] as $element) {
+                                if ($element['name'] == $type) {
+                                    $this->arrayType = $element['type'];
+                                    $type = $element['type'];
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         if (!$type || !$this->verifyType($type)) {
+            if ($type && $this->wsdl && array_key_exists($type, $this->wsdl->complexTypes)) {
+                # do nothing, this preserves our complex types 
+            } else
             if (is_object($value)) {
                 # allows for creating special classes to handle soap types
                 $type = get_class($value);
                 # this may return a different type that we process below
                 $value = $value->toSOAP();
             } elseif (isArray($value)) {
-                $type = 'Array';
-                foreach ($value as $k => $v) {
-                    if (!preg_match("/^[0-9]+$/",$k)) {
-                        $type = 'Struct';
-                        break;
-                    }
-                }
+                $type = isHash($value)?'Struct':'Array';
             } elseif (isInt($value)) {
                 $type = 'int';
             } elseif (isFloat($value)) {
@@ -646,7 +669,7 @@ class SOAP_Value extends SOAP_Base
 * @param    string
 * @return   string
 */
-function isBase64($value)
+function isBase64(&$value)
 {
     return $value[strlen($value)-1]=='=' && preg_match("/[A-Za-z=\/\+]+/",$value);
 }
@@ -656,7 +679,7 @@ function isBase64($value)
 * @param    mixed
 * @return   boolean
 */
-function isBoolean($value)
+function isBoolean(&$value)
 {
     return gettype($value) == 'boolean' || strcasecmp($value, 'true')==0 || strcasecmp($value, 'false') == 0;
 }
@@ -666,7 +689,7 @@ function isBoolean($value)
 * @param    mixed
 * @return   boolean
 */
-function isFloat($value)
+function isFloat(&$value)
 {
     return gettype($value) == FLOAT ||
                 $value === 'NaN' ||  $value === 'INF' || $value === '-INF' ||
@@ -678,7 +701,7 @@ function isFloat($value)
 * @param    mixed
 * @return   boolean
 */
-function isInt($value)
+function isInt(&$value)
 {
     return gettype($value) == 'integer' || (is_numeric($value) && !strstr($value,'.'));
 }
@@ -688,7 +711,7 @@ function isInt($value)
 * @param    array
 * @return   boolean
 */
-function isArray($value)
+function isArray(&$value)
 {
     return is_array($value) && count($value) >= 1;
 }
@@ -698,9 +721,27 @@ function isArray($value)
 * @param    mixed
 * @return   boolean
 */
-function isDateTime($value)
+function isDateTime(&$value)
 {
     $dt = new SOAP_Type_dateTime($value);
     return $dt->toUnixtime() != -1;
 }
+
+/**
+*
+* @param    mixed
+* @return   boolean
+*/
+function isHash(&$a) {
+    # XXX I realy dislike having to loop through this in php code,
+    # realy large arrays will be slow.  We need a C function to do this.
+    foreach ($a as $k => $v) {
+        # checking the type is faster than regexp.
+        if (gettype($k) != 'integer') {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 ?>

@@ -51,27 +51,15 @@ if ($localonly) {
             'endpointURL' => 'http://127.0.0.1/soap/interop.php',
             'name' => $SOAP_LibraryName);
 } elseif ($usebuiltin) {
-    # for doing short tests
-    $endpoints['SilverStream'] = array(
-            'endpointURL' => 'http://explorer.ne.mediaone.net/app/interop/interop',
-            'wsdlURL' => 'http://www.xmethods.net/soapbuilders/silverstream/InteropTest.wsdl',
-            'name' => 'SilverStream');
-    #$endpoints['SIM'] = array(
-    #        'endpointURL' => 'http://soapinterop.simdb.com/round2',
-    #        'wsdlURL' => 'http://soapinterop.simdb.com/round2?WSDL',
-    #        'name' => 'SIM');
-    #$endpoints['4s4c'] = array(
-    #        'endpointURL' => 'http://soap.4s4c.com/ilab/soap.asp',
-    #        'wsdlURL' => 'http://www.pocketsoap.com/services/ilab.wsdl',
-    #        'name' => '4s4c');
-    #$endpoints['Apache Axis'] = array(
-    #        'endpointURL' => 'http://nagoya.apache.org:5049/axis/services/echo',
-    #        'wsdlURL' => 'http://nagoya.apache.org:5049/axis/services/echo?wsdl',
-    #        'name' => 'Apache Axis');
-    #$endpoints['Apache SOAP 2.2'] = array(
-    #        'endpointURL' => 'http://nagoya.apache.org:5049/soap/servlet/rpcrouter',
-    #        'wsdlURL' => 'http://www.apache.org/~rubys/ApacheSoap.wsdl',
-    #        'name' => 'Apache SOAP 2.2');
+    # NOTE: run endpoints_generate.php to generate 'builtin' files. 
+    include_once 'SOAP/interop/edpoints_'.$test;
+    # overrides for when whitemesa is not up to date
+    if ($test = 'base') {
+        $endpoints['MS SOAP ToolKit 2.0'] = array(
+                'endpointURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
+                'wsdlURL' => 'http://mssoapinterop.org/stk/Interop.wsdl',
+                'endpointName' => 'MS SOAP ToolKit 2.0');
+    }
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
