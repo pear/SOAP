@@ -416,7 +416,7 @@ class SOAP_Client extends SOAP_Base
                 $i = 0;
                 reset($params);
                 foreach ($opData['input']['parts'] as $name => $part) {
-                    $xmlns = '';
+                    $xmlns = $namespace;
                     $attrs = array();
                     // is the name actually a complex type?
                     if (isset($part['element'])) {

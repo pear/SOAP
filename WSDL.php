@@ -1038,7 +1038,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $this->schemaStatus = 'element';
                 } else if ($this->currentComplexType) {
                     // we're inside a complexType
-                    if ($this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] == 'sequence'
+                    if ((isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order']) &&
+                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['order'] == 'sequence')
                         && $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] == 'Array') {
                             $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['arrayType'] = $attrs['type'];
                     }

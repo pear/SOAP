@@ -345,31 +345,31 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
             unset($this->result_headers[0]);
 
             switch($code) {
-                400:
+                case 400:
                     $this->_raiseSoapFault("HTTP Response $code Bad Request");
                     return false;
                     break;
-                401:
+                case 401:
                     $this->_raiseSoapFault("HTTP Response $code Authentication Failed");
                     return false;
                     break;
-                403:
+                case 403:
                     $this->_raiseSoapFault("HTTP Response $code Forbidden");
                     return false;
                     break;
-                404:
+                case 404:
                     $this->_raiseSoapFault("HTTP Response $code Not Found");
                     return false;
                     break;
-                407:
+                case 407:
                     $this->_raiseSoapFault("HTTP Response $code Proxy Authentication Required");
                     return false;
                     break;
-                408:
+                case 408:
                     $this->_raiseSoapFault("HTTP Response $code Request Timeout");
                     return false;
                     break;
-                410:
+                case 410:
                     $this->_raiseSoapFault("HTTP Response $code Gone");
                     return false;
                     break;
