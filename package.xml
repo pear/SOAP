@@ -26,9 +26,10 @@
   <release>
     <state>beta</state>
     <version>0.8RC3</version>
-    <date>2003-xx-xx</date>
+    <date>2003-01-16</date>
     <notes>
-* DIME related issues (and maybe others) were fixed
+* DIME related issues were fixed
+* bugfixes
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
