@@ -121,8 +121,10 @@ function make_2d($x, $y)
 //***********************************************************
 // Base echoString
 
-$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => 'blah'));
-$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string','blah')));
+#$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => utf8_encode('ỗÈéóÒ₧⅜ỗỸ')));
+#$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string',utf8_encode('ỗÈéóÒ₧⅜ỗỸ'))));
+$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => "this is a test <hello>\n"));
+$soap_tests['base'][] = new SOAP_Test('echoString', array('inputString' => new SOAP_Value('inputString','string',"this is a test <hello>\n")));
 
 //***********************************************************
 // Base echoStringArray
@@ -318,9 +320,9 @@ $soap_tests['GroupB'][] = new SOAP_Test('echoSimpleTypesAsStruct',
 
 $soap_tests['GroupB'][] = new SOAP_Test('echo2DStringArray',
     array('input2DStringArray' => make_2d(3,3)));
-$soap_tests['GroupB'][] = new SOAP_Test('echo2DStringArray',
-    array('input2DStringArray' =>
-        new SOAP_Value('input2DStringArray','Array',
+
+$multidimarray =
+    new SOAP_Value('input2DStringArray','Array',
         array(
             array(
                 new SOAP_Value('item','string','row0col0'),
@@ -333,7 +335,10 @@ $soap_tests['GroupB'][] = new SOAP_Test('echo2DStringArray',
                 new SOAP_Value('item','string','row1col2')
                 )
         )
-    )));
+    );
+$multidimarray->flattenArray = TRUE;
+$soap_tests['GroupB'][] = new SOAP_Test('echo2DStringArray',
+    array('input2DStringArray' => $multidimarray));
 
 //***********************************************************
 // GroupB echoNestedStruct

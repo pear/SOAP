@@ -24,7 +24,7 @@ require_once 'SOAP/interop/client_round2_interop.php';
 
 $iop = new Interop_Client();
 // force a fetch of endpoints, this happens irregardless if no endpoints in database
-$iop->fetchEndpoints();
+#$iop->fetchEndpoints();
 
 // set some options
 $iop->currentTest = 'base';      // see $tests above

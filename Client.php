@@ -46,28 +46,6 @@ require_once 'SOAP/Fault.php';
 */
 class SOAP_Client extends SOAP_Base
 {
-    
-    /**
-    * SOAP fault code
-    * 
-    * @var  mixed
-    */    
-    var $faultcode = '';
-    
-    /**
-    * SOAP fault string
-    * 
-    * @var  mixed
-    */
-    var $faultstring = '';
-    
-    /**
-    * SOAP fault details
-    * 
-    * @var  mixed
-    */
-    var $faultdetail = '';
-    
     /**
     * Communication endpoint.
     *
@@ -107,7 +85,9 @@ class SOAP_Client extends SOAP_Base
     
     var $wire = NULL;
     
-    var $soapmsg = NULL;        
+    var $soapmsg = NULL;
+    
+    var $encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP_Client constructor
     *
@@ -131,6 +111,15 @@ class SOAP_Client extends SOAP_Base
                 $this->raiseSoapFault($this->wsdl->fault);
             }
         }
+    }
+    
+    function setEncoding($encoding)
+    {
+        if (in_array($encoding, $SOAP_Encoding)) {
+            $this->encoding = $encoding;
+            return NULL;
+        }
+        return $this->raiseSoapFault('Invalid Encoding');
     }
     
     function addHeader($soap_value)
@@ -250,7 +239,7 @@ class SOAP_Client extends SOAP_Base
         // instantiate client
         $dbg = "calling server at '$this->endpoint'...";
         
-        $soap_transport = new SOAP_Transport($this->endpoint, $this->debug_flag);
+        $soap_transport = new SOAP_Transport($this->endpoint, $this->encoding);
         
         if ($soap_transport->fault) {
             return $this->raiseSoapFault($soap_transport->fault);
@@ -310,12 +299,12 @@ class SOAP_Client extends SOAP_Base
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
                 foreach ($returnArray as $k => $v) {
-                    if (stristr($k,'faultcode')) $this->faultcode = $v;
-                    if (stristr($k,'faultstring')) $this->faultstring = $v;
-                    if (stristr($k,'faultdetail')) $this->faultdetail = $v;
-                    if (stristr($k,'faultactor')) $this->faultactor = $v;
+                    if (stristr($k,'faultcode')) $faultcode = $v;
+                    if (stristr($k,'faultstring')) $faultstring = $v;
+                    if (stristr($k,'faultdetail')) $faultdetail = $v;
+                    if (stristr($k,'faultactor')) $faultactor = $v;
                 }
-                return $this->raiseSoapFault($this->faultstring, $this->faultdetail, $this->faultactor, $this->faultcode);
+                return $this->raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
             }
             // return array of return values
             if (count($returnArray) == 1) {
@@ -354,9 +343,7 @@ class SOAP_Client extends SOAP_Base
     */
     function __call($method, $args, &$return_value)
     {
-        if (!$this->wsdl) return FALSE;
-        #$return_value = call_user_func_array(array(&$this, 'my_' . $method), $args);
-        $this->wsdl->matchMethod($method);
+        if ($this->wsdl) $this->wsdl->matchMethod($method);
         $return_value = $this->call($method, $args);
         return TRUE;
     }

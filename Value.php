@@ -106,6 +106,12 @@ class SOAP_Value extends SOAP_Base
     */
     var $arrayType = '';
     
+    
+    /**
+    * set to true to flatten multidimensional arrays
+    * @var string
+    */
+    var $flattenArray = FALSE;
     /**
     *
     *
@@ -176,7 +182,11 @@ class SOAP_Value extends SOAP_Base
     */
     function addScalar($value, $type, $name = '')
     {
-        $this->value = $value;
+        if ($type == 'string') {
+            $this->value = htmlentities($value);
+        } else {
+            $this->value = $value;
+        }
         return true;
     }
     
@@ -329,7 +339,7 @@ class SOAP_Value extends SOAP_Base
             // XXX this will be slow on larger array's.  Basicly, it flattens array's to allow us
             // to serialize multi-dimensional array's.  We only do this if arrayType is set,
             // which will typicaly only happen if we are using WSDL
-            if ($this->arrayType && strchr($this->arrayType,',')) {
+            if ($this->flattenArray || ($this->arrayType && strchr($this->arrayType,','))) {
                 $numtypes = $this->_multiArrayType($soapval->value, $array_type, $ar_size, $xmlout_value);
             }
             #$numtypes = 0;
@@ -421,9 +431,9 @@ class SOAP_Value extends SOAP_Base
             // try to get type prefix from typeMap
             if ($ns = $this->verifyType($this->type)) {
                 $this->type_prefix = $SOAP_namespaces[$ns];
-            } else if ($methodNamespace) {
+            } else if ($this->namespace) {
                 // else default to method namespace
-                $this->type_prefix = $SOAP_namespaces[$methodNamespace];
+                $this->type_prefix = $SOAP_namespaces[$this->namespace];
             }
         }
         return $this->serializeval($this);
@@ -460,7 +470,7 @@ class SOAP_Value extends SOAP_Base
                 # if we can, lets set php's variable type
                 settype($soapval->value, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
-            return $soapval->value;
+            return $this->un_htmlentities($soapval->value);
         // array decode
         } elseif ($soapval->type_code == SOAP_VALUE_ARRAY) {
             if (is_array($soapval->value)) {
@@ -585,17 +595,17 @@ class SOAP_Value extends SOAP_Base
                 $type = get_class($value);
                 # this may return a different type that we process below
                 $value = $value->toSOAP();
-            } elseif (isArray($value)) {
-                $type = isHash($value)?'Struct':'Array';
-            } elseif (isInt($value)) {
+            } elseif ($this->isArray($value)) {
+                $type = $this->isHash($value)?'Struct':'Array';
+            } elseif ($this->isInt($value)) {
                 $type = 'int';
-            } elseif (isFloat($value)) {
+            } elseif ($this->isFloat($value)) {
                 $type = 'float';
             } elseif (SOAP_Type_hexBinary::is_hexbin($value)) {
                 $type = 'hexBinary';
-            } elseif (isBase64($value)) {
+            } elseif ($this->isBase64($value)) {
                 $type = 'base64Binary';
-            } elseif (isBoolean($value)) {
+            } elseif ($this->isBoolean($value)) {
                 $type = 'boolean';
             } else {
                 $type = gettype($value);
@@ -632,90 +642,96 @@ class SOAP_Value extends SOAP_Base
         return $type;
     }
 
-}
-
-// support functions
-/**
-*
-* @param    string
-* @return   string
-*/
-function isBase64(&$value)
-{
-    return $value[strlen($value)-1]=='=' && preg_match("/[A-Za-z=\/\+]+/",$value);
-}
-
-/**
-*
-* @param    mixed
-* @return   boolean
-*/
-function isBoolean(&$value)
-{
-    return gettype($value) == 'boolean' || strcasecmp($value, 'true')==0 || strcasecmp($value, 'false') == 0;
-}
-
-/**
-* 
-* @param    mixed
-* @return   boolean
-*/
-function isFloat(&$value)
-{
-    return gettype($value) == FLOAT ||
-                $value === 'NaN' ||  $value === 'INF' || $value === '-INF' ||
-                (is_numeric($value) && strstr($value, '.'));
-}
-
-/**
-* 
-* @param    mixed
-* @return   boolean
-*/
-function isInt(&$value)
-{
-    return gettype($value) == 'integer' || (is_numeric($value) && !strstr($value,'.'));
-}
-
-/**
-*
-* @param    array
-* @return   boolean
-*/
-function isArray(&$value)
-{
-    return is_array($value) && count($value) >= 1;
-}
-
-/**
-*
-* @param    mixed
-* @return   boolean
-*/
-function isDateTime(&$value)
-{
-    $dt = new SOAP_Type_dateTime($value);
-    return $dt->toUnixtime() != -1;
-}
-
-/**
-*
-* @param    mixed
-* @return   boolean
-*/
-function isHash(&$a) {
-    # XXX I realy dislike having to loop through this in php code,
-    # realy large arrays will be slow.  We need a C function to do this.
-    $names = array();
-    foreach ($a as $k => $v) {
-        # checking the type is faster than regexp.
-        if (gettype($k) != 'integer') {
-            return TRUE;
-        } else if (gettype($v) == 'object' && get_class($v) == 'soap_value') {
-            $names[$v->name] = 1;
-        }
+    // support functions
+    /**
+    *
+    * @param    string
+    * @return   string
+    */
+    function isBase64(&$value)
+    {
+        return $value[strlen($value)-1]=='=' && preg_match("/[A-Za-z=\/\+]+/",$value);
     }
-    return count($names)>1;
+
+    /**
+    *
+    * @param    mixed
+    * @return   boolean
+    */
+    function isBoolean(&$value)
+    {
+        return gettype($value) == 'boolean' || strcasecmp($value, 'true')==0 || strcasecmp($value, 'false') == 0;
+    }
+
+    /**
+    * 
+    * @param    mixed
+    * @return   boolean
+    */
+    function isFloat(&$value)
+    {
+        return gettype($value) == FLOAT ||
+                    $value === 'NaN' ||  $value === 'INF' || $value === '-INF' ||
+                    (is_numeric($value) && strstr($value, '.'));
+    }
+
+    /**
+    * 
+    * @param    mixed
+    * @return   boolean
+    */
+    function isInt(&$value)
+    {
+        return gettype($value) == 'integer' || (is_numeric($value) && !strstr($value,'.'));
+    }
+
+    /**
+    *
+    * @param    array
+    * @return   boolean
+    */
+    function isArray(&$value)
+    {
+        return is_array($value) && count($value) >= 1;
+    }
+
+    /**
+    *
+    * @param    mixed
+    * @return   boolean
+    */
+    function isDateTime(&$value)
+    {
+        $dt = new SOAP_Type_dateTime($value);
+        return $dt->toUnixtime() != -1;
+    }
+
+    /**
+    *
+    * @param    mixed
+    * @return   boolean
+    */
+    function isHash(&$a) {
+        # XXX I realy dislike having to loop through this in php code,
+        # realy large arrays will be slow.  We need a C function to do this.
+        $names = array();
+        foreach ($a as $k => $v) {
+            # checking the type is faster than regexp.
+            if (gettype($k) != 'integer') {
+                return TRUE;
+            } else if (gettype($v) == 'object' && get_class($v) == 'soap_value') {
+                $names[$v->name] = 1;
+            }
+        }
+        return count($names)>1;
+    }
+
+    function un_htmlentities($string)
+    {
+       $trans_tbl = get_html_translation_table (HTML_ENTITIES);
+       $trans_tbl = array_flip($trans_tbl);
+       return strtr($string, $trans_tbl);
+    }
 }
 
 ?>

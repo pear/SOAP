@@ -47,7 +47,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
     var $url = '';
     var $incoming_payload = '';
     var $_userAgent = SOAP_LIBRARY_NAME;
-
+    var $encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP_Transport_SMTP Constructor
     *
@@ -55,9 +55,10 @@ class SOAP_Transport_SMTP extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Transport_SMTP($URL)
+    function SOAP_Transport_SMTP($URL, $encoding='US-ASCII')
     {
         parent::SOAP_Base('SMTP');
+        $this->encoding = $encoding;
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
     }

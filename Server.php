@@ -27,7 +27,14 @@ require_once 'SOAP/Message.php';
 require_once 'SOAP/Value.php';
 
 // make errors handle properly in windows
-error_reporting(2039);
+#error_reporting(2039);
+
+$soap_server_fault = NULL;
+function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
+    global $soap_server_fault;
+    $detail = "Errno: $errno\nFilename: $filename\nLineno: $linenum\n";
+    $soap_server_fault = new SOAP_Fault($errmsg, 'Server', NULL,NULL, array('detail'=>$detail));
+}
 
 /**
 *  SOAP::Server
@@ -83,7 +90,7 @@ class SOAP_Server {
     *
     * @var  string  XML-Encoding
     */
-    var $xml_encoding = 'UTF-8';
+    var $xml_encoding = SOAP_DEFAULT_ENCODING;
     
     /**
     * 
@@ -95,9 +102,12 @@ class SOAP_Server {
 
     var $endpoint = ''; // the uri to ME!
     
+    var $service = ''; //soapaction header
+    
     function SOAP_Server($debug = SOAP_DEBUG) {
         // turn on debugging?
         $this->debug_flag = $debug;
+        ini_set('track_errors',1);
     }
     
     // parses request and posts response
@@ -135,15 +145,12 @@ class SOAP_Server {
         $payload = $response->serialize();
         // print headers
         if ($this->soapfault) {
-            //$header[] = "HTTP/1.0 500 Internal Server Error\r\n";
-            $header[] = 'Status: 500 Internal Server Error\r\n';
+            $header[] = "Status: 500 Internal Server Error\r\n";
         } else {
-            //$header[] = "HTTP/1.0 200 OK\r\n";
-            $header[] = 'Status: 200 OK\r\n';
+            $header[] = "Status: 200 OK\r\n";
         }
 
         $header[] = 'Server: ' . SOAP_LIBRARY_NAME . "\r\n";
-        $header[] = 'Connection: Close\r\n';
         $header[] = "Content-Type: text/xml; charset=$this->xml_encoding\r\n";
         $header[] = 'Content-Length: ' . strlen($payload) . "\r\n\r\n";
         reset($header);
@@ -155,21 +162,30 @@ class SOAP_Server {
     }
     
     function callMethod($methodname, &$args) {
+        global $soap_server_fault;
+        set_error_handler("SOAP_ServerErrorHandler");
         if ($args) {
             // call method with parameters
             $this->debug("calling '$methodname' with params");
             if (is_object($this->soapobject)) {
-                return call_user_func_array(array(&$this->soapobject, $methodname),$args);
+                $ret = @call_user_func_array(array(&$this->soapobject, $methodname),$args);
+            } else {
+                $ret = @call_user_func_array($methodname,$args);
             }
-            return call_user_func_array($methodname,$args);
+        } else {
+            // call method w/ no parameters
+            $this->debug("calling $methodname w/ no params");
+            if (is_object($this->soapobject)) {
+                $ret = @call_user_func(array(&$this->soapobject, $methodname));
+            } else {
+                $ret = @call_user_func($methodname);
+            }
         }
-        
-        // call method w/ no parameters
-        $this->debug("calling $methodname w/ no params");
-        if (is_object($this->soapobject)) {
-            return call_user_func(array(&$this->soapobject, $methodname));
+        restore_error_handler();
+        if ($soap_server_fault) {
+            return $soap_server_fault->message();
         }
-        return call_user_func($methodname);
+        return $ret;
     }
     
     // create soap_val object w/ return values from method, use method signature to determine type
@@ -205,7 +221,7 @@ class SOAP_Server {
     
     function parseRequest($data='')
     {
-        global $_ENV, $_SERVER;
+        global $_ENV, $_SERVER, $SOAP_Encodings;
         
         $this->debug('entering parseRequest() on ' . date('H:i Y-m-d'));
         $this->debug('request uri: ' . $_SERVER['PATH_INFO']);
@@ -218,12 +234,17 @@ class SOAP_Server {
         }
 
         // get the character encoding of the incoming request
-        if (ereg('=',$_ENV['HTTP_CONTENT_TYPE'])) {
-            $enc = str_replace('"','',substr(strstr($_ENV['HTTP_CONTENT_TYPE'],'='),1));
-            if (eregi("^(ISO-8859-1|US-ASCII|UTF-8)$",$enc)) {
+        // treat as ISO-8859-1 if no encoding set
+        $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+        if (strpos($_SERVER['CONTENT_TYPE'],'=')) {
+            $enc = strtoupper(str_replace('"',"",substr(strstr($_SERVER['CONTENT_TYPE'],'='),1)));
+            if (in_array($enc, $SOAP_Encodings)) {
                 $this->xml_encoding = $enc;
             } else {
-                $this->xml_encoding = 'us-ascii';
+                $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+                // an encoding we don't understand, return a fault
+                $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+                return $this->getFaultMessage();                
             }
         }
         $this->debug("got encoding: $this->xml_encoding");

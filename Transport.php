@@ -44,6 +44,7 @@ class SOAP_Transport extends SOAP_Base
     */
     var $transport = NULL;
     
+    var $encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP::Transport constructor
     *
@@ -51,19 +52,20 @@ class SOAP_Transport extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Transport($url)
+    function SOAP_Transport($url, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('TRANSPORT');
 
         $urlparts = @parse_url($url);
-
+        $this->encoding = $encoding;
+        
         if (strcasecmp($urlparts['scheme'], 'http') == 0 || strcasecmp($urlparts['scheme'], 'https') == 0) {
             include_once('SOAP/Transport/HTTP.php');
-            $this->transport = new SOAP_Transport_HTTP($url);
+            $this->transport = new SOAP_Transport_HTTP($url, $encoding);
             return;
         } else if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
             include_once('SOAP/Transport/SMTP.php');
-            $this->transport = new SOAP_Transport_SMTP($url);
+            $this->transport = new SOAP_Transport_SMTP($url, $encoding);
             return;
         }
         $this->raiseSoapFault("No Transport for {$urlparts['scheme']}");

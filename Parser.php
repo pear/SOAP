@@ -62,14 +62,14 @@ class SOAP_Parser extends SOAP_Base
     var $need_references = array();
     var $XMLSchemaVersion;
 
-    function SOAP_Parser($xml, $encoding = 'UTF-8')
+    function SOAP_Parser($xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('Parser');
         $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         
         $this->xml = $xml;
         $this->xml_encoding = $encoding;
-        
+
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
         if (!empty($this->xml)) {
@@ -106,6 +106,16 @@ class SOAP_Parser extends SOAP_Base
         $SOAP_namespaces = array_flip($tmpNS);
     }
     
+    // recurse to build a multi-dim array
+    function domulti($d, &$ar, &$r, &$v, $ad=0)
+    {
+        if ($d) {
+            $this->domulti($d-1, $ar, $r[$ar[$ad]], $v, $ad+1);
+        } else {
+            $r = $v;
+        }
+    }
+    
     // loop through msg, building response structures
     function buildResponse($pos)
     {
@@ -130,11 +140,8 @@ class SOAP_Parser extends SOAP_Base
                     }
                     $elc = count($response);
                     for ($i = 0; $i < $elc; $i++) {
-                        $al = "\$newresp";
-                        for ($ad = 0; $ad < $ardepth; $ad++) {
-                            $al .= "[".($ar[$ad])."]";
-                        }
-                        eval("$al = \$response[".$i."];");
+                        // recurse to build a multi-dim array
+                        $this->domulti($ardepth, $ar, $newresp, $response[$i]);
                         
                         # increment our array pointers
                         $ad = $ardepth - 1;

@@ -74,6 +74,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
     */
     var $_userAgent = SOAP_LIBRARY_NAME;
 
+    var $encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP_Transport_HTTP Constructor
     *
@@ -81,11 +82,12 @@ class SOAP_Transport_HTTP extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Transport_HTTP($URL)
+    function SOAP_Transport_HTTP($URL, $encoding=SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('HTTP');
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
+        $this->encoding = $encoding;
     }
     
     /**
@@ -204,7 +206,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
                 "User-Agent: {$this->_userAgent}\r\n".
                 "Host: {$this->urlparts['host']}\r\n".
                 $this->credentials. 
-                "Content-Type: text/xml\r\n".
+                "Content-Type: text/xml; charset=$this->encoding\r\n".
                 "Content-Length: ".strlen($msg)."\r\n".
                 "SOAPAction: \"$action\"\r\n\r\n".
                 $msg;

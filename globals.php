@@ -149,6 +149,10 @@ function soap_reset_namespaces() {
     $SOAP_namespaces = $SOAP_namespaces_default;
 }
 
+# supported encodings, limited by XML extension
+$SOAP_Encodings = array('ISO-8859-1','US-ASCII','UTF-8');
+define('SOAP_DEFAULT_ENCODING',  'US-ASCII');
+
 $SOAP_xmlEntities = array('quot' => '"','amp' => '&',
 	'lt' => '<','gt' => '>','apos' => "'");
     
