@@ -1017,9 +1017,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
 
         if (!xml_parse($parser, $fd, true)) {
             $detail = sprintf('XML error on line %d: %s',
-                                    xml_get_current_line_number($parser),
-                                    xml_error_string(xml_get_error_code($parser)));
-            //print $fd;
+                              xml_get_current_line_number($parser),
+                              xml_error_string(xml_get_error_code($parser)));
             return $this->_raiseSoapFault("Unable to parse WSDL file $uri\n$detail");
         }
         xml_parser_free($parser);
@@ -1350,6 +1349,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // wsdl:operation attributes: name
                     $this->currentOperation = $attrs['name'];
                     break;
+
                 case 'output':
                 case 'input':
                 case 'fault':
@@ -1357,8 +1357,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // wsdl:input attributes: name
                     $this->opStatus = $qname->name;
                     break;
+
                 case 'documentation':
                     break;
+
                 default:
                     break;
                 }
@@ -1372,6 +1374,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // parent: wsdl:binding
                     $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding], $attrs);
                     break;
+
                 case 'operation':
                     // sect 4.5
                     // http:operation attributes: location
@@ -1379,6 +1382,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $this->wsdl->bindings[$this->currentBinding]['operations']
                                                         [$this->currentOperation] = $attrs;
                     break;
+
                 case 'urlEncoded':
                     // sect 4.6
                     // http:urlEncoded attributes: location
@@ -1386,6 +1390,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $this->wsdl->bindings[$this->currentBinding]['operations'][$this->opStatus]
                                                         [$this->currentOperation]['uri'] = 'urlEncoded';
                     break;
+
                 case 'urlReplacement':
                     // sect 4.7
                     // http:urlReplacement attributes: location
@@ -1393,12 +1398,15 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $this->wsdl->bindings[$this->currentBinding]['operations'][$this->opStatus]
                                                         [$this->currentOperation]['uri'] = 'urlReplacement';
                     break;
+
                 case 'documentation':
                     break;
+
                 default:
                     // error
                     break;
                 }
+
             case SCHEMA_MIME:
                 // sect 5
                 // all mime parts are children of wsdl:input, wsdl:output, etc.
@@ -1419,6 +1427,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     //
                 case 'documentation':
                     break;
+
                 default:
                     // error
                     break;
@@ -1435,9 +1444,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // appears in binding section
                     $this->wsdl->bindings[$this->currentBinding]['dime'] = $attrs;
                     break;
+
                 default:
                     break;
                 }
+
             default:
                 break;
             }
@@ -1655,32 +1666,59 @@ class SOAP_WSDL_Parser extends SOAP_Base
     {
         // Store the documentation in the WSDL file.
         if ($this->currentTag == 'documentation') {
-            if ($this->status == 'service') {
+            switch ($this->status) {
+            case 'service':
                 $this->wsdl->services[$this->currentService][$this->currentTag] .= $data;
-            } elseif ($this->status == 'portType') {
+                break;
+
+            case 'portType':
                 if ($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag]) {
                     $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] .= $data;
                 } else {
                     $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] = $data;
                 }
-            } elseif ($this->status == 'binding') {
+                break;
+
+            case 'binding':
                 if ($this->wsdl->bindings[$this->currentBinding][$this->currentTag]) {
                     $this->wsdl->bindings[$this->currentBinding][$this->currentTag] .= $data;
                 } else {
                     $this->wsdl->bindings[$this->currentBinding][$this->currentTag] = $data;
                 }
-            } elseif ($this->status == 'message') {
+                break;
+
+            case 'message':
                 if ($this->wsdl->messages[$this->currentMessage][$this->currentTag]) {
                     $this->wsdl->messages[$this->currentMessage][$this->currentTag] .= $data;
                 } else {
                     $this->wsdl->messages[$this->currentMessage][$this->currentTag] = $data;
                 }
-            } elseif ($this->status == 'operation') {
+                break;
+
+            case 'operation':
                 if ($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag]) {
                     $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] .= $data;
                 } else {
                     $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] = $data;
                 }
+                break;
+
+            case 'types':
+                if (isset($this->currentComplexType) &&
+                    isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType])) {
+                    $data = trim($data);
+                    if (!strlen($data)) {
+                        break;
+                    }
+
+                    if (!isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'])) {
+                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] = '';
+                    } else {
+                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] .= ' ';
+                    }
+                    $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] .= trim($data);
+                }
+                break;
             }
         }
     }
