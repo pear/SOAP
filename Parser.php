@@ -260,8 +260,13 @@ class SOAP_Parser extends SOAP_Base
         // set attrs
         $this->message[$pos]['attrs'] = $attrs;
 
+        // see if namespace is defined in tag
+        if (array_key_exists('xmlns:'.$qname->ns,$attrs)) {
+            $namespace = $attrs['xmlns:'.$qname->ns];
+        } else {
         // get namespace
-        $namespace = $qname->ns?$this->namespaces[$qname->ns]:$this->default_namespace;
+            $namespace = $qname->ns?$this->namespaces[$qname->ns]:$this->default_namespace;
+        }
         $this->message[$pos]['namespace'] = $namespace;
         $this->default_namespace = $namespace;
 
