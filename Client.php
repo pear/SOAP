@@ -334,7 +334,7 @@ class SOAP_Client extends SOAP_Base
         // XXX DIME Encoding should move to the transport, do it here for now
         // and for ease of getting it done
         if (count($this->attachments)) {
-            if (isset($options['Mime'])) {
+            if ((isset($options['Attachments']) && $options['Attachments'] == 'Mime') || isset($options['Mime'])) {
                 $soap_msg = $this->_makeMimeMessage($soap_msg, $this->encoding);
             } else {
                 // default is dime
@@ -419,6 +419,16 @@ class SOAP_Client extends SOAP_Base
         }
         if (is_object($returnArray)) {
             $vars = get_object_vars($returnArray);
+            if (array_key_exists('Fault',$vars)) {
+                $faultcode = $faultstring = $faultdetail = $faultactor = '';
+                foreach ($returnArray as $k => $v) {
+                    if (stristr($k,'faultcode')) $faultcode = $v;
+                    if (stristr($k,'faultstring')) $faultstring = $v;
+                    if (stristr($k,'detail')) $faultdetail = $v;
+                    if (stristr($k,'faultactor')) $faultactor = $v;
+                }
+                return $this->raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+            }
             if (count($vars) == 1) {
                 return array_shift($vars);
             }

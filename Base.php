@@ -35,14 +35,14 @@ require_once 'SOAP/Type/hexBinary.php';
 // optional features
 $SOAP_options = array();
 
-include_once 'Mail/mimePart.php';
-include_once 'Mail/mimeDecode.php';
+@include_once 'Mail/mimePart.php';
+@include_once 'Mail/mimeDecode.php';
 if (class_exists('Mail_mimePart')) {
     $SOAP_options['Mime'] = 1;
     define('MAIL_MIMEPART_CRLF',"\n");
 }
 
-include_once 'Net/DIME.php';
+@include_once 'Net/DIME.php';
 if (class_exists('DIME_Message')) {
     $SOAP_options['DIME'] = 1;
 }
@@ -187,7 +187,7 @@ class SOAP_Base extends PEAR
 
     var $_xmlEntities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
     
-    var $doconversion = TRUE;
+    var $doconversion = FALSE;
     
     var $attachments = array();
     
@@ -646,11 +646,21 @@ class SOAP_Base extends PEAR
                     if (!$isstruct || $item->type == 'Array') {
                         if (is_object($return->{$item->name})) {
                             $return->{$item->name} = array();
+                            $return->{$item->name} = $this->decode($item);
+                        } else if (is_array($return->{$item->name})) {
+                            $return->{$item->name}[] = $this->decode($item);
+                        } else if (is_array($return)) {
+                            $return[] = $this->decode($item);
+                        } else {
+                            $return->{$item->name} = $this->decode($item);
                         }
-                        $return->{$item->name} = $this->decode($item);
                     } else if (isset($return->{$item->name})) {
                         $isstruct = FALSE;
-                        $return->{$item->name} = array($return->{$item->name}, $this->decode($item));
+                        if (count(get_class_vars($return)) == 1) {
+                            $return = array($return->{$item->name}, $this->decode($item));
+                        } else {
+                            $return->{$item->name} = array($return->{$item->name}, $this->decode($item));
+                        }
                     } else {
                         $return->{$item->name} = $this->decode($item);
                     }
@@ -823,6 +833,11 @@ class SOAP_Base extends PEAR
     
     function decodeDIMEMessage(&$data, &$headers, &$attachments)
     {
+        global $SOAP_options;
+        if (!isset($SOAP_options['DIME'])) {
+            return $this->raiseSoapFault('DIME is not installed');
+        }
+        
         // XXX this SHOULD be moved to the transport layer, e.g. PHP  itself
         // should handle parsing DIME ;)
         $dime = new DIME_Message();
