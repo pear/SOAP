@@ -287,14 +287,14 @@ class SOAP_Server extends SOAP_Base
         return $return_val;
     }
 
-    function parseRequest($data='', $attachments=NULL)
+    function parseRequest($data = '', $attachments = null)
     {
         // parse response, get soap parser obj
         $parser =& new SOAP_Parser($data,$this->xml_encoding,$attachments);
         // if fault occurred during message parsing
         if ($parser->fault) {
             $this->fault = $parser->fault;
-            return NULL;
+            return null;
         }
 
         //*******************************************************
