@@ -29,7 +29,9 @@
     <date>2003-01-16</date>
     <notes>
 * DIME related issues were fixed
-* bugfixes
+* bugfixes (among others): 
+   #592: transport_https stops on HTTP 500 
+   #466: mime_part line ending
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -62,15 +64,6 @@
           <file role="doc" name="tcp_daemon.pl"/>
           <file role="doc" name="tcp_server.php"/>
           <file role="doc" name="wsdl_client.php"/>
-          <dir name="amazon">
-            <file role="doc" name="amazon.php"/>
-            <file role="doc" name="amazon_soap.php"/>
-            <file role="doc" name="amazon_modes.php"/>
-            <file role="doc" name="amazon_types.php"/>
-            <file role="doc" name="config.php.dist"/>
-            <file role="doc" name="index.php"/>
-            <file role="doc" name="modes.php"/>
-          </dir>
         </dir>
         <dir name="tools">
           <file role="php" name="genproxy.php"/>
