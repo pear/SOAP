@@ -61,7 +61,8 @@ class SOAP_Fault extends PEAR_Error
     // set up a fault
     function message()
     {
-        return new SOAP_Message('Fault',
+        $msg = new SOAP_Message();
+        $msg->method('Fault',
                                     array(
                                         'faultcode' => $this->code,
                                         'faultstring' => $this->message,
@@ -70,6 +71,7 @@ class SOAP_Fault extends PEAR_Error
                                     ),
                                     SOAP_ENVELOP
                                 );
+        return $msg;
     }
     
     function getFault()

@@ -173,7 +173,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
                 
         }
         if (isset($this->urlparts['user'])) {
-            $this->setCredentials($this->urlparts['user'], $this->urlparts['password']);
+            $this->setCredentials($this->urlparts['user'], $this->urlparts['pass']);
         }
         
         return TRUE;
@@ -188,10 +188,14 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _parseResponse()
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $this->incoming_payload, $match)) {
-            $this->response = preg_replace("/[\r|\n]/", '', $match[2]);
+            #$this->response = preg_replace("/[\r|\n]/", ' ', $match[2]);
+            $this->response = $match[2];
             // find the response error
-            //if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
-            //    $status[1] != 200) return FALSE;
+            if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
+                $status[1] >= 400 && $status[1] < 500) {
+                    $this->raiseSoapFault("HTTP Response $status[1] Not Found");
+                    return FALSE;
+            }
             // if no content, return false
             return strlen($this->response) > 0;
         }
@@ -206,8 +210,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
     */
     function &_getRequest(&$msg, $action)
     {
+        $fullpath = $this->urlparts['path'].
+                        ($this->urlparts['query']?'?'.$this->urlparts['query']:'').
+                        ($this->urlparts['fragment']?'#'.$this->urlparts['fragment']:'');
         $this->outgoing_payload = 
-                "POST {$this->urlparts['path']} HTTP/1.0\r\n".
+                "POST $fullpath HTTP/1.0\r\n".
                 "User-Agent: {$this->_userAgent}\r\n".
                 "Host: {$this->urlparts['host']}\r\n".
                 $this->credentials. 

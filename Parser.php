@@ -20,8 +20,9 @@
 // $Id$
 //
 
-require_once('SOAP/globals.php');
-require_once('SOAP/Value.php');
+require_once 'SOAP/globals.php';
+require_once 'SOAP/Base.php';
+require_once 'SOAP/Value.php';
 
 /**
 * SOAP Parser
@@ -35,7 +36,7 @@ require_once('SOAP/Value.php');
 * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
 * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
-class SOAP_Parser
+class SOAP_Parser extends SOAP_Base
 {
     var $status = '';
     var $position = 0;
@@ -44,13 +45,7 @@ class SOAP_Parser
     var $default_namespace = '';
     var $namespaces = array();
     var $message = array();
-    var $fault = false;
-    var $fault_code = '';
-    var $fault_str = '';
-    var $fault_detail = '';
     var $depth_array = array();
-    var $debug_flag = SOAP_DEBUG;
-    var $debug_data = '';
     var $previous_element = '';
     var $soapresponse = NULL;
     var $parent = 0;
@@ -69,15 +64,15 @@ class SOAP_Parser
 
     function SOAP_Parser($xml, $encoding = 'UTF-8')
     {
+        parent::SOAP_Base('Parser');
         $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
-        //global $soapTypes;
-        //$this->soapTypes = $soapTypes;
+        
         $this->xml = $xml;
         $this->xml_encoding = $encoding;
         
         // determines where in the message we are (envelope,header,body,method)
         // Check whether content has been read.
-        if (!empty($xml)) {
+        if (!empty($this->xml)) {
             $this->debug('Entering SOAP_Parser()');
 
             //$this->debug("DATA DUMP:\n\n$xml");
@@ -95,12 +90,13 @@ class SOAP_Parser
             xml_set_default_handler($parser, 'defaultHandler');
 
             // Parse the XML file.
-            if (!xml_parse($parser,$xml,true)) {
+            if (!xml_parse($parser,$this->xml,true)) {
                 // Display an error message.
-                $this->debug(sprintf('XML error on line %d: %s',
-                xml_get_current_line_number($parser),
-                xml_error_string(xml_get_error_code($parser))));
+                $err = sprintf('XML error on line %d: %s',
+                    xml_get_current_line_number($parser),
+                    xml_error_string(xml_get_error_code($parser)));
                 $this->fault = true;
+                $this->raiseSoapFault($err,htmlspecialchars($this->xml));
             } else {
                 // get final value
                 $this->soapresponse = $this->buildResponse($this->root_struct[0]);
@@ -401,6 +397,8 @@ class SOAP_Parser
                 $this->message[$ref_pos]['cdata'] = &$this->message[$pos]['cdata'];
                 $this->message[$ref_pos]['type'] = &$this->message[$pos]['type'];
                 $this->message[$ref_pos]['inval'] = &$this->message[$pos]['inval'];
+                $this->message[$ref_pos]['arraySize'] = &$this->message[$pos]['arraySize'];
+                $this->message[$ref_pos]['arrayType'] = &$this->message[$pos]['arrayType'];
             }
             # wipe out our waiting list
             $this->need_references[$idref] = array();
@@ -449,13 +447,6 @@ class SOAP_Parser
         // we don't fault if there are no headers
         // that can be handled by the app if necessary
         return NULL;
-    }
-    
-    function debug($string)
-    {
-        if ($this->debug_flag) {
-            $this->debug_data .= 'SOAP_Parser: ' . preg_replace("/>/","/>\r\n/", $string) . "\n";
-        }
     }
     
     function decodeEntities($text)

@@ -56,8 +56,11 @@ function array_compare(&$ar1, &$ar2)
 function parseMessage($msg)
 {
     # strip line endings
-    $msg = preg_replace('/\r|\n/', '', $msg);
+    #$msg = preg_replace('/\r|\n/', ' ', $msg);
     $response = new SOAP_Parser($msg);
+    if ($response->fault) {
+        return $response->fault->getFault();
+    }
     $return = $response->getResponse();
     $v = $return->decode();
     if (gettype($v) == 'array' && count($v)==1) {

@@ -64,12 +64,6 @@ class SOAP_Value extends SOAP_Base
     var $type_prefix = false;
     
     /**
-    * 
-    * @var  string
-    */
-    var $array_type = '';
-    
-    /**
     *
     * @var  string
     */
@@ -289,7 +283,7 @@ class SOAP_Value extends SOAP_Base
     * @param    
     * @return   int
     */
-    function _getArrayType(&$value, &$type, &$size, &$xml)
+    function _multiArrayType(&$value, &$type, &$size, &$xml)
     {
         foreach ($value as $array_val) {
             $array_types[$array_val->type] = 1;
@@ -303,12 +297,12 @@ class SOAP_Value extends SOAP_Base
         }
 
         $sz = count($value);
-
-        if (count($array_types) == 1) {
+        $num_types = count($array_types);
+        if ($num_types == 1) {
             if (array_key_exists('Array', $array_types)) {
                 // seems we have a multi dimensional array, figure it out if we do
                 foreach ($value as $array_val) {
-                    $numtypes = $this->_getArrayType($array_val->value, $type, $size, $xml);
+                    $numtypes = $this->_multiArrayType($array_val->value, $type, $size, $xml);
                     if ($numtypes > 1) 
                         return $numtypes;
                 }
@@ -327,7 +321,7 @@ class SOAP_Value extends SOAP_Base
             }
         }
         $size = $sz;
-        return count($array_types);
+        return $num_types;
     }
     
     /**
@@ -377,10 +371,12 @@ class SOAP_Value extends SOAP_Base
         case SOAP_VALUE_ARRAY:
             // array
             $xmlout_type = 'SOAP-ENC:Array';
-            // XXX this will be slow on larger array's.  We can probably move this
-            // out to an external helper function.  Basicly, it flattens array's to allow us
-            // to serialize multi-dimensional array's
-            $numtypes = $this->_getArrayType($soapval->value, $array_type, $ar_size, $xmlout_value);
+            // XXX this will be slow on larger array's.  Basicly, it flattens array's to allow us
+            // to serialize multi-dimensional array's.  We only do this if arrayType is set,
+            // which will typicaly only happen if we are using WSDL
+            if ($this->arrayType && strchr($this->arrayType,',')) {
+                $numtypes = $this->_multiArrayType($soapval->value, $array_type, $ar_size, $xmlout_value);
+            }
             #$numtypes = 0;
             $array_type_prefix = '';
             if ($numtypes != 1) {
@@ -391,12 +387,25 @@ class SOAP_Value extends SOAP_Base
 
                 $ar_size = count($soapval->value);
                 $numtypes = count($array_types);
-                $array_type = $array_val->type;
+                if ($this->arrayType) {
+                    $ch = strpos($this->arrayType, '[');
+                    if ($ch) {
+                        $array_type = substr($this->arrayType,0,$ch);
+                    } else {
+                        $array_type = $this->arrayType;
+                    }
+                } else {
+                    $array_type = $array_val->type;
+                }
+                if ($array_type == 'Struct') {
+                    $array_type = 'anyType'; // should reference what schema we're using
+                    $array_val->type_prefix = 'xsd';
+                }
                 $array_type_prefix = $array_val->type_prefix;
                 $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
             }
             if ($numtypes > 1) {
-                $array_type = 'xsd:ur-type';
+                $array_type = 'xsd:anyType'; // should reference what schema we're using
             } elseif ($numtypes == 1) {
                 if ($array_type_prefix != '') {
                     $array_type = $array_type_prefix . ':' . $array_type;

@@ -498,7 +498,7 @@ $soap_tests['GroupC'][] = $test;
 // echoMeStructRequest with endpoint as header destination, doesn't have to understand
 $test = new SOAP_Test('echoVoid', '');
 $test->type = 'soapval';
-$test->headers[] = new SOAP_Header('echoMeStructRequest','SOAPStruct',
+$test->headers[] = new SOAP_Header('echoMeStructRequest',NULL,
             array( #push struct elements into one soap value
                 new SOAP_Value('varString','string','arg'),
                 new SOAP_Value('varInt','int',34),
@@ -512,7 +512,7 @@ $soap_tests['GroupC'][] = $test;
 // echoMeStructRequest with endpoint as header destination, must understand
 $test = new SOAP_Test('echoVoid', '');
 $test->type = 'soapval';
-$test->headers[] = new SOAP_Header('echoMeStructRequest','SOAPStruct',
+$test->headers[] = new SOAP_Header('echoMeStructRequest',NULL,
             array( #push struct elements into one soap value
                 new SOAP_Value('varString','string','arg'),
                 new SOAP_Value('varInt','int',34),
@@ -526,7 +526,7 @@ $soap_tests['GroupC'][] = $test;
 // echoMeStructRequest with endpoint NOT header destination, doesn't have to understand
 $test = new SOAP_Test('echoVoid', '');
 $test->type = 'soapval';
-$test->headers[] = new SOAP_Header('echoMeStructRequest','SOAPStruct',
+$test->headers[] = new SOAP_Header('echoMeStructRequest',NULL,
             array( #push struct elements into one soap value
                 new SOAP_Value('varString','string','arg'),
                 new SOAP_Value('varInt','int',34),
@@ -539,7 +539,7 @@ $soap_tests['GroupC'][] = $test;
 // echoMeStructRequest with endpoint NOT header destination, must understand
 $test = new SOAP_Test('echoVoid', '');
 $test->type = 'soapval';
-$test->headers[] = new SOAP_Header('echoMeStructRequest','SOAPStruct',
+$test->headers[] = new SOAP_Header('echoMeStructRequest',NULL,
             array( #push struct elements into one soap value
                 new SOAP_Value('varString','string','arg'),
                 new SOAP_Value('varInt','int',34),

@@ -90,14 +90,22 @@ class Interop_Client
         if (!$endpointArray) return;
         
         // reset the status to zero
-        $this->dbc->query("update endpoints set status = 0 where type='$test'");
+        $res = $this->dbc->query("update endpoints set status = 0 where type='$test'");
+        if (DB::isError($res)) {
+            die ($res->getMessage());
+        }
+        $res->free();
         // save new endpoints into database
         foreach($endpointArray as $k => $v){
             if (array_key_exists($v['endpointName'],$endpointArray)) {
-                $this->dbc->query("update endpoints set endpointURL='{$v['endpointURL']}', wsdlURL='{$v['wsdlURL']}', status=1 where id={$this->endpoints[$v['endpointName']]['id']}");
+                $res = $this->dbc->query("update endpoints set endpointURL='{$v['endpointURL']}', wsdlURL='{$v['wsdlURL']}', status=1 where id={$this->endpoints[$v['endpointName']]['id']}");
             } else {
-                $this->dbc->query("insert into endpoints (endpointName,endpointURL,wsdlURL,class) values('{$v['endpointName']}','{$v['endpointURL']}','{$v['wsdlURL']}','$test')");
+                $res = $this->dbc->query("insert into endpoints (endpointName,endpointURL,wsdlURL,class) values('{$v['endpointName']}','{$v['endpointURL']}','{$v['wsdlURL']}','$test')");
             }
+            if (DB::isError($res)) {
+                die ($res->getMessage());
+            }
+            $res->free();
         }
     }
     
@@ -245,7 +253,11 @@ class Interop_Client
                     "and wsdl=$this->useWSDL and function=".
                     $this->dbc->quote($test_name);
         #echo "\n".$sql;
-        $this->dbc->query($sql);
+        $res = $this->dbc->query($sql);
+        if (DB::isError($res)) {
+            die ($res->getMessage());
+        }
+        if (is_object($res)) $res->free();
         
         $sql = "insert into results (endpoint,stamp,class,type,wsdl,function,result,error,wire) ".
                     "values($endpoint_id,".time().",'$this->currentTest',".
@@ -255,12 +267,12 @@ class Interop_Client
                     $this->dbc->quote($error).",".
                     ($wire?$this->dbc->quote($wire):"''").")";
         #echo "\n".$sql;
-        $r = $this->dbc->query($sql);
+        $res = $this->dbc->query($sql);
         
-        if (DB::isError($r)) {
-            print $sql;
-            die ($r->getMessage());
+        if (DB::isError($res)) {
+            die ($res->getMessage());
         }
+        if (is_object($res)) $res->free();
     }
 
     /**
@@ -362,8 +374,18 @@ class Interop_Client
             $namespace = false;
             $soapaction = false;
         } else {
-            $soap = new SOAP_Client($endpoint_info['endpointURL']);
+            if (!array_key_exists('client',$endpoint_info)) {
+                $endpoint_info['client'] = new SOAP_Client($endpoint_info['endpointURL']);
+            }
+            $soap = $endpoint_info['client'];
             $namespace = $soapaction = 'http://soapinterop.org/';
+            // hack to make tests work with MS SoapToolkit
+            // it's the only one that uses this soapaction, and breaks if
+            // it isn't right.  Can't wait for soapaction to be fully depricated
+            if ($this->currentTest == 'base' &&
+                strstr($endpoint_info['endpointName'],'MS SOAP ToolKit 2.0')) {
+                $soapaction = 'urn:soapinterop';
+            }
         }
         // add headers to the test
         if ($soap_test->headers) {
@@ -434,7 +456,9 @@ class Interop_Client
                 }
             } else {
                 $fault = array('faultcode'=>'RESULT',
-                                    'faultstring'=>'The returned result did not match what we expected to receive');
+                               'faultstring'=>'The returned result did not match what we expected to receive',
+                               'faultdetail'=>"SENT:\n".var_dump($soap_test->result['sent']).
+                                               "\n\nRECIEVED:\n".var_dump($soap_test->result['return']));
                 $soap_test->setResult(0,$fault['faultcode'],
                                   $soap->wire,
                                   $fault['faultstring'],
@@ -477,7 +501,7 @@ class Interop_Client
             
             $skipendpoint = FALSE;
             $this->totals['servers']++;
-            $endpoint_info['tests'] = array();
+            #$endpoint_info['tests'] = array();
             
             if ($this->show) print "Processing $endpoint at {$endpoint_info['endpointURL']}<br>\n";
             
@@ -495,9 +519,10 @@ class Interop_Client
                                   $skipfault['faultstring'],
                                   $skipfault
                                   );
-                    $endpoint_info['tests'][] = &$soap_test;
+                    #$endpoint_info['tests'][] = &$soap_test;
                     $soap_test->showTestResult($this->debug);
                     $this->_saveResults($endpoint_info['id'], $soap_test->method_name);
+                    $soap_test->result = NULL;
                     continue;
                 }
                 
@@ -510,7 +535,7 @@ class Interop_Client
                                   $skipfault['faultstring'],
                                   $skipfault
                                   );
-                    $endpoint_info['tests'][] = &$soap_test;
+                    #$endpoint_info['tests'][] = &$soap_test;
                     $this->totals['fail']++;
                 } else {
                     // run the endpoint test
@@ -522,10 +547,11 @@ class Interop_Client
                         $skipfault = $soap_test->result['fault'];
                         $this->totals['fail']++;
                     }
-                    $endpoint_info['tests'][] = &$soap_test;
+                    #$endpoint_info['tests'][] = &$soap_test;
                 }
                 $soap_test->showTestResult($this->debug);
                 $this->_saveResults($endpoint_info['id'], $soap_test);
+                $soap_test->result = NULL;
                 $this->totals['calls']++;
             }
             if ($this->numservers && ++$i >= $this->numservers) break;
@@ -546,6 +572,8 @@ class Interop_Client
             foreach($dowsdl as $usewsdl) {
                 $this->useWSDL = $usewsdl;
                 foreach($this->paramTypes as $ptype) {
+                    // skip a pointless test
+                    if ($usewsdl && $ptype == 'soapval') break;
                     $this->paramType = $ptype;
                     $this->doTest();
                 }
@@ -662,6 +690,8 @@ class Interop_Client
             foreach($dowsdl as $usewsdl) {
                 $this->useWSDL = $usewsdl;
                 foreach($this->paramTypes as $ptype) {
+                    // skip a pointless test
+                    if ($usewsdl && $ptype == 'soapval') break;
                     $this->paramType = $ptype;
                     $this->outputTable();
                 }

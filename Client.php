@@ -272,6 +272,9 @@ class SOAP_Client extends SOAP_Base
         // parse the response
         #$return = $this->soapmsg->parseResponse($this->response);
         $this->response = new SOAP_Parser($this->response);
+        if ($this->response->fault) {
+            return $this->raiseSoapFault($this->response->fault);
+        }
         // return array of parameters
         $return = $this->response->getResponse();
         $headers = $this->response->getHeaders();

@@ -27,7 +27,7 @@ $iop = new Interop_Client();
 #$iop->fetchEndpoints();
 
 // set some options
-$iop->currentTest = 'GroupB';      // see $tests above
+$iop->currentTest = 'base';      // see $tests above
 $iop->paramType = 'soapval';     // 'php' or 'soapval'
 $iop->useWSDL = 1;           // 1= do wsdl tests
 $iop->numServers = 0;        // 0 = all
