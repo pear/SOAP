@@ -480,6 +480,8 @@ class SOAP_Base extends PEAR
             $xmlout_value = $value->serialize($this);
         } else if ($type == 'string') {
             $xmlout_value = htmlspecialchars($value);
+        } else if ($type == 'rawstring') {
+            $xmlout_value = $value;
         } else if ($type == 'boolean') {
             $xmlout_value = $value?'true':'false';
         } else {
