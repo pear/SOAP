@@ -56,6 +56,15 @@
           <file role="doc" name="tcp_server.php"/>
           <file role="doc" name="tcp_daemon.pl"/>
           <file role="doc" name="wsdl_client.pl"/>
+          <dir name="amazon"> 
+            <file role="doc" name="amazon.php"/>
+            <file role="doc" name="amazon_soap.php"/>
+            <file role="doc" name="amazon_modes.php"/>
+            <file role="doc" name="amazon_types.php"/>
+            <file role="doc" name="config.php.dist"/>
+            <file role="doc" name="index.php"/>
+            <file role="doc" name="modes.php"/>
+          </dir>
         </dir>
         <dir name="tools"> 
           <file role="php" name="genproxy.php"/>
