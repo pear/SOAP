@@ -326,7 +326,7 @@ class SOAP_Server extends SOAP_Base
         // figure out the method_namespace
         $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
         // does method exist?
-        if (!$this->methodname || !$this->validateMethod($this->methodname)) {
+        if (!$this->methodname || !$this->validateMethod($this->methodname,$this->method_namespace)) {
             $this->makeFault('Server',"method '$this->methodname' not defined in service");
             return NULL;
         }
@@ -375,12 +375,9 @@ class SOAP_Server extends SOAP_Base
         $map = NULL;
         if (array_key_exists($this->methodname, $this->dispatch_map)) {
             $map = $this->dispatch_map[$this->methodname];
-        } else if ($this->soapobject) {
-            $obv = get_object_vars($this->soapobject);
-            if (array_key_exists('dispatch_map',$obv) &&
-                array_key_exists($this->methodname, $this->soapobject->dispatch_map)) {
-                    $map = $this->soapobject->dispatch_map[$this->methodname];
-            }
+        } else if ($this->soapobject &&
+           method_exists($this->soapobject, '__dispatch')) {
+            $map = $this->soapobject->__dispatch($this->methodname);
         }
         // we'll let it through
         if (!$map) return TRUE;
@@ -447,6 +444,9 @@ class SOAP_Server extends SOAP_Base
         unset($this->soapobject);
         $this->method_namespace = NULL;
         
+        # no soap access to private functions
+        if ($methodname[0] == '_') return FALSE;
+        
         /* if it's in our function list, ok */
         if (array_key_exists($methodname, $this->dispatch_map) &&
             (!$namespace || !array_key_exists('namespace', $this->dispatch_map[$methodname]) ||
@@ -457,30 +457,30 @@ class SOAP_Server extends SOAP_Base
         }
         
         /* if it's in an object, it's ok */
-        $c = count($this->dispatch_objects);
-        for ($i=0;$i<$c;$i++) {
-            $obj =& $this->dispatch_objects[$i];
-            
-            if (method_exists($obj, $methodname) &&
-                (!$namespace || !$obj->method_namespace || $namespace == $obj->method_namespace)) {
-                $this->method_namespace = $obj->method_namespace;
-                $obv = get_object_vars($obj);
-                if (array_key_exists('dispatch_map',$obv) &&
-                    array_key_exists($this->methodname, $obj->dispatch_map) &&
-                    array_key_exists('namespace', $obj->dispatch_map[$this->methodname])) {
-                        $this->method_namespace = $obj->dispatch_map[$this->methodname]['namespace'];
-                }
+        if (isset($this->dispatch_objects[$namespace])) {
+            $obj =& $this->dispatch_objects[$namespace];
+            if (method_exists($obj, $methodname)) {
+                $this->method_namespace = $namespace;
                 $this->soapobject =& $obj;
-                
                 return TRUE;
             }
         }
         return FALSE;
     }
     
-    function addObjectMap(&$obj)
+    function addObjectMap(&$obj, $namespace=NULL)
     {
-        $this->dispatch_objects[] =& $obj;
+        if (!$namespace) {
+            if (isset($obj->namespace)) {
+                // XXX a bit of backwards compatibility
+                $namespace = $obj->namespace;
+            } else {
+                $this->makeFault('Server','No namespace provided for class!');
+                return FALSE;
+            }
+        }
+        $this->dispatch_objects[$namespace] =& $obj;
+        return TRUE;
     }
     
     // add a method to the dispatch map

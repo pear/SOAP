@@ -22,20 +22,18 @@ require_once 'SOAP/Server.php';
 require_once 'SOAP/Value.php';
 
 class SOAP_Interop_GroupC {
-    var $method_namespace = 'http://soapinterop.org/echoheader/';
-    
     function echoMeStringRequest($string)
     {
-	return new SOAP_Value('{'.$this->method_namespace.'}echoMeStringResponse','string',$string);
+	return new SOAP_Value('{http://soapinterop.org/echoheader/}echoMeStringResponse','string',$string);
     }
 
     function echoMeStructRequest($struct)
     {
-	return new SOAP_Value('{'.$this->method_namespace.'}echoMeStructResponse','SOAPStruct',$struct);
+	return new SOAP_Value('{http://soapinterop.org/echoheader/}echoMeStructResponse','SOAPStruct',$struct);
     }
 }
 
 $groupc = new SOAP_Interop_GroupC();
-$server->addObjectMap($groupc);
+$server->addObjectMap($groupc,'http://soapinterop.org/echoheader/');
 
 ?>

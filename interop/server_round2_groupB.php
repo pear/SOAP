@@ -22,22 +22,25 @@
 require_once 'SOAP/Server.php';
 
 class SOAP_Interop_GroupB {
-    var $method_namespace = 'http://soapinterop.org/';
-    var $dispatch_map = array();
+    var $__dispatch_map = array();
     
     function SOAP_Interop_GroupB() {
-	$this->dispatch_map['echoStructAsSimpleTypes'] =
+	$this->__dispatch_map['echoStructAsSimpleTypes'] =
 		array('in' => array('inputStruct' => 'SOAPStruct'),
 		      'out' => array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float')
 		      );
-	
-#        $server->addToMap('echoSimpleTypesAsStruct',
-#		      array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'),
-#		      array('return' => 'struct'));
-#	$server->addToMap('echoNestedStruct', array(), array());
-#	$server->addToMap('echo2DStringArray', array(), array());
-#	$server->addToMap('echoNestedArray', array(), array());
     }
+    
+    /* this private function is called on by SOAP_Server to determine any
+        special dispatch information that might be necessary.  This, for example,
+        can be used to set up a dispatch map for functions that return multiple
+        OUT parameters */
+    function __dispatch($methodname) {
+        if (isset($this->__dispatch_map[$methodname]))
+            return $this->__dispatch_map[$methodname];
+        return NULL;
+    }
+    
     function echoStructAsSimpleTypes ($struct)
     {
 	# convert a SOAPStruct to an array
@@ -82,6 +85,6 @@ class SOAP_Interop_GroupB {
 }
 
 $groupb = new SOAP_Interop_GroupB();
-$server->addObjectMap($groupb);
+$server->addObjectMap($groupb,'http://soapinterop.org/');
 
 ?>

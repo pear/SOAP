@@ -41,26 +41,6 @@ function hex2bin($data)
 
 
 class SOAP_Interop_Base {
-    var $method_namespace = 'http://soapinterop.org/';
-    
-    function SOAP_Interop_Base() {
-	#if ($server) {
-	#    $server->addToMap("echoString",array("string"),array("string"));
-	#    $server->addToMap("echoStringArray",array(),array());
-	#    $server->addToMap("echoInteger",array("int"),array("int"));
-	#    $server->addToMap("echoIntegerArray",array(),array());
-	#    $server->addToMap("echoFloat",array("float"),array("float"));
-	#    $server->addToMap("echoFloatArray",array(),array());
-	#    $server->addToMap("echoStruct",array(),array());
-	#    $server->addToMap("echoStructArray",array(),array());
-	#    $server->addToMap("echoVoid",array(),array());
-	#    $server->addToMap("echoBase64",array("base64Binary"),array("base64Binary"));
-	#    $server->addToMap("echoDate",array("dateTime"),array("dateTime"));
-	#    $server->addToMap("echoHexBinary",array("hexBinary"),array("hexBinary"));
-	#    $server->addToMap("echoDecimal",array("decimal"),array("decimal"));
-	#    $server->addToMap("echoBoolean",array("boolean"),array("boolean"));
-	#}
-    }
 
     function echoString($inputString)
     {
@@ -180,5 +160,5 @@ class SOAP_Interop_Base {
 }
 
 $base = new SOAP_Interop_Base();
-$server->addObjectMap($base);
+$server->addObjectMap($base,'http://soapinterop.org/');
 ?>

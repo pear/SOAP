@@ -27,29 +27,29 @@ $server = new SOAP_Server;
 // create a class for your soap functions
 class SOAP_Example_Server {
     /**
-     * method namespace can be whatever you desire, the client
-     * must match it when it makes calls to you
-     *
-     * example namespaces
-     * urn:SOAP_Example_Server
-     * http://myserver.com/SOAP_Example_Server
-     */
-    var $method_namespace = 'urn:SOAP_Example_Server';
-    
-    /**
      * The dispactch map does not need to be used, but aids
      * the server class in knowing what parameters are used
      * with the functions.  This is the ONLY way to have
      * multiple OUT parameters
      */
-    var $dispatch_map = array();
+    var $__dispatch_map = array();
 
     function SOAP_Example_Server() {
         // the one function here has multiple out parameters
-	$this->dispatch_map['echoStructAsSimpleTypes'] =
+	$this->__dispatch_map['echoStructAsSimpleTypes'] =
 		array('in' => array('inputStruct' => 'SOAPStruct'),
 		      'out' => array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float')
 		      );
+    }
+
+    /* this private function is called on by SOAP_Server to determine any
+        special dispatch information that might be necessary.  This, for example,
+        can be used to set up a dispatch map for functions that return multiple
+        OUT parameters */
+    function __dispatch($methodname) {
+        if (isset($this->__dispatch_map[$methodname]))
+            return $this->__dispatch_map[$methodname];
+        return NULL;
     }
 
     // a simple echoString function
@@ -94,6 +94,6 @@ class SOAP_Example_Server {
 }
 
 $soapclass = new SOAP_Example_Server();
-$server->addObjectMap($soapclass);
+$server->addObjectMap($soapclass,'urn:SOAP_Example_Server');
 $server->service($HTTP_RAW_POST_DATA);
 ?>
