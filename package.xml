@@ -20,7 +20,7 @@
   <release>
     <state>beta</state>
     <version>0.7.1</version>
-    <date>2002-11-30</date>
+    <date>2002-12-01</date>
     <notes>
       Minor bug fixes over the 0.7.0 release.
       Support for the overload extension is currently 
@@ -99,4 +99,4 @@
     </notes>
   </release>
   </changelog>
-</package>
+</Package>
