@@ -50,7 +50,7 @@ if (class_exists('Mail_mimePart')) {
 }
 
 @include_once 'Net/DIME.php';
-if (class_exists('DIME_Message')) {
+if (class_exists('Net_DIME_Message')) {
     $SOAP_options['DIME'] = 1;
 }
 
@@ -802,14 +802,14 @@ class SOAP_Base extends PEAR
         // encode any attachments
         // see http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // now we have to DIME encode the message
-        $dime = new DIME_Message();
-        $msg = $dime->encodeData($xml,SOAP_ENVELOP,NULL,DIME_TYPE_URI);
+        $dime = new Net_DIME_Message();
+        $msg = $dime->encodeData($xml,SOAP_ENVELOP,NULL,NET_DIME_TYPE_URI);
         
         // add the attachements
         $c = count($this->attachments);
         for ($i=0; $i < $c; $i++) {
             $attachment =& $this->attachments[$i];
-            $msg .= $dime->encodeData($attachment['body'],$attachment['content_type'],$attachment['cid'],DIME_TYPE_MEDIA);
+            $msg .= $dime->encodeData($attachment['body'],$attachment['content_type'],$attachment['cid'],NET_DIME_TYPE_MEDIA);
         }
         $msg .= $dime->endMessage();
         return $msg;
@@ -869,7 +869,7 @@ class SOAP_Base extends PEAR
         
         // XXX this SHOULD be moved to the transport layer, e.g. PHP  itself
         // should handle parsing DIME ;)
-        $dime = new DIME_Message();
+        $dime = new Net_DIME_Message();
         $dime->decodeData($data);
         if (strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0 ||
             strcasecmp($dime->parts[0]['type'],SOAP_ENVELOP) !=0) {
