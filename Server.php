@@ -54,7 +54,7 @@ class SOAP_Server {
     * @var  boolean
     * @see  $debug_str, SOAP_Server()
     */
-    var $debug_flag = true;
+    var $debug_flag = SOAP_DEBUG;
     
     /**
     * Debugging messages
@@ -62,7 +62,7 @@ class SOAP_Server {
     * @var  string
     * @see  $debug_flag, SOAP_Server()
     */
-    var $debug_str = '';
+    var $debug_data = '';
     
     /**
     *
@@ -104,9 +104,10 @@ class SOAP_Server {
     * 
     */
     var $fault_actor = '';
+    
     var $result = 'successful'; // for logging interop results to db
 
-    function SOAP_Server($debug = FALSE) {
+    function SOAP_Server($debug = SOAP_DEBUG) {
         // turn on debugging?
         $this->debug_flag = $debug;
     }
@@ -116,12 +117,12 @@ class SOAP_Server {
     {
         // $response is a soap_msg object
         $response = $this->parseRequest($data);
-        $this->debug("parsed request and got an object of this class '".get_class($response)."'");
+        $this->debug("parsed request and got an object of this class '" . get_class($response) . "'");
         $this->debug('server sending...');
 
         // pass along the debug string
         if ($this->debug_flag) {
-            $response->debug($this->debug_str);
+            $response->debug($this->debug_data);
         }
         $payload = $response->serialize();
         // print headers
@@ -133,22 +134,26 @@ class SOAP_Server {
             $header[] = "Status: 200 OK\r\n";
         }
 
-        $header[] = 'Server: '.SOAP_LIBRARY_NAME."\r\n";
+        $header[] = 'Server: ' . SOAP_LIBRARY_NAME . "\r\n";
         $header[] = "Connection: Close\r\n";
         $header[] = "Content-Type: text/xml; charset=$this->xml_encoding\r\n";
-        $header[] = "Content-Length: ".strlen($payload)."\r\n\r\n";
+        $header[] = "Content-Length: " . strlen($payload) . "\r\n\r\n";
         reset($header);
         foreach ($header as $hdr) {
             header($hdr);
         }
-        $this->response = join("\n",$header).$payload;
+        $this->response = join("\n", $header) . $payload;
         print $payload;
     }
     
     function parseRequest($data='')
     {
-        $this->debug('entering parseRequest() on '.date('H:i Y-m-d'));
-        $this->debug('request uri: '.$HTTP_SERVER_VARS['REQUEST_URI']);
+        global $HTTP_SERVER_VARS;
+        if (empty($HTTP_SERVER_VARS))
+            $HTTP_SERVER_VARS = &$GLOBALS['_SERVER'];
+        
+        $this->debug('entering parseRequest() on ' . date('H:i Y-m-d'));
+        $this->debug('request uri: ' . $HTTP_SERVER_VARS['REQUEST_URI']);
 
         // get headers
         if (function_exists('getallheaders')) {
@@ -193,7 +198,7 @@ class SOAP_Server {
         // if fault occurred during message parsing
         if ($parser->fault()) {
             // parser debug
-            $this->debug($parser->debug_str);
+            $this->debug($parser->debug_data);
             $this->result = 'fault: error in msg parsing';
             $this->makeFault('Server',"error in msg parsing:\n".$parser->getResponse());
 
@@ -208,7 +213,7 @@ class SOAP_Server {
                 return $this->fault();
             }
             // parser debug
-            $this->debug($parser->debug_str);
+            $this->debug($parser->debug_data);
 
             /* set namespaces
             if ($parser->namespaces['xsd'] != '') {
@@ -228,7 +233,7 @@ class SOAP_Server {
                     // need to set special error detection inside the value class
                     // so as to differentiate between no params passed, and an error decoding
                     $request_data = $request_val->decode();
-                    $this->debug($request_val->debug_str);
+                    $this->debug($request_val->debug_data);
                     $this->debug("request data: $request_data");
                     $this->debug("about to call method '$this->methodname'");
 
@@ -279,7 +284,7 @@ class SOAP_Server {
                             }
                         }
                         if ($this->debug_flag) {
-                            $this->debug($return_val->debug_str);
+                            $this->debug($return_val->debug_data);
                         }
 
                         $this->debug("creating return soap_msg object: ".$this->methodname.'Response');
@@ -405,7 +410,7 @@ class SOAP_Server {
     function debug($string)
     {
         if ($this->debug_flag) {
-            $this->debug_str .= "SOAP_Server: $string\n";
+            $this->debug_data .= "SOAP_Server: $string\n";
         }
     }
     
@@ -424,7 +429,7 @@ class SOAP_Server {
                 'faultcode' => $this->fault_code,
                 'faultstring' => $this->fault_str,
                 'faultactor' => $this->fault_actor,
-                'faultdetail' => $this->fault_detail.$this->debug_str
+                'faultdetail' => $this->fault_detail . $this->debug_data
             ),
             'http://schemas.xmlsoap.org/soap/envelope/'
         );

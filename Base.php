@@ -41,7 +41,7 @@ class SOAP_Base extends PEAR
     * @var  boolean if true debugging informations will be store in $debug_data
     * @see  $debug_data, SOAP_Base
     */
-    var $debug_flag = false;
+    var $debug_flag = SOAP_DEBUG;
     
     /**
     * String containing debugging informations if $debug_flag is set to true

@@ -49,15 +49,14 @@ class SOAP_Parser
     var $fault_str = '';
     var $fault_detail = '';
     var $depth_array = array();
-    var $debug_flag = true;
-    var $debug_str = '';
+    var $debug_flag = SOAP_DEBUG;
+    var $debug_data = '';
     var $previous_element = '';
     var $soapresponse = NULL;
     var $parent = 0;
     var $root_struct_name = array();
     var $curent_root_struct_name = '';
-    var $entities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;',
-        "'" => '&apos;', '"' => '&quot;' );
+    var $entities = array ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', "'" => '&apos;', '"' => '&quot;' );
     var $xml = '';
     var $xml_encoding = '';
     var $root_struct = array();
@@ -66,7 +65,7 @@ class SOAP_Parser
     var $need_references = array();
     var $XMLSchemaVersion;
     
-    function SOAP_Parser($xml,$encoding='UTF-8')
+    function SOAP_Parser($xml, $encoding = 'UTF-8')
     {
         $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         //global $soapTypes;
@@ -415,14 +414,14 @@ class SOAP_Parser
             $this->debug('ERROR: did not successfully eval the msg');
             $this->fault = true;
 
-            return new SOAP_Value('Fault','Struct',array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'),new SOAP_Value('faultstring','string',"couldn't build response")));
+            return new SOAP_Value('Fault','Struct', array(new SOAP_Value('faultcode','string','SOAP-ENV:Parser'), new SOAP_Value('faultstring','string',"couldn't build response")));
         }
     }
     
     function debug($string)
     {
         if ($this->debug_flag) {
-            $this->debug_str .= 'SOAP_Parser: '.preg_replace("/>/","/>\r\n/",$string)."\n";
+            $this->debug_data .= 'SOAP_Parser: ' . preg_replace("/>/","/>\r\n/", $string) . "\n";
         }
     }
     

@@ -60,7 +60,7 @@ class SOAP_Transport extends SOAP_Base
     *
     * @access public
     */
-    function SOAP_Transport($url, $debug = false)
+    function SOAP_Transport($url, $debug = SOAP_DEBUG)
     {
         parent::SOAP_Base('TRANSPORT');
         /* only HTTP transport for now, later look at url for scheme */

@@ -31,35 +31,61 @@ require_once 'SOAP/Value.php';
 *
 * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
 *
-* @access public
-* @version $Id$
-* @package SOAP::Message
-* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+* @access   public
+* @version  $Id$
+* @package  SOAP::Message
+* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
 */
 class SOAP_Message extends SOAP_Base
 {
+    
+    /**
+    * XML payload
+    *
+    * @var  string
+    */
+    var $payload = '';
+    
+    /**
+    * List of namespaced
+    *
+    * @var  array
+    */
+    var $namespaces;
+    
+    /**
+    * SOAP value
+    * 
+    * @var  object  SOAP_value
+    */
+    var $value = '';
+    
     /**
     * SOAP::Message constructor
     *
     * initializes a soap structure containing the method signature and parameters
     *
-    * @param string $method       soap data (in xml)
-    * @param array(SOAP::Value) $params       soap data (in xml)
-    * @param string $method_namespace       soap data (in xml)
-    * @param array of string $new_namespaces       soap data (in xml)
+    * @param string $method                     soap data (in xml)
+    * @param array(SOAP::Value) $params         soap data (in xml)
+    * @param string $method_namespace           soap data (in xml)
+    * @param array of string $new_namespaces    soap data (in xml)
     *
     * @access public
+    * @global $methodNamespace. $SOAP_namespaced
     */
-    function SOAP_Message($method,$params,$method_namespace='http://testuri.org',$new_namespaces=NULL, $wsdl=NULL)
+    function SOAP_Message($method, $params, $method_namespace = 'http://testuri.org', $new_namespaces = NULL, $wsdl = NULL)
     {
         // globalize method namespace
         global $methodNamespace;
+        // WARNING: use of undefined global variable
+        
+        // WARNING: setting global variable
         $methodNamespace = $method_namespace;
 
         parent::SOAP_Base('Message');
         // make method struct
-        $this->value = new SOAP_Value($method,'Struct',$params,$method_namespace, NULL, $wsdl);
+        $this->value = new SOAP_Value($method, 'Struct', $params, $method_namespace, NULL, $wsdl);
 
         if (is_array($new_namespaces)) {
             global $SOAP_namespaces;
@@ -67,22 +93,20 @@ class SOAP_Message extends SOAP_Base
             $i = count($SOAP_namespaces);
 
             foreach ($new_namespaces as $v) {
-                $SOAP_namespaces[$v] = 'ns'.$i++;
+                $SOAP_namespaces[$v] = 'ns' . $i++;
             }
 
             $this->namespaces = $SOAP_namespaces;
         }
 
-        $this->payload = '';
-        $this->debug_flag = false;
-        $this->debug_str = 'entering SOAP_Message() with SOAP_Value '.$this->value->name."\n";
+
+        $this->debug_data = 'entering SOAP_Message() with SOAP_Value ' . $this->value->name . "\n";
     }
     
     /**
     * wraps the soap payload with the soap envelop data
     *
     * @param string $payload       soap data (in xml)
-    *
     * @return string xml_soap_data
     * @access private
     */
@@ -95,8 +119,8 @@ class SOAP_Message extends SOAP_Base
         foreach ($SOAP_namespaces as $k => $v) {
             $ns_string .= "xmlns:$v=\"$k\"\n ";
         }
-        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"".SOAP_SCHEMA_ENCODING."\">\n".
-                   $payload.
+        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"" . SOAP_SCHEMA_ENCODING . "\">\n" .
+                   $payload .
                    "</SOAP-ENV:Envelope>\n";
     }
     
@@ -110,7 +134,7 @@ class SOAP_Message extends SOAP_Base
     */
     function _makeBody($payload)
     {
-        return "<SOAP-ENV:Body>\n".$payload."</SOAP-ENV:Body>\n";
+        return "<SOAP-ENV:Body>\n" . $payload . "</SOAP-ENV:Body>\n";
     }
     
     /**
@@ -122,12 +146,12 @@ class SOAP_Message extends SOAP_Base
     {
         $value = $this->value;
         $payload = $this->_makeEnvelope($this->_makeBody($value->serialize()));
-        $this->debug($value->debug_str);
-        $payload = "<?xml version=\"1.0\"?>\n\n".$payload;
+        $this->debug($value->debug_data);
+        $payload = "<?xml version=\"1.0\"?>\n\n" . $payload;
         if ($this->debug_flag) {
             $payload .= $this->serializeDebug();
         }
-        $this->payload = str_replace("\n","\r\n", $payload);
+        $this->payload = str_replace("\n", "\r\n", $payload);
     }
     
     /**
@@ -163,7 +187,7 @@ class SOAP_Message extends SOAP_Base
         $response = new SOAP_Parser($data);
         // return array of parameters
         $ret = $response->getResponse();
-        $this->debug($response->debug_str);
+        $this->debug($response->debug_data);
         return $ret;
     }
     
@@ -176,7 +200,7 @@ class SOAP_Message extends SOAP_Base
     function serializeDebug()
     {
         if ($this->debug_flag) {
-            return "<!-- DEBUG INFO:\n".$this->debug_str."-->\n";
+            return "<!-- DEBUG INFO:\n" . $this->debug_data . "-->\n";
         }
 
         return '';

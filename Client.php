@@ -200,7 +200,7 @@ class SOAP_Client extends SOAP_Base
         $this->debug("soapAction: $soapAction");
         // get namespace
         if (!$namespace && $this->endpointType == 'wsdl') {
-            $namespace = $this->wsdl->getNamespace($this->portName,$method);
+            $namespace = $this->wsdl->getNamespace($this->portName, $method);
             #if ($this->endpointType != 'wsdl') {
             #    //die('method call requires namespace if wsdl is not available!');
             #} elseif (!$namespace = $this->wsdl->getNamespace($this->portName,$method)) {
@@ -215,7 +215,8 @@ class SOAP_Client extends SOAP_Base
             return $this->raiseSoapFault($soapmsg->fault);
         }
 
-        //$this->debug( "<xmp>".$soapmsg->serialize()."</xmp>");
+        $this->debug('<xmp>' . $soapmsg->serialize() . '</xmp>');
+        
         // instantiate client
         $dbg = "calling server at '$this->endpoint'...";
         
@@ -232,6 +233,7 @@ class SOAP_Client extends SOAP_Base
         
         // serialize the message
         $soap_data = $soapmsg->serialize();
+        $this->debug("soap_data " . $soap_data);
         if (PEAR::isError($soap_data)) {
             return $this->raiseSoapFault($soap_data);
         }
@@ -244,7 +246,7 @@ class SOAP_Client extends SOAP_Base
 
         // parse the response
         $return = $soapmsg->parseResponse($this->response);
-        $this->debug($soap_transport->debug_str);
+        $this->debug($soap_transport->debug_data);
         $this->debug($dbg . 'sent message successfully and got a(n) ' . gettype($return) . ' back');
 
         // check for valid response

@@ -22,13 +22,30 @@
 require_once('PEAR.php');
 require_once('SOAP/Message.php');
 
-// reference http://www.w3.org/TR/SOAP/ Section 4.4
-
+/**
+* define('SOAP_DEBUG', false);
+*
+* @package  SOAP
+* @access   public
+* @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
+* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
+* @version  $Id$
+*/
 class SOAP_Fault extends PEAR_Error
 {
-    function SOAP_Fault($message = 'unknown error', $code = null,
-                        $mode = null, $options = null, $userinfo = null)
+    
+    /**
+    *
+    * 
+    * @param    string 
+    * @param    mixed
+    * @param    mixed
+    * @param    mixed
+    * @param    mixed
+    */
+    function SOAP_Fault($message = 'unknown error', $code = null, $mode = null, $options = null, $userinfo = null)
     {
+    
         if (is_array($userinfo)) {
             $actor = $userinfo['actor'];
             $detail = $userinfo['detail'];
@@ -36,23 +53,23 @@ class SOAP_Fault extends PEAR_Error
             $actor = 'Unknown';
             $detail = $userinfo;
         }
-        parent::PEAR_Error($message, $code,
-                        $mode, $options, $detail);
+        parent::PEAR_Error($message, $code, $mode, $options, $detail);
         $this->error_message_prefix = $actor;
+        
     }
     
     // set up a fault
     function message()
     {
         return new SOAP_Message('Fault',
-            array(
-                'faultcode' => $this->code,
-                'faultstring' => $this->message,
-                'faultactor' => $this->error_message_prefix,
-                'faultdetail' => $this->userinfo
-            ),
-            SOAP_ENVELOP
-        );
+                                    array(
+                                        'faultcode' => $this->code,
+                                        'faultstring' => $this->message,
+                                        'faultactor' => $this->error_message_prefix,
+                                        'faultdetail' => $this->userinfo
+                                    ),
+                                    SOAP_ENVELOP
+                                );
     }
     
     function getFault()
@@ -64,15 +81,16 @@ class SOAP_Fault extends PEAR_Error
                 'faultdetail' => $this->userinfo
             );
     }
+    
     function getActor()
     {
         return $this->error_message_prefix;
     }
+    
     function getDetail()
     {
         return $this->userinfo;
     }
     
 }
-
 ?>

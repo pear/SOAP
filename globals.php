@@ -20,8 +20,24 @@
 // $Id$
 //
 
+/**
+* Global variables and constants of the SOAP classes
+* 
+* @module   globals 
+* @package  SOAP
+* @version  $Id$
+* @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
+* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
+*/
 // make errors handle properly in windows (thx, thong@xmethods.com)
 error_reporting(2039);
+
+/**
+* Enable debugging informations?
+*
+* @const    SOAP_DEBUG
+*/
+define('SOAP_DEBUG', true);
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
@@ -43,6 +59,7 @@ define('NAN',   0.0);
 define('VALUE_SCALAR',  1);
 define('VALUE_ARRAY',   2);
 define('VALUE_STRUCT',  3);
+
 
 define('SOAP_LIBRARY_NAME', 'PEAR-SOAPx4 0.6');
 // set schema version
@@ -139,4 +156,8 @@ $SOAP_namespaces = array(
 
 $SOAP_xmlEntities = array('quot' => '"','amp' => '&',
 	'lt' => '<','gt' => '>','apos' => "'");
+    
+// WARNING: does not follow naming conventions
+// will be set by SOAP::Message.php
+$methodNamespace = 'http://testuri.org'
 ?>
