@@ -1504,10 +1504,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
             if ((isset($attrs['location']) || isset($attrs['schemaLocation'])) &&
                 !isset($this->wsdl->imports[$attrs['namespace']])) {
                 $uri = isset($attrs['location']) ? $attrs['location'] : $attrs['schemaLocation'];
-                $location = parse_url($uri);
+                $location = @parse_url($uri);
                 if (!isset($location['scheme'])) {
-                    $base = parse_url($this->uri);
-                    $uri = $this->merge_url($base, $uri);
+                    $base = @parse_url($this->uri);
+                    $uri = $this->mergeUrl($base, $uri);
                 }
 
                 $this->wsdl->imports[$attrs['namespace']] = $attrs;
@@ -1726,18 +1726,19 @@ class SOAP_WSDL_Parser extends SOAP_Base
 
     /**
      * $parsed is an array returned by parse_url().
+     *
+     * @access private
      */
-    function merge_url($parsed, $path)
+    function mergeUrl($parsed, $path)
     {
         if (!is_array($parsed)) {
             return false;
         }
 
-        if (!empty($parsed['scheme']) && strlen($parsed['scheme']) > 1) {
+        $uri = '';
+        if (!empty($parsed['scheme'])) {
             $sep = (strtolower($parsed['scheme']) == 'mailto' ? ':' : '://');
             $uri = $parsed['scheme'] . $sep;
-        } else {
-            $uri = '';
         }
 
         if (isset($parsed['pass'])) {
