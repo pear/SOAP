@@ -127,40 +127,12 @@ class SOAP_Value extends SOAP_Base
         $this->wsdl = $wsdl;
         $this->type_namespace = $type_namespace;
         $this->type = $this->_getSoapType($value, $type, $name, $type_namespace);
-
-        if ($methodNamespace) {
-            $this->namespace = $methodNamespace;
-
-            if (!isset($SOAP_namespaces[$methodNamespace])) {
-                $SOAP_namespaces[$methodNamespace] = 'ns' . (count($SOAP_namespaces) + 1);
-            }
-
-            $this->prefix = $SOAP_namespaces[$methodNamespace];
-        }
+        $this->namespace = $methodNamespace;
         
-        // get type prefix
-        if (strpos($type , ':') !== false) {
+        if (strpos($this->type , ':') !== false) {
             $qname = new QName($type);
             $this->type = $qname->name;
             $this->type_prefix = $qname->ns;
-
-        } elseif ($type_namespace) {
-        
-            if (!isset($SOAP_namespaces[$type_namespace])) {
-                $SOAP_namespaces[$type_namespace] = 'ns'.(count($SOAP_namespaces)+1);
-            }
-            $this->type_prefix = $SOAP_namespaces[$type_namespace];
-            
-        // if type namespace was not explicitly passed, and we're not in a method struct:
-        } elseif (!$this->type_prefix && $type != 'Struct' /*!isset($type_namespace)*/) {
-        
-            // try to get type prefix from typeMap
-            if ($ns = $this->verifyType($this->type)) {
-                $this->type_prefix = $SOAP_namespaces[$ns];
-            } else if ($methodNamespace) {
-                // else default to method namespace
-                $this->type_prefix = $SOAP_namespaces[$methodNamespace];
-            }
         }
         
         if (array_key_exists($this->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
@@ -225,8 +197,8 @@ class SOAP_Value extends SOAP_Base
                 // else make obj and serialize
                 } else {
                     #$type = $this->arrayType;
-                    $type = $this->_getSoapType($v, $type, $k);
-                    $new_val =  new SOAP_Value('item', $this->arrayType, $v);
+                    //$type = $this->_getSoapType($v, $type, $k);
+                    $new_val =  new SOAP_Value('item', NULL /*$this->arrayType*/, $v);
                     $this->value[] = $new_val;
                 }
             }
@@ -248,9 +220,9 @@ class SOAP_Value extends SOAP_Base
                     $this->value[] = $v;
                 // else make obj and serialize
                 } else {
-                    $type = NULL;
-                    $type = $this->_getSoapType($v, $type, $k);
-                    $new_val = new SOAP_Value($k, $type, $v);
+                    //$type = NULL;
+                    //$type = $this->_getSoapType($v, $type, $k);
+                    $new_val = new SOAP_Value($k, NULL, $v);
                     $this->value[] = $new_val;
                 }
             }
@@ -421,6 +393,39 @@ class SOAP_Value extends SOAP_Base
     */
     function serialize()
     {
+        global $SOAP_namespaces;
+        
+        if ($this->namespace) {
+            if (!isset($SOAP_namespaces[$this->namespace])) {
+                $SOAP_namespaces[$this->namespace] = 'ns' . (count($SOAP_namespaces) + 1);
+            }
+
+            $this->prefix = $SOAP_namespaces[$this->namespace];
+        }
+        // get type prefix
+        if (strpos($this->type , ':') !== false) {
+            $qname = new QName($type);
+            $this->type = $qname->name;
+            $this->type_prefix = $qname->ns;
+
+        } elseif ($this->type_namespace) {
+        
+            if (!isset($SOAP_namespaces[$this->type_namespace])) {
+                $SOAP_namespaces[$this->type_namespace] = 'ns'.(count($SOAP_namespaces)+1);
+            }
+            $this->type_prefix = $SOAP_namespaces[$this->type_namespace];
+            
+        // if type namespace was not explicitly passed, and we're not in a method struct:
+        } elseif (!$this->type_prefix && $this->type != 'Struct' /*!isset($type_namespace)*/) {
+        
+            // try to get type prefix from typeMap
+            if ($ns = $this->verifyType($this->type)) {
+                $this->type_prefix = $SOAP_namespaces[$ns];
+            } else if ($methodNamespace) {
+                // else default to method namespace
+                $this->type_prefix = $SOAP_namespaces[$methodNamespace];
+            }
+        }
         return $this->serializeval($this);
     }
     
@@ -499,7 +504,6 @@ class SOAP_Value extends SOAP_Base
             if (array_key_exists($type,$types)) return $uri;
         }
         return FALSE;
-        #return array_key_exists($type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION]);
     }
     
     /** 

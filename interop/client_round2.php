@@ -41,6 +41,7 @@ $iop->debug = 0;
 $iop->showFaults = 0; // used in result table output
 
 #$iop->doTest();  // run a single set of tests using above options
+#$iop->doGroupTests(); // run a group of tests set in $currentTest
 $iop->doTests();  // run all tests, ignore above options
 #$iop->outputTables();
 echo "done";

@@ -135,12 +135,19 @@ $SOAP_typemap[SOAP_INTEROPORG] = array('SOAPStruct' => 'array');
 $SOAP_typemap[SOAP_SCHEMA_ENCODING] = array('base64' => 'string','array' => 'array','Array' => 'array', 'Struct'=>'array');
 
 // load namespace uris into an array of uri => prefix
-$SOAP_namespaces = array(
+$SOAP_namespaces_default = array(
 	SOAP_ENVELOP => 'SOAP-ENV',
 	SOAP_XML_SCHEMA_VERSION => 'xsd',
 	SOAP_XML_SCHEMA_VERSION.'-instance' => 'xsi',
 	SOAP_SCHEMA_ENCODING => 'SOAP-ENC',
 	SOAP_INTEROPORG=>'si');
+
+$SOAP_namespaces = $SOAP_namespaces_default;
+
+function soap_reset_namespaces() {
+    global $SOAP_namespaces, $SOAP_namespaces_default;
+    $SOAP_namespaces = $SOAP_namespaces_default;
+}
 
 $SOAP_xmlEntities = array('quot' => '"','amp' => '&',
 	'lt' => '<','gt' => '>','apos' => "'");

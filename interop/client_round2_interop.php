@@ -570,6 +570,19 @@ class Interop_Client
         }
     }
     
+    function doGroupTests() {
+        $dowsdl = array(0,1);
+        foreach($dowsdl as $usewsdl) {
+            $this->useWSDL = $usewsdl;
+            foreach($this->paramTypes as $ptype) {
+                // skip a pointless test
+                if ($usewsdl && $ptype == 'soapval') break;
+                $this->paramType = $ptype;
+                $this->doTest();
+            }
+        }
+    }
+    
     /**
     *  doTests
     *  go all out.  This takes time.

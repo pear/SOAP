@@ -135,8 +135,10 @@ class SOAP_Client extends SOAP_Base
     
     function addHeader($soap_value)
     {
-        if (!$this->soapmsg)
+        if (!$this->soapmsg) {
+            soap_reset_namespaces();
             $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
+        }
         # add a new header to the message
         if (get_class($soap_value) == 'soap_header') {
             $this->soapmsg->addHeader($soap_value);
@@ -163,6 +165,12 @@ class SOAP_Client extends SOAP_Base
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $this->fault = null;
+
+        // make message
+        if (!$this->soapmsg) {
+            soap_reset_namespaces();
+            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
+        }
 
         if ($this->endpointType == 'wsdl') {
             $this->setSchemaVersion($this->wsdl->xsd);
@@ -218,15 +226,14 @@ class SOAP_Client extends SOAP_Base
                 }
             }
             $params = $nparams;
+        } else {
+            $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         }
         
         
         $this->debug("soapAction: $soapAction");
         $this->debug("namespace: $namespace");
         
-        // make message
-        if (!$this->soapmsg)
-            $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
         $this->soapmsg->method($method, $params, $namespace);
         if ($this->soapmsg->fault) {
             return $this->raiseSoapFault($this->soapmsg->fault);
