@@ -98,16 +98,35 @@ class SOAP_WSDL extends SOAP_Base
                 : $this->_raiseSoapFault("no endpoint for port for $portName", $this->uri);
     }
     
-    // find the name of the first port that contains an operation of name $operation
-    // always returns a the soap portName
-    function getPortName($operation)
-    {
-        if (isset($this->services[$this->service]['ports'])) {
-            foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
-                $type = $this->services[$this->service]['ports'][$port]['type'];
+    function _getPortName($operation,$service) {
+        if (isset($this->services[$service]['ports'])) {
+            foreach ($this->services[$service]['ports'] as $port => $portAttrs) {
+                $type = $this->services[$service]['ports'][$port]['type'];
                 if ($type == 'soap' &&
                     isset($this->bindings[$portAttrs['binding']]['operations'][$operation])) {
                         return $port;
+                }
+            }
+        }
+        return NULL;
+    }
+    
+    // find the name of the first port that contains an operation of name $operation
+    // always returns a the soap portName
+    function getPortName($operation, $service=NULL)
+    {
+        if (!$service) $service = $this->service;
+        if (isset($this->services[$service]['ports'])) {
+            $portName = $this->_getPortName($operation,$service);
+            if ($portName) return $portName;
+        }
+        // try any service in the wsdl
+        foreach ($this->services as $serviceName=>$service) {
+            if (isset($this->services[$serviceName]['ports'])) {
+                $portName = $this->_getPortName($operation,$serviceName);
+                if ($portName) {
+                    $this->service = $serviceName;
+                    return $portName;
                 }
             }
         }
@@ -136,16 +155,18 @@ class SOAP_WSDL extends SOAP_Base
             if (!$opData) 
                 return $this->_raiseSoapFault("no operation $operation for port $portName, in wsdl", $this->uri);
             $opData['parameters'] = false;
-            $opData['namespace'] = $this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace'];
+            if (isset($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace']))
+                $opData['namespace'] = $this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace'];
             // message data from messages
             $inputMsg = $opData['input']['message'];
+            if (is_array($this->messages[$inputMsg])) {
             foreach ($this->messages[$inputMsg] as $pname => $pattrs) {
                 if ($opData['style'] == 'document' && $opData['input']['use'] == 'literal'
                     && $pname == 'parameters') {
                         $opData['parameters'] = true;
                         $opData['namespace'] = $this->namespaces[$pattrs['namespace']];
                         $el = $this->elements[$pattrs['namespace']][$pattrs['type']];
-                        if ($el['elements']) {
+                        if (isset($el['elements'])) {
                             foreach ($el['elements'] as $elname => $elattrs) {
                                 $opData['input']['parts'][$elname] = $elattrs;
                             }
@@ -154,13 +175,15 @@ class SOAP_WSDL extends SOAP_Base
                     $opData['input']['parts'][$pname] = $pattrs;
                 }
             }
+            }
             $outputMsg = $opData['output']['message'];
+            if (is_array($this->messages[$outputMsg])) {
             foreach ($this->messages[$outputMsg] as $pname => $pattrs) {
                 if ($opData['style'] == 'document' && $opData['output']['use'] == 'literal'
                     && $pname == 'parameters') {
 
                         $el = $this->elements[$pattrs['namespace']][$pattrs['type']];
-                        if ($el['elements']) {
+                        if (isset($el['elements'])) {
                             foreach ($el['elements'] as $elname => $elattrs) {
                                 $opData['output']['parts'][$elname] = $elattrs;
                             }
@@ -169,6 +192,7 @@ class SOAP_WSDL extends SOAP_Base
                 } else {
                     $opData['output']['parts'][$pname] = $pattrs;
                 }
+            }
             }
             return $opData;
         }
@@ -681,7 +705,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             $detail = sprintf('XML error on line %d: %s',
                                     xml_get_current_line_number($parser),
                                     xml_error_string(xml_get_error_code($parser)));
-            print $fd;
+            //print $fd;
             return $this->_raiseSoapFault("Unable to parse WSDL file $uri\n$detail");
         }
         xml_parser_free($parser);
@@ -1103,7 +1127,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     $uri = $this->merge_url($base,$uri);
                 }
                 $import_parser = new SOAP_WSDL_Parser($uri, $this->wsdl);
-                #$result = $this->parse($uri, $this->wsdl);
                 if ($import_parser->fault) {
                     return FALSE;
                 }
@@ -1277,12 +1300,38 @@ class SOAP_WSDL_Parser extends SOAP_Base
         if (isset($parsed['host']))     $uri .= $parsed['host'];
         if (isset($parsed['port']))     $uri .= ":$parsed[port]";
         if ($path[0]!='/' && isset($parsed['path'])) {
-            $path = dirname($parsed['path']).'/'.$path;
+            if ($parsed['path'][strlen($parsed['path'])-1] != '/') {
+                $path = dirname($parsed['path']).'/'.$path;
+            } else {
+                $path = $parsed['path'].$path;
+            }
+            $path = $this->_normalize($path);
         }
         $sep = $path[0]=='/'?'':'/';
         $uri .= $sep.$path;
 
         return $uri; 
+    }
+    
+    function _normalize($path_str){
+        $pwd='';
+        $strArr=preg_split("/(\/)/",$path_str,-1,PREG_SPLIT_NO_EMPTY);
+        $pwdArr="";
+        $j=0;
+        for($i=0;$i<count($strArr);$i++){
+            if($strArr[$i]!=".."){
+                if($strArr[$i]!="."){
+                $pwdArr[$j]=$strArr[$i];
+                $j++;
+                }
+            }else{
+                array_pop($pwdArr);
+                $j--;
+            }
+        }
+        $pStr=implode("/",$pwdArr);
+        $pwd=(strlen($pStr)>0) ? ("/".$pStr) : "/";
+        return $pwd;
     }    
 }
 

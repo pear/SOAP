@@ -24,6 +24,7 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/Fault.php';
 require_once 'SOAP/Parser.php';
 require_once 'SOAP/Value.php';
+require_once 'SOAP/WSDL.php';
 
 $soap_server_fault = NULL;
 function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
@@ -81,10 +82,21 @@ class SOAP_Server extends SOAP_Base
     
     var $service = ''; //soapaction header
     var $method_namespace = NULL;
+    var $__options = array('use'=>'encoded','style'=>'rpc','parameters'=>0);
     
-    function SOAP_Server() {
+    function SOAP_Server($options=NULL) {
         ini_set('track_errors',1);
         parent::SOAP_Base('Server');
+        if (is_array($options)) {
+            if (isset($options['use']))
+                $this->__options['use'] = $options['use'];
+            if (isset($options['style']))
+                $this->__options['style'] = $options['style'];
+            if (isset($options['parameters']))
+                $this->__options['parameters'] = $options['parameters'];
+        }
+        $this->_section5 = TRUE; // assume we encode with section 5
+        if ($this->__options['use']=='literal') $this->_section5 = FALSE;
     }
     
     function _getContentEncoding($content_type)
@@ -320,6 +332,57 @@ class SOAP_Server extends SOAP_Base
 
         // figure out the method_namespace
         $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
+        
+        if ($this->_wsdl) {
+            $this->_setSchemaVersion($this->_wsdl->xsd);
+
+            // see if we have an element by this name
+            if (isset($this->_wsdl->ns[$this->method_namespace])) {
+                $nsp = $this->_wsdl->ns[$this->method_namespace];
+                #if (!isset($this->_wsdl->elements[$nsp]))
+                #    $nsp = $this->_wsdl->namespaces[$nsp];
+                if (isset($this->_wsdl->elements[$nsp][$this->methodname])) {
+                    $checkmessages = array();
+                    // find what messages use this datatype
+                    foreach ($this->_wsdl->messages as $messagename=>$message) {
+                        foreach ($message as $partname=>$part) {
+                            if ($part['type']==$this->methodname) {
+                                $checkmessages[] = $messagename;
+                                break;
+                            }
+                        }
+                    }
+                    // find the operation that uses this message
+                    $dataHandler = NULL;
+                    foreach($this->_wsdl->portTypes as $portname=>$porttype) {
+                        foreach ($porttype as $opname=>$opinfo) {
+                            foreach ($checkmessages as $messagename) {
+                                if ($opinfo['input']['message'] == $messagename) {
+                                    $dataHandler = $opname;
+                                    break;
+                                }
+                            }
+                            if ($dataHandler) break;
+                        }
+                        if ($dataHandler) break;
+                    }
+                    $this->methodname = $dataHandler;
+                }
+            }
+            
+            $this->_portName = $this->_wsdl->getPortName($this->methodname);
+            if (PEAR::isError($this->_portName)) {
+                return $this->_raiseSoapFault($this->_portName);
+            }
+            $opData = $this->_wsdl->getOperationData($this->_portName, $this->methodname);
+            if (PEAR::isError($opData)) {
+                return $this->_raiseSoapFault($opData);
+            }
+            $this->__options['style'] = $opData['style'];
+            $this->__options['use'] = $opData['output']['use'];
+            $this->__options['parameters'] = $opData['parameters'];
+        }
+
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname,$this->method_namespace)) {
             $this->_raiseSoapFault("method '\{$this->method_namespace\}$this->methodname' not defined in service",'','','Server');
@@ -342,25 +405,73 @@ class SOAP_Server extends SOAP_Base
         
         // need to set special error detection inside the value class
         // so as to differentiate between no params passed, and an error decoding
-        $request_data = $this->_decode($request_val);
-
+        $request_data = $this->__decodeRequest($request_val);
+        if (PEAR::isError($request_data)) {
+            return $this->_raiseSoapFault($request_data);
+        }
         $method_response = $this->callMethod($this->methodname, $request_data);
 
         if (PEAR::isError($method_response)) {
             return $method_response->message();
         }
         
-        // get the method result
-        if (is_null($method_response))
-            $return_val = NULL;
-        else
-            $return_val = $this->buildResult($method_response, $this->return_type);
-        
-        $qn = new QName($this->methodname.'Response',$this->method_namespace);
-        $methodValue = new SOAP_Value($qn->fqn(), 'Struct', $return_val);
+        if ($this->__options['parameters'] || !$method_response || $this->__options['style']=='rpc') {
+            // get the method result
+            if (is_null($method_response))
+                $return_val = NULL;
+            else
+                $return_val = $this->buildResult($method_response, $this->return_type);
+            
+            $qn = new QName($this->methodname.'Response',$this->method_namespace);
+            $methodValue = new SOAP_Value($qn->fqn(), 'Struct', $return_val);
+        } else {
+            $methodValue =& $method_response; 
+        }
         return $this->_makeEnvelope($methodValue, $header_results, $this->response_encoding);
     }
-    
+
+    function &__decodeRequest($request,$shift=false) 
+    {
+        if (!$request) return NULL;
+        // check for valid response
+        if (PEAR::isError($request)) {
+            return $this->_raiseSoapFault($request);
+        } else if (!is_a($request,'soap_value')) {
+            return $this->_raiseSoapFault("Invalid data in server::__decodeRequest");
+        }
+
+        // decode to native php datatype
+        $requestArray = $this->_decode($request);
+        // fault?
+        if (PEAR::isError($requestArray)) {
+            return $this->_raiseSoapFault($requestArray);
+        }
+        if (is_object($requestArray)&& get_class($requestArray) == 'stdClass') {
+                $requestArray = get_object_vars($requestArray);
+        } else
+        if ($this->__options['style']=='document') {
+            $requestArray = array($requestArray);
+        }
+        if (is_array($requestArray)) {
+            if (isset($requestArray['faultcode']) || isset($requestArray['SOAP-ENV:faultcode'])) {
+                $faultcode = $faultstring = $faultdetail = $faultactor = '';
+                foreach ($requestArray as $k => $v) {
+                    if (stristr($k,'faultcode')) $faultcode = $v;
+                    if (stristr($k,'faultstring')) $faultstring = $v;
+                    if (stristr($k,'detail')) $faultdetail = $v;
+                    if (stristr($k,'faultactor')) $faultactor = $v;
+                }
+                return $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+            }
+            // return array of return values
+            if ($shift && count($requestArray) == 1) {
+                return array_shift($requestArray);
+            }
+            return $requestArray;
+        }
+        return $requestArray;
+    }
+
     function verifyMethod($request)
     {
         //return true;
@@ -420,7 +531,7 @@ class SOAP_Server extends SOAP_Base
         // we'll try it anyway
         return true;
     }
-    
+
     // get string return type from dispatch map
     function getReturnType($returndata)
     {
@@ -494,6 +605,14 @@ class SOAP_Server extends SOAP_Base
         $this->dispatch_map[$methodname]['out'] = $out;
         if ($namespace) $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
+    }
+    
+    function bind($wsdlurl) {
+        // instantiate wsdl class
+        $this->_wsdl = new SOAP_WSDL($wsdlurl);
+        if ($this->_wsdl->fault) {
+            $this->_raiseSoapFault($this->_wsdl->fault);
+        }
     }
 }
 

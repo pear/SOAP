@@ -417,6 +417,7 @@ class SOAP_Base extends PEAR
         } else if (strcasecmp($ptype,'Array')==0 || strcasecmp($type,'Array')==0) {
             // array
             $typeNamespace = SOAP_SCHEMA_ENCODING;
+            $orig_type = $type;
             $type = 'Array';
             $numtypes = 0;
             // XXX this will be slow on larger array's.  Basicly, it flattens array's to allow us
@@ -448,7 +449,7 @@ class SOAP_Base extends PEAR
                         $xmlout_value .= $this->_serializeValue($array_val,'item', $array_type, $this->_section5?NULL:$elNamespace);
                     }
                 }
-
+                
                 $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
                 if (!$arrayType) {
                     $numtypes = count($array_types);
@@ -557,7 +558,25 @@ class SOAP_Base extends PEAR
             break;
         case 'array':
             // XXX hashes always get done as structs by pear::soap
-            $type = $this->_isHash($value)?'Struct':'Array';
+            if ($this->_isHash($value)) {
+                $type = 'Struct';
+            } else {
+                $ar_size = count($value);
+                if ($ar_size > 0 && is_a($value[0],'soap_value')) {
+                    // fixme for non-wsdl structs that are all teh same type
+                    if ($ar_size > 1 &&
+                        $this->_isSoapValue($value[0]) &&
+                        $this->_isSoapValue($value[1]) &&
+                        $value[0]->name != $value[1]->name) {
+                        // this is a struct, not an array
+                        $type = 'Struct';
+                    } else {
+                        $type = 'Array';
+                    }
+                } else {
+                    $type = 'Array';
+                }
+            }
             break;
         case 'integer':
         case 'long':
@@ -732,7 +751,7 @@ class SOAP_Base extends PEAR
                         }
                     } else if (isset($return->{$item->name})) {
                         $isstruct = FALSE;
-                        if (count(get_class_vars($return)) == 1) {
+                        if (count(get_object_vars($return)) == 1) {
                             $return = array($return->{$item->name}, $this->_decode($item));
                         } else {
                             $return->{$item->name} = array($return->{$item->name}, $this->_decode($item));
@@ -747,6 +766,9 @@ class SOAP_Base extends PEAR
                         }
                     }
                 } else {
+                    if ($soapval->arrayType && $this->_isSoapValue($item)) {
+                        $item->type = $soapval->arrayType;
+                    }
                     if (!$isstruct) {
                         $return[] = $this->_decode($item);
                     } else if (isset($return[$item->name])) {
