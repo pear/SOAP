@@ -322,7 +322,7 @@ class SOAP_Client extends SOAP_Base
      * @return boolean
      * @access public
      */
-    function &__call($method, &$args, &$return_value)
+    function &__call($method, &$args, &$return_value = null)
     {
         // XXX overloading lowercases the method name, we
         // need to look into the wsdl and try to find
