@@ -51,7 +51,7 @@ define('SOAP_DEBUG', false);
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
-    die('requires PHP 4.1 or higher\n');
+    die("requires PHP 4.1 or higher\n");
 }
 if (version_compare(phpversion(), '4.1', '>=') &&
     version_compare(phpversion(), '4.2', '<')) {
