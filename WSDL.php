@@ -607,12 +607,6 @@ class SOAP_WSDL extends SOAP_Base
             if (!$this->_validateString($opname_php)) {
                 return null;
             }
-            if (!$this->_validateString($namespace)) {
-                return null;
-            }
-            if (!(is_null($soapaction) || $this->_validateString($soapaction))) {
-                return null;
-            }
 
             if ($argarray) {
                 $argarray = "array($argarray)";
@@ -667,6 +661,7 @@ class SOAP_WSDL extends SOAP_Base
         $classname = preg_replace('/[ .\-\(\)]+/', '_', $classname);
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port, $classname);
+            require_once 'SOAP/Client.php';
             eval($proxy);
         }
 
