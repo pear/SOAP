@@ -68,6 +68,8 @@
         imported via &lt;wsdl:import&gt;.
 
       - Allow overriding the name of the class used for WSDL parsing.
+
+      - Never try to redefine SOAP_Client_Overload.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

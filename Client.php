@@ -34,27 +34,30 @@ require_once 'SOAP/Parser.php';
 // NOTE: Overload SEGFAULTS ON PHP4 + Zend Optimizer
 // these two are BC/FC handlers for call in PHP4/5
 
-if (substr(phpversion(), 0, 1) == 5) {
-    class SOAP_Client_Overload extends SOAP_Base
-    {
-        function __call($method, $args)
+if (!class_exists('SOAP_Client_Overload')) {
+    if (substr(phpversion(), 0, 1) == 5) {
+        class SOAP_Client_Overload extends SOAP_Base
         {
-            $return = null;
-            $this->_call($method, $args, $return);
-            return $return;
-        }
-    }
-} else {
-    if (!function_exists('clone')) {
-        eval('function clone($t) { return $t; }');
-    }
-    eval('
-        class SOAP_Client_Overload extends SOAP_Base {
-            function __call($method, $args, &$return) {
-                return $this->_call($method, $args, $return);
+            function __call($method, $args)
+            {
+                $return = null;
+                $this->_call($method, $args, $return);
+                return $return;
             }
         }
-    ');
+    } else {
+        if (!function_exists('clone')) {
+            eval('function clone($t) { return $t; }');
+        }
+        eval('
+            class SOAP_Client_Overload extends SOAP_Base
+            {
+                function __call($method, $args, &$return)
+                {
+                    return $this->_call($method, $args, $return);
+                }
+            }');
+    }
 }
 
 /**
