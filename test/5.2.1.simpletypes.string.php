@@ -25,7 +25,7 @@ if (string_compare($expect, $val)) {
 
 # serialize a soap value
 $expect = '<inputString xsi:type="xsd:string">hello world</inputString>';
-$v =  new SOAP_Value("inputString","string","hello world");
+$v = new SOAP_Value("inputString","string","hello world");
 $val = $v->serialize($soap_base);
 if (string_compare($expect, $val)) {
     print "$prefix Serialize Type OK\n";
@@ -43,7 +43,7 @@ if (string_compare($expect, $val)) {
 
 # serialize a soap value with unknown type
 $expect = '<inputString xsi:type="xsd:string">hello world</inputString>';
-$v =  new SOAP_Value("inputString","","hello world");
+$v = new SOAP_Value("inputString","","hello world");
 $val = $v->serialize($soap_base);
 if (string_compare($expect, $val)) {
     print "$prefix Serialize Unknown Type OK\n";

@@ -32,6 +32,9 @@ function boolean_compare($f1, $f2)
 
 function string_compare($e1, $e2)
 {
+    $e1 = trim(str_replace(array("\r", "\n"), '', $e1));
+    $e2 = trim(str_replace(array("\r", "\n"), '', $e2));
+
     if (is_numeric($e1) && is_numeric($e2)) {
         return number_compare($e1, $e2);
     }
@@ -43,7 +46,7 @@ function string_compare($e1, $e2)
         $dt = new SOAP_Type_dateTime();
         $ok = $dt->compare($e1, $e2) == 0;
     }
-    return $ok || $e1 == $e2 || strcasecmp(trim($e1), trim($e2)) == 0;
+    return $ok || $e1 == $e2 || strcasecmp($e1, $e2) == 0;
 }
 
 function array_compare(&$ar1, &$ar2)

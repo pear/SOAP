@@ -1,4 +1,5 @@
 <?php
+
 require_once("SOAP/Base.php");
 require_once("SOAP/test/test.utility.php");
 require_once("SOAP/Fault.php");
@@ -28,7 +29,7 @@ if (array_compare($expect, $val)) {
     print "$prefix Deserialize Message FAILED extected $expect, got $val\n";
 }
 
-# parse null value
+// parse null value
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
 
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -44,7 +45,7 @@ if ($val == NULL) {
     print "$prefix Deserialize Message with NULL value FAILED\n";
 }
 
-# serialize a soap value
+// serialize a soap value
 $expect = '<inputStruct>
 <age xsi:type="xsd:int">45</age>
 <height xsi:type="xsd:float">5.9</height>
@@ -52,21 +53,21 @@ $expect = '<inputStruct>
 <color xsi:type="xsd:string">Blue</color>
 </inputStruct>
 ';
-$v =  new SOAP_Value("inputStruct","Struct",array(
-        new SOAP_Value("age","int",45),
-        new SOAP_Value("height","float",5.9),
-        new SOAP_Value("displacement","negativeInteger",-450),
-        new SOAP_Value("color","string","Blue")
-        ));
+$v = new SOAP_Value('inputStruct', 'Struct', array(
+         new SOAP_Value('age', 'int', 45),
+         new SOAP_Value('height', 'float', 5.9),
+         new SOAP_Value('displacement', 'negativeInteger', -450),
+         new SOAP_Value('color', 'string', 'Blue')
+         ));
 
 $val = $v->serialize($soap_base);
-if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val))) {
+if (string_compare($expect, $val)) {
     print "$prefix Serialize Type OK\n";
 } else {
     print "$prefix Serialize Type FAILED\n[$val]\n[$expect]\n";
 }
 
-# deserialize a soap value
+// deserialize a soap value
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
 $val = $soap_base->_decode($v);
 if (string_compare($expect, $val)) {
@@ -75,7 +76,7 @@ if (string_compare($expect, $val)) {
     print "$prefix Deserialize known SOAP_Value FAILED\n";
 }
 
-# serialize a soap value with unknown type
+// serialize a soap value with unknown type
 $expect = '<inputString>
 <age xsi:type="xsd:int">45</age>
 <height xsi:type="xsd:float">5.9</height>
@@ -83,15 +84,15 @@ $expect = '<inputString>
 <color xsi:type="xsd:string">Blue</color>
 </inputString>
 ';
-$v =  new SOAP_Value("inputString","Struct",array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue'));
+$v = new SOAP_Value("inputString","Struct",array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue'));
 $val = $v->serialize($soap_base);
-if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val))) {
+if (string_compare($expect, $val)) {
     print "$prefix Serialize Unknown Type OK\n";
 } else {
     print "$prefix Serialize Unknown Type FAILED\n[$val]\n[$expect]\n";
 }
 
-# serialize a soap value with unknown type
+// serialize a soap value with unknown type
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
 $val = $soap_base->_decode($v);
 if (array_compare($expect, $val)) {
@@ -99,4 +100,3 @@ if (array_compare($expect, $val)) {
 } else {
     print "$prefix Deserialize Unknown SOAP_Value FAILED\n";
 }
-?>
