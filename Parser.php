@@ -63,6 +63,12 @@ class SOAP_Parser extends SOAP_Base
     var $XMLSchemaVersion;
     var $bodyDepth; // used to handle non-root elements before root body element
     
+    /**
+     * SOAP_Parser constructor
+     *
+     * @param string xml content
+     * @param string xml character encoding, defaults to 'UTF-8'
+     */
     function SOAP_Parser($xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         parent::SOAP_Base('Parser');
@@ -107,6 +113,13 @@ class SOAP_Parser extends SOAP_Base
         }
     }
     
+    /**
+     * setSchemaVersion
+     * sets the schema for the resulting message
+     *
+     * @param string schema version
+     * @access private
+     */
     function setSchemaVersion($schemaVersion)
     {
         global $SOAP_namespaces;
@@ -117,7 +130,12 @@ class SOAP_Parser extends SOAP_Base
         $SOAP_namespaces = array_flip($tmpNS);
     }
     
-    // recurse to build a multi-dim array
+    /**
+     * domulti
+     * recurse to build a multi-dim array, used by buildResponse
+     *
+     * @access private
+     */
     function domulti($d, &$ar, &$r, &$v, $ad=0)
     {
         if ($d) {
@@ -127,7 +145,14 @@ class SOAP_Parser extends SOAP_Base
         }
     }
     
-    // loop through msg, building response structures
+    /**
+     * buildResponse
+     * loop through msg, building response structures
+     *
+     * @param int position
+     * @return SOAP_Value 
+     * @access private
+     */
     function buildResponse($pos)
     {
         $response = NULL;
@@ -187,7 +212,12 @@ class SOAP_Parser extends SOAP_Base
         return $response;
     }
     
-    // start-element handler
+    /**
+     * startElement
+     * start-element handler used with xml parser
+     *
+     * @access private
+     */
     function startElement($parser, $name, $attrs)
     {
         global $SOAP_XMLSchema;
@@ -340,7 +370,12 @@ class SOAP_Parser extends SOAP_Base
         }
     }
     
-    // end-element handler
+    /**
+     * endElement
+     * end-element handler used with xml parser
+     *
+     * @access private
+     */
     function endElement($parser, $name)
     {
         // position of current element is equal to the last value left in depth_array for my depth
@@ -400,14 +435,27 @@ class SOAP_Parser extends SOAP_Base
         }
     }
     
-    // element content handler
+    /**
+     * characterData
+     * element content handler used with xml parser
+     *
+     * @access private
+     */
     function characterData($parser, $data)
     {
         $pos = $this->depth_array[$this->depth];
         $this->message[$pos]['cdata'] .= $data;
     }
     
-    // have this return a soap_val object
+    /**
+     * getResponse
+     *
+     * returns an array of responses
+     * after parsing a soap message, use this to get the response
+     *
+     * @return   array 
+     * @access public
+     */
     function getResponse()
     {
         if ($this->soapresponse) {
@@ -416,7 +464,15 @@ class SOAP_Parser extends SOAP_Base
         return $this->raiseSoapFault("couldn't build response");
     }
 
-    // have this return a soap_val object
+    /**
+     * getHeaders
+     *
+     * returns an array of header responses
+     * after parsing a soap message, use this to get the response
+     *
+     * @return   array 
+     * @access public
+     */
     function getHeaders()
     {
         if ($this->soapheaders) {
@@ -427,6 +483,15 @@ class SOAP_Parser extends SOAP_Base
         return NULL;
     }
     
+    /**
+     * decodeEntities
+     *
+     * removes entities from text
+     *
+     * @param string
+     * @return   string 
+     * @access private
+     */
     function decodeEntities($text)
     {
         $trans_tbl = array_flip($this->entities);

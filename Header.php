@@ -24,31 +24,34 @@ require_once 'SOAP/globals.php';
 require_once 'SOAP/Value.php';
 
 /**
-*  SOAP::Value
-* this class converts values between PHP and SOAP
-*
-* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
-*
-* @access public
-* @version $Id$
-* @package SOAP::Client
-* @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author Dietrich Ayala <dietrich@ganx4.com> Original Author
-*/
+ *  SOAP::Header
+ * this class converts values between PHP and SOAP
+ * it is a simple wrapper around SOAP_Value, adding support for
+ * soap actor and mustunderstand parameters
+ *
+ * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ *
+ * @access public
+ * @version $Id$
+ * @package SOAP::Client
+ * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+ */
 class SOAP_Header extends SOAP_Value
 {
     var $actor = NULL;
     var $mustunderstand = 0;
 
     /**
-    *
-    *
-    * @param    string  name of the soap-value <value_name>
-    * @param    mixed   soap header value
-    * @param    int namespace
-    * @param    mixed actor
-    * @param    mixed wsdl
-    */
+     * Constructor
+     *
+     * @param    string  name of the soap-value <value_name>
+     * @param    mixed   soap header value
+     * @param    string namespace
+     * @param    int mustunderstand (zero or one)
+     * @param    string actor
+     * @param    SOAP_WSDL wsdl
+     */
     function SOAP_Header($name = '', $type, $value = NULL, $namespace = NULL,
                          $mustunderstand = 0,
                          $actor = 'http://schemas.xmlsoap.org/soap/actor/next',

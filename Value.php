@@ -173,13 +173,14 @@ class SOAP_Value extends SOAP_Base
     }
     
     /**
-    *
-    *
-    * @param    
-    * @param    
-    * @param
-    * @return   boolean
-    */
+     *
+     *
+     * @param    
+     * @param    
+     * @param
+     * @return   boolean
+     * @access private
+     */
     function addScalar($value, $type, $name = '')
     {
         if ($type == 'string') {

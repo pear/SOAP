@@ -20,18 +20,18 @@
 // $Id$
 //
 
-/**
-* Common base class of all Soap lclasses
-* 
-* @version  $Id$
-* @package  SOAP::Client
-* @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
-* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
-*/
-
 require_once 'PEAR.php';
 #require_once 'SOAP/Fault.php';
 
+/**
+*  SOAP_Base
+* Common base class of all Soap lclasses
+*
+* @access   public
+* @version  $Id$
+* @package  SOAP::Client
+* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+*/
 class SOAP_Base extends PEAR
 {
     
@@ -68,7 +68,7 @@ class SOAP_Base extends PEAR
     
     
     /**
-    * ???
+    * Constructor
     *
     * @param    string  error code 
     * @see  $debug_data, debug()
@@ -129,6 +129,15 @@ class SOAP_Base extends PEAR
     
 }
 
+/**
+*  QName
+* class used to handle QNAME values in XML
+*
+* @access   public
+* @version  $Id$
+* @package  SOAP::Client
+* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+*/
 class QName
 {
     var $name = '';

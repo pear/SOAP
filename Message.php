@@ -27,25 +27,25 @@ require_once 'SOAP/Value.php';
 require_once 'SOAP/Header.php';
 
 /**
-*  SOAP Message Class
-* this class serializes and deserializes soap messages for transport (see SOAP::Transport)
-*
-* originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Message
-* @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
-* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
-*/
+ *  SOAP Message Class
+ * this class serializes and deserializes soap messages for transport (see SOAP::Transport)
+ *
+ * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ *
+ * @access   public
+ * @version  $Id$
+ * @package  SOAP::Message
+ * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
+ */
 class SOAP_Message extends SOAP_Base
 {
     
     /**
-    * XML payload
-    *
-    * @var  string
-    */
+     * XML payload
+     *
+     * @var  string
+     */
     var $payload = '';
     
     /**
@@ -56,26 +56,26 @@ class SOAP_Message extends SOAP_Base
     var $namespaces;
     
     /**
-    * SOAP value
-    * 
-    * @var  object  SOAP_value
-    */
+     * SOAP value
+     * 
+     * @var  object  SOAP_value
+     */
     var $value = '';
     
     var $headers = array();
     
     /**
-    * SOAP::Message constructor
-    *
-    * initializes a soap structure containing the method signature and parameters
-    *
-    * @param string $method                     soap data (in xml)
-    * @param array(SOAP::Value) $params         soap data (in xml)
-    * @param string $method_namespace           soap data (in xml)
-    * @param array of string $new_namespaces    soap data (in xml)
-    *
-    * @access public
-    */
+     * SOAP::Message constructor
+     *
+     * initializes a soap structure containing the method signature and parameters
+     *
+     * @param string $method                     soap data (in xml)
+     * @param array(SOAP::Value) $params         soap data (in xml)
+     * @param string $method_namespace           soap data (in xml)
+     * @param array of string $new_namespaces    soap data (in xml)
+     *
+     * @access public
+     */
     function SOAP_Message($new_namespaces = NULL, $wsdl = NULL)
     {
         parent::SOAP_Base('Message');
@@ -90,11 +90,31 @@ class SOAP_Message extends SOAP_Base
         }
     }
 
+    /**
+     * addHeader
+     *
+     * adds a new header to the envelope
+     *
+     * @param SOAP_Header $soap_value
+     *
+     * @access public
+     */
     function addHeader($soap_value)
     {
 	$this->headers[] = $soap_value;
     }
     
+    /**
+     * method
+     *
+     * adds the method call to the soap envelope
+     *
+     * @param string $method_name
+     * @param mixed $params
+     * @param string $method_namespace (defaults to NULL)
+     *
+     * @access public
+     */
     function method($method, $params, $method_namespace = NULL)
     {
         // make method struct
@@ -102,12 +122,12 @@ class SOAP_Message extends SOAP_Base
     }
     
     /**
-    * wraps the soap payload with the soap envelop data
-    *
-    * @param string $payload       soap data (in xml)
-    * @return string xml_soap_data
-    * @access private
-    */
+     * wraps the soap payload with the soap envelop data
+     *
+     * @param string $payload       soap data (in xml)
+     * @return string xml_soap_data
+     * @access private
+     */
     function _makeEnvelope($header, $body, $encoding)
     {
         global $SOAP_namespaces;
@@ -121,13 +141,13 @@ class SOAP_Message extends SOAP_Base
     }
 
     /**
-    * wraps the soap Header
-    *
-    * @param string $payload       soap data (in xml)
-    *
-    * @return string xml_soap_data
-    * @access private
-    */
+     * wraps the soap Header
+     *
+     * @param string $payload       soap data (in xml)
+     *
+     * @return string xml_soap_data
+     * @access private
+     */
     function _makeHeader()
     {
 	$payload = '';
@@ -139,23 +159,24 @@ class SOAP_Message extends SOAP_Base
     }
     
     /**
-    * wraps the soap body
-    *
-    * @param string $payload       soap data (in xml)
-    *
-    * @return string xml_soap_data
-    * @access private
-    */
+     * wraps the soap body
+     *
+     * @param string $payload       soap data (in xml)
+     *
+     * @return string xml_soap_data
+     * @access private
+     */
     function _makeBody($payload)
     {
         return "<SOAP-ENV:Body>\r\n$payload\r\n</SOAP-ENV:Body>\r\n";
     }
     
     /**
-    * creates an xml string representation of the soap message data
-    *
-    * @access private
-    */
+     * creates an xml string representation of the soap message data
+     *
+     * @param string $encoding       character encoding for the message
+     * @access private
+     */
     function _createPayload($encoding)
     {
 	$body = $this->value?$this->_makeBody($this->value->serialize()):NULL;
@@ -164,11 +185,12 @@ class SOAP_Message extends SOAP_Base
     }
     
     /**
-    * serializes this classes data into xml
-    *
-    * @return string xml_soap_data
-    * @access public
-    */
+     * serializes this classes data into xml
+     *
+     * @param string character encoding for the message
+     * @return string xml_soap_data
+     * @access public
+     */
     function serialize($encoding = SOAP_DEFAULT_ENCODING)
     {
         if ($this->payload == '') {
@@ -179,13 +201,13 @@ class SOAP_Message extends SOAP_Base
     }
     
     /**
-    * parses a soap message
-    *
-    * @param string $data       soap message (in xml)
-    *
-    * @return SOAP::Value
-    * @access public
-    */
+     * parses a soap message
+     *
+     * @param string $data       soap message (in xml)
+     *
+     * @return SOAP::Value
+     * @access public
+     */
     function parseResponse($data)
     {
         // parse response

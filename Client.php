@@ -64,7 +64,9 @@ class SOAP_Client extends SOAP_Base
     var $endpoint = '';
     
     /**
-    * 
+    * portname
+    *
+    * @var string contains the SOAP PORT name that is used by the client
     */
     var $portName = '';
     
@@ -83,10 +85,25 @@ class SOAP_Client extends SOAP_Base
     */
     var $wsdl = NULL;
     
+    /**
+    * wire
+    *
+    * @var  string  contains outoing and incoming data stream for debugging.
+    */
     var $wire = NULL;
     
+    /**
+    * soapmsg
+    *
+    * @var  SOAP_Message  The soap message class that is used for outgoing calls.
+    */
     var $soapmsg = NULL;
     
+    /**
+    * encoding
+    *
+    * @var  string  Contains the character encoding used for XML parser, etc.
+    */
     var $encoding = SOAP_DEFAULT_ENCODING;
     /**
     * SOAP_Client constructor
@@ -113,6 +130,16 @@ class SOAP_Client extends SOAP_Base
         }
     }
     
+    /**
+    * setEncoding
+    *
+    * set the character encoding, limited to 'UTF-8', 'US_ASCII' and 'ISO-8859-1'
+    *
+    * @param string encoding
+    *
+    * @return mixed returns NULL or SOAP_Fault
+    * @access public
+    */
     function setEncoding($encoding)
     {
         global $SOAP_Encodings;
@@ -123,6 +150,16 @@ class SOAP_Client extends SOAP_Base
         return $this->raiseSoapFault('Invalid Encoding');
     }
     
+    /**
+    * addHeader
+    *
+    * To add headers to the envelop, you use this function, sending it a
+    * SOAP_Header class instance.
+    *
+    * @param SOAP_Header a soap value to send as a header
+    *
+    * @access public
+    */
     function addHeader($soap_value)
     {
         if (!$this->soapmsg) {
@@ -152,16 +189,19 @@ class SOAP_Client extends SOAP_Base
     * to provide backwards compatibility with current clients, but
     * may be removed in the future.
     *
-    * OLD parameters
-    * @param string method
-    * @param array  params
-    * @param string namespace  (not required if using wsdl)
-    * @param string soapAction   (not required if using wsdl)
-    *
-    * NEW parameters
     * @param string method
     * @param array  params
     * @param array options (hash with namespace, soapaction, timeout, from, subject, etc.)
+    *
+    * The options parameter can have a variety of values added.  The currently supported
+    * values are:
+    *   namespace
+    *   soapaction
+    *   timeout (http socket timeout)
+    *   from (smtp)
+    *   transfer-encoding (smtp, sets the Content-Transfer-Encoding header)
+    *   subject (smtp, subject header)
+    *   headers (smtp, array-hash of extra smtp headers)
     *
     * @return array of results
     * @access public
@@ -324,6 +364,15 @@ class SOAP_Client extends SOAP_Base
         return $returnArray;
     }
 
+    /**
+    * setSchemaVersion
+    *
+    * sets the schema version used in the soap message
+    *
+    * @param string (see globals.php)
+    *
+    * @access private
+    */
     function setSchemaVersion($schemaVersion)
     {
         global $SOAP_namespaces;

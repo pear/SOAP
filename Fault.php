@@ -23,26 +23,28 @@ require_once('PEAR.php');
 require_once('SOAP/Message.php');
 
 /**
-* define('SOAP_DEBUG', false);
-*
-* @package  SOAP
-* @access   public
-* @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
-* @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
-* @version  $Id$
-*/
+ * SOAP_Fault
+ * PEAR::Error wrapper used to match SOAP Faults to PEAR Errors
+ *
+ * @package  SOAP
+ * @access   public
+ * @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
+ * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
+ * @version  $Id$
+ */
 class SOAP_Fault extends PEAR_Error
 {
     
     /**
-    *
-    * 
-    * @param    string 
-    * @param    mixed
-    * @param    mixed
-    * @param    mixed
-    * @param    mixed
-    */
+     * Constructor
+     * 
+     * @param    string  message string for fault
+     * @param    mixed   the faultcode
+     * @param    mixed   see PEAR::ERROR 
+     * @param    mixed   see PEAR::ERROR 
+     * @param    array   the userinfo array is used to pass in the
+     *                   SOAP actor and detail for the fault
+     */
     function SOAP_Fault($message = 'unknown error', $code = null, $mode = null, $options = null, $userinfo = null)
     {
     
@@ -58,26 +60,37 @@ class SOAP_Fault extends PEAR_Error
         
     }
     
-    // set up a fault
+    /**
+     * message
+     *
+     * returns a SOAP_Message class that can be sent as a server response
+     *
+     * @return SOAP_Message 
+     * @access public
+     */
     function message()
     {
         $msg = new SOAP_Message();
         $msg->method('Fault',
-                                    array(
-                                        new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code),
-                                        #'faultcode' => $this->code,
-                                        new SOAP_Value('faultstring', 'string', $this->message),
-                                        #'faultstring' => $this->message,
-                                        new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix),
-                                        #'faultactor' => $this->error_message_prefix,
-                                        new SOAP_Value('detail', 'string', $this->userinfo)
-                                        #'faultdetail' => $this->userinfo
-                                    ),
-                                    SOAP_ENVELOP
-                                );
+                array(
+                    new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code),
+                    new SOAP_Value('faultstring', 'string', $this->message),
+                    new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix),
+                    new SOAP_Value('detail', 'string', $this->userinfo)
+                ),
+                SOAP_ENVELOP
+            );
         return $msg;
     }
     
+    /**
+     * getFault
+     *
+     * returns a simple native php array containing the fault data
+     *
+     * @return array 
+     * @access public
+     */
     function getFault()
     {
         return array(
@@ -88,11 +101,27 @@ class SOAP_Fault extends PEAR_Error
             );
     }
     
+    /**
+     * getActor
+     *
+     * returns the SOAP actor for the fault
+     *
+     * @return string 
+     * @access public
+     */
     function getActor()
     {
         return $this->error_message_prefix;
     }
     
+    /**
+     * getDetail
+     *
+     * returns the fault detail
+     *
+     * @return string 
+     * @access public
+     */
     function getDetail()
     {
         return $this->userinfo;
