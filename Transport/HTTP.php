@@ -134,16 +134,14 @@ class SOAP_Transport_HTTP extends SOAP_Base_Object
     /**
      * send and receive soap data
      *
-     * @param string &$msg       outgoing post data
-     * @param string $action      SOAP Action header data
-     * @param int    $timeout  socket timeout, default 0 or off
+     * @param string outgoing post data
+     * @param array  options
      *
      * @return string|fault response
      * @access public
      */
-    function &send(&$msg,  /*array*/ $options = NULL)
+    function &send(&$msg, $options = null)
     {
-        $this->headers = array();
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
