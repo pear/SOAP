@@ -26,15 +26,15 @@
   <release>
     <state>beta</state>
     <version>0.7.5</version>
-    <date>2003-07-15</date>
+    <date>2003-07-21</date>
     <notes>
-      * Left out old 0.7.3 version number in 0.7.4
       * http protocol was not recognised in WSDL.php (Michele Manzato, Freddy Vulto)
       * optional parameters to specify cache use and liftime in WDSL
         (suggested by Michele Manzato). Constants are kept for Backward Compatibility
       * Error handling in Server::callMethod (patch by Pavel Marenyuk)
       * Conformance to standard, removing the trailing slash for HTTP binding
       (many people reported this)
+      * Left out old 0.7.3 version number in 0.7.4
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
