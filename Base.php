@@ -77,8 +77,8 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 define('INF',   1.8e307);
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_VERSION', '0.7.5');
-define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.7.5-devel');
+define('SOAP_LIBRARY_VERSION', '0.8.0RC2');
+define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.8.0RC2-devel');
 
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
@@ -106,8 +106,8 @@ if (!function_exists('is_a'))
 {
    function is_a(&$object, $class_name)
    {
-      if (get_class($object) == $class_name) return TRUE;
-      else return is_subclass_of($object, $class_name);
+       if (strtolower(get_class($object)) == $class_name) return TRUE;
+       else return is_subclass_of($object, $class_name);
    }
 }
 
@@ -392,9 +392,7 @@ class SOAP_Base extends SOAP_Base_Object
 
     function _isSoapValue(&$value)
     {
-        return is_object($value) &&
-                (get_class($value) == 'soap_value' ||
-                is_subclass_of($value,'soap_value'));
+        return is_object($value) && is_a($value,'soap_value');
     }
 
     function _serializeValue(&$value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array(), $artype='')
@@ -598,7 +596,7 @@ class SOAP_Base extends SOAP_Base_Object
                 $type = 'Struct';
             } else {
                 $ar_size = count($value);
-                if ($ar_size > 0 && isset($value[0]) && is_a($value[0],'soap_value')) {
+                if ($ar_size > 0 && is_a($value[0],'soap_value')) {
                     // fixme for non-wsdl structs that are all teh same type
                     if ($ar_size > 1 &&
                         $this->_isSoapValue($value[0]) &&
@@ -732,7 +730,6 @@ class SOAP_Base extends SOAP_Base_Object
     function &_decode(&$soapval)
     {
         global $SOAP_OBJECT_STRUCT;
-
         if (!$this->_isSoapValue($soapval)) {
             return $soapval;
         } else if (is_array($soapval->value)) {
