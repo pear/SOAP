@@ -491,7 +491,7 @@ class SOAP_Base extends SOAP_Base_Object
                     if (!$arrayType) $arrayType = $array_type;
                 }
             }
-            if (!isset($arrayType) || $numtypes > 1) {
+            if (!$arrayType || $numtypes > 1) {
                 $arrayType = 'xsd:anyType'; // should reference what schema we're using
             } else {
                 if ($array_type_ns) {
