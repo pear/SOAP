@@ -44,7 +44,7 @@ class SOAP_Example_Server {
      */
     var $dispatch_map = array();
 
-    function SOAP_Interop_GroupB() {
+    function SOAP_Example_Server() {
         // the one function here has multiple out parameters
 	$this->dispatch_map['echoStructAsSimpleTypes'] =
 		array('in' => array('inputStruct' => 'SOAPStruct'),
@@ -62,6 +62,11 @@ class SOAP_Example_Server {
     function echoString($inputString)
     {
 	return new SOAP_Value('outputString','string',$inputString);
+    }
+
+    function echoStruct($inputStruct)
+    {
+	return new SOAP_Value('outputStruct','',$inputStruct);
     }
     
     /**
@@ -81,9 +86,9 @@ class SOAP_Example_Server {
     {
 	# convert a SOAPStruct to an array
 	return array(
-	    new SOAP_Value('outputString','string',$struct['varString']),
-	    new SOAP_Value('outputInteger','int',$struct['varInt']),
-	    new SOAP_Value('outputFloat','float',$struct['varFloat'])
+	    new SOAP_Value('outputString','string',$struct->varString),
+	    new SOAP_Value('outputInteger','int',$struct->varInt),
+	    new SOAP_Value('outputFloat','float',$struct->varFloat)
 	    );
     }    
 }

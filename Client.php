@@ -444,7 +444,8 @@ class SOAP_Client extends SOAP_Base
             if (count($vars) == 1) {
                 return array_shift($vars);
             }
-            return $returnArray;
+            // multiple return arguments!
+            return $vars;
         } else
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {

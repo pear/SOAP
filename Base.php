@@ -362,19 +362,24 @@ class SOAP_Base extends PEAR
             #} else
             if (strcasecmp($ptype,'Struct')==0 || strcasecmp($type,'Struct')==0) {
                 // struct
-                if (is_array($value)) {
-                    foreach (array_keys($value) as $k) {
-                        if (is_object($value[$k])) {
-                            if (is_a($value[$k],'soap_value')) {
-                                $xmlout_value .= $value[$k]->serialize($this);
+                if (is_object($value)) {
+                    $vars = get_object_vars($value);
+                } else {
+                    $vars = &$value;
+                }
+                if (is_array($vars)) {
+                    foreach (array_keys($vars) as $k) {
+                        if (is_object($vars[$k])) {
+                            if (is_a($vars[$k],'soap_value')) {
+                                $xmlout_value .= $vars[$k]->serialize($this);
                             } else {
                                 // XXX get the members and serialize them instead
                                 // converting to an array is more overhead than we
                                 // should realy do, but php-soap is on it's way.
-                                $xmlout_value .= $this->serializeValue(get_object_vars($value[$k]), $k);
+                                $xmlout_value .= $this->serializeValue(get_object_vars($vars[$k]), $k);
                             }
                         } else {
-                            $xmlout_value .= $this->serializeValue($value[$k],$k);
+                            $xmlout_value .= $this->serializeValue($vars[$k],$k);
                         }
                     }
                 }

@@ -32,9 +32,18 @@ print_r($ret);echo "<br>\n";
 $ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$namespace);
 print_r($ret);echo "<br>\n";
 
-$SOAPStruct = array('inputStruct' => array('varString'=>'this is a test string',
-                        'varInt'=>12345,
-                        'varFloat'=>123.456));
+class SOAPStruct {
+    var $varString = 'This is a test';
+    var $varInt = 1234;
+    var $varFloat = 123.456;
+}
+
+$SOAPStruct = new SOAPStruct;
+
+/* send an object, get an object back */
+$ret = $soapclient->call("echoStruct",array(new SOAP_Value('inputStruct','',$SOAPStruct)),$namespace);
+print_r($ret);
+
 /**
  * PHP doesn't support multiple OUT parameters in function calls, so we
  * must do a little work to make it happen here.  This requires knowledge on the
