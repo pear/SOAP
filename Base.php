@@ -79,7 +79,8 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 define('INF',   1.8e307); 
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.2');
+define('SOAP_LIBRARY_VERSION', '0.6.3');
+define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.3');
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
 define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');
@@ -406,10 +407,10 @@ class SOAP_Base extends PEAR
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
                             // should realy do, but php-soap is on it's way.
-                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k);
+                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5?NULL:$elNamespace);
                         }
                     } else {
-                        $xmlout_value .= $this->_serializeValue($vars[$k],$k);
+                        $xmlout_value .= $this->_serializeValue($vars[$k],$k, false, $this->_section5?NULL:$elNamespace);
                     }
                 }
             }
@@ -444,7 +445,7 @@ class SOAP_Base extends PEAR
                     } else {
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
-                        $xmlout_value .= $this->_serializeValue($array_val,'item', $array_type);
+                        $xmlout_value .= $this->_serializeValue($array_val,'item', $array_type, $this->_section5?NULL:$elNamespace);
                     }
                 }
 
@@ -486,13 +487,8 @@ class SOAP_Base extends PEAR
 
         // add namespaces
         if ($elNamespace) {
-            if ($this->_section5) {
-                $elPrefix = $this->_getNamespacePrefix($elNamespace);
-                $xmlout_name = "$elPrefix:$name";
-            } else {
-                $xmlns = " xmlns:ns1=\"$elNamespace\"";
-                $xmlout_name = 'ns1:'.$name;
-            }
+            $elPrefix = $this->_getNamespacePrefix($elNamespace);
+            $xmlout_name = "$elPrefix:$name";
         } else {
             $xmlout_name = $name;
         }

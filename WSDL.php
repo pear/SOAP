@@ -61,7 +61,7 @@ class SOAP_WSDL extends SOAP_Base
     var $service = '';
     var $uri = '';
     var $proxy = NULL;
-    
+    var $trace = 0;
     /**
     * SOAP_WSDL constructor
     *
@@ -135,12 +135,15 @@ class SOAP_WSDL extends SOAP_Base
             }
             if (!$opData) 
                 return $this->_raiseSoapFault("no operation $operation for port $portName, in wsdl", $this->uri);
+            $opData['parameters'] = false;
+            $opData['namespace'] = $this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace'];
             // message data from messages
             $inputMsg = $opData['input']['message'];
             foreach ($this->messages[$inputMsg] as $pname => $pattrs) {
                 if ($opData['style'] == 'document' && $opData['input']['use'] == 'literal'
                     && $pname == 'parameters') {
-
+                        $opData['parameters'] = true;
+                        $opData['namespace'] = $this->namespaces[$pattrs['namespace']];
                         $el = $this->elements[$pattrs['namespace']][$pattrs['type']];
                         if ($el['elements']) {
                             foreach ($el['elements'] as $elname => $elattrs) {
@@ -295,7 +298,7 @@ class SOAP_WSDL extends SOAP_Base
      * generateProxyCode
      * generates stub code from the wsdl that can be saved to a file, or eval'd into existence
      */
-    function generateProxyCode($port = '')
+    function generateProxyCode($port = '', $classname='')
     {
         $multiport = count($this->services[$this->service]['ports']) > 1;
         if (!$port) {
@@ -304,12 +307,14 @@ class SOAP_WSDL extends SOAP_Base
         }
         // XXX currentPort is BAD
         $clienturl = $port['address']['location']; 
-        if ($multiport || $port) {
-            $classname = 'WebService_'.$this->service.'_'.$port['name'];
-        } else {
-            $classname = 'WebService_'.$this->service;
+        if (!$classname) {
+            if ($multiport || $port) {
+                $classname = 'WebService_'.$this->service.'_'.$port['name'];
+            } else {
+                $classname = 'WebService_'.$this->service;
+            }
+            $classname = str_replace('.','_',$classname);
         }
-        $classname = str_replace('.','_',$classname);
         
         if (!$this->_validateString($classname)) return NULL;
         
@@ -403,7 +408,8 @@ class SOAP_WSDL extends SOAP_Base
             "                        array('namespace'=>'$namespace',\n".
             "                            'soapaction'=>'$soapaction',\n".
             "                            'style'=>'$opstyle',\n".
-            "                            'use'=>'$use')); \n".
+            "                            'use'=>'$use'".
+            ($this->trace?",'trace'=>1":"")." ));\n".
             "    }\n";
         }    
         $class .= "}\n";
@@ -420,7 +426,7 @@ class SOAP_WSDL extends SOAP_Base
         return $proxycode;
     }
     
-    function getProxy($port = '')
+    function getProxy($port = '', $name='')
     {
         $multiport = count($this->services[$this->service]['ports']) > 1;
         if (!$port) {
@@ -432,9 +438,10 @@ class SOAP_WSDL extends SOAP_Base
         } else {
             $classname = 'WebService_'.$this->service;
         }
-        $classname = str_replace('.','_',$classname);
+        if ($name) $classname = $name.'_'.$classname;
+        $classname = preg_replace('/[ .\(\)]+/','_',$classname);
         if (!class_exists($classname)) {
-            $proxy = $this->generateProxyCode($port);
+            $proxy = $this->generateProxyCode($port,$classname);
             eval($proxy);
         }
         return new $classname;
@@ -1103,7 +1110,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 $this->currentImport = $attrs['namespace'];
                 $this->wsdl->imports[$this->currentImport] = $attrs;
             }
-            $this->status = 'import';
+            $this->status = '';
         case 'types':
             // sect 2.2 wsdl:types
             $this->status = 'types';

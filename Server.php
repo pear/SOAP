@@ -299,7 +299,7 @@ class SOAP_Server extends SOAP_Base
                 if ($isok) {
                     # call our header now!
                     $header_method = $header_val->name;
-                    $header_data = array($this->decode($header_val));
+                    $header_data = array($this->_decode($header_val));
                     // if there are parameters to pass
                     $hr = $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
@@ -322,7 +322,7 @@ class SOAP_Server extends SOAP_Base
         $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname,$this->method_namespace)) {
-            $this->_raiseSoapFault("method '{$this->method_namespace}$this->methodname' not defined in service",'','','Server');
+            $this->_raiseSoapFault("method '\{$this->method_namespace\}$this->methodname' not defined in service",'','','Server');
             return NULL;
         }
 
@@ -437,7 +437,6 @@ class SOAP_Server extends SOAP_Base
     function validateMethod($methodname, $namespace = NULL)
     {
         unset($this->soapobject);
-        $this->method_namespace = NULL;
         
         # no soap access to private functions
         if ($methodname[0] == '_') return FALSE;

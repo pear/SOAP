@@ -297,6 +297,7 @@ class SOAP_Client extends SOAP_Base
         $this->fault = null;
         $this->__options['input']='parse';
         $this->__options['result']='parse';
+        $this->__options['parameters'] = false;
         if ($params && gettype($params) != 'array') {
             $params = array($params);
         }
@@ -319,7 +320,6 @@ class SOAP_Client extends SOAP_Base
             if (PEAR::isError($this->_portName)) {
                 return $this->_raiseSoapFault($this->_portName);
             }
-            $namespace = $this->_wsdl->getNamespace($this->_portName, $method);
 
             // get endpoint
             $this->_endpoint = $this->_wsdl->getEndpoint($this->_portName);
@@ -333,12 +333,14 @@ class SOAP_Client extends SOAP_Base
             if (PEAR::isError($opData)) {
                 return $this->_raiseSoapFault($opData);
             }
+            $namespace = $opData['namespace'];
             $this->__options['style'] = $opData['style'];
             $this->__options['use'] = $opData['input']['use'];
             $this->__options['soapaction'] = $opData['soapAction'];
 
             // set input params
             if ($this->__options['input'] == 'parse') {
+            $this->__options['parameters'] = $opData['parameters'];
             $nparams = array();
             if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
                 $i = 0;
@@ -389,8 +391,8 @@ class SOAP_Client extends SOAP_Base
         }
         
         // serialize the message
-        $this->section5 = TRUE; // assume we encode with section 5
-        if (isset($this->__options['use']) && $this->__options['use']=='literal') $this->section5 = FALSE;
+        $this->_section5 = TRUE; // assume we encode with section 5
+        if (isset($this->__options['use']) && $this->__options['use']=='literal') $this->_section5 = FALSE;
         
         if (!isset($this->__options['style']) || $this->__options['style'] == 'rpc') {
             $this->__options['style'] = 'rpc';
@@ -413,6 +415,10 @@ class SOAP_Client extends SOAP_Base
                         }
                     }
                     $params = $nparams;
+                }
+                if ($this->__options['parameters']) {
+                    $mqname = new QName($method, $namespace);
+                    $params = new SOAP_Value($mqname->fqn(), 'Struct', $params);
                 }
             }
             $soap_msg = $this->_makeEnvelope($params, $this->headersOut, $this->_encoding,$this->__options);
