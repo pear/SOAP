@@ -347,10 +347,13 @@ class SOAP_WSDL_Parser extends SOAP_Base
         case 'definitions':
             $this->wsdl->definition = $attrs;
             foreach ($attrs as $name=>$value) {
-                if (strcasecmp($value,SOAP_SCHEMA)==0) {
+                if (strstr($name,'xmlns:') !== FALSE) {
                     $s = split(':',$name);
-                    $this->soapns = $s[1];
-                    break;
+                    $this->wsdl->namespaces[$s[1]] = $value;
+                    if ($name == 'targetNamespace' ||
+                        strcasecmp($value,SOAP_SCHEMA)==0) {
+                        $this->soapns = $s[1];
+                    }
                 }
             }
             if ($ns) {

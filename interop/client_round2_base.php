@@ -29,15 +29,15 @@ require_once("SOAP/interop/client_library.php");
 error_reporting(E_ALL ^ E_NOTICE);
 
 $localonly = 0; // set to 1 to test only your local server
-$usebuiltin = 1; // use builtin list of endpoints
+$usebuiltin = 0; // use builtin list of endpoints
 $usewsdl = 1;
 $test = 'base';  // which test to do: base, GroupB, GroupC
 $parm = 'php'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
-$numservers = 1; // zero for all of them
+$numservers = 0; // zero for all of them
 $testfunc = 'echoStructArray'; // test a single function
-$specificendpoint = 'http://nagoya.apache.org:5049/soap/servlet/rpcrouter'; //"http://63.142.188.184:1122/"; // endpoint url
+$specificendpoint = 'Apache SOAP 2.2'; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
 $skip = array();
 
@@ -59,9 +59,10 @@ if ($localonly) {
             'endpointURL' => 'http://nagoya.apache.org:5049/soap/servlet/rpcrouter',
             'wsdlURL' => 'http://www.apache.org/~rubys/ApacheSoap.wsdl',
             'name' => 'Apache SOAP 2.2');
-    #$endpoints["GLUE"] = array(
-    #        "endpointURL" => "http://www.themindelectric.net:8005/glue/round2",
-    #        "name" => "GLUE");
+    $endpoints["GLUE"] = array(
+            "endpointURL" => "http://www.themindelectric.net:8005/glue/round2",
+            'wsdlURL' => 'http://www.themindelectric.net:8005/glue/round2.wsdl',
+            "name" => "GLUE");
     #$endpoints["HP SOAP"] = array(
     #        "endpointURL" => "http://soap.bluestone.com/hpws/soap/EchoService",
     #        "name" => "HP SOAP");

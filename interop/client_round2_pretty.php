@@ -36,13 +36,14 @@ $usewsdl = 0;
 $testtype = array(0,1); // with or without wsdl
 $tests = array_keys($method_params);
 $parms = array_keys($method_params[$tests[0]]);
-$show = 0;
+$show = 1;
 $debug = 0;
 $numservers = 0; // zero for all of them
 $testfunc = ''; // test a single function
 $specificendpoint = ''; //"http://63.142.188.184:1122/"; // endpoint url
 // slow or unavailable sites in interop list
-$skip = array(); //endpoints to skip
+$skip = array('SQLData SOAP Server',
+              'HP SOAP'); //endpoints to skip, too slow, or no connect
 
 if ($localonly) {
     # define your test servers endpointURL here

@@ -127,14 +127,15 @@ class SOAP_Client extends SOAP_Base
                         // XXX assuming it's an array, not a hash
                         $nparams[$name] = $params[$i++];
                     }
-                    if (gettype($nparams[$name]) != 'soap_value') {
+                    if (gettype($nparams[$name]) != 'object' &&
+                        get_class($nparams[$name]) != 'soap_value') {
                         // type is a qname likely, split it apart, and get the type namespace from wsdl
                         $type_namespace = NULL;
                         if ($qname = split(':', $type)) {
                             $type_namespace = $this->wsdl->namespaces[$qname[0]];
                             $type = $qname[1];
                         }
-                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], NULL, $type_namespace, $this->wsdl);
+                        $nparams[$name] = new SOAP_Value($name, $type, $nparams[$name], $type_namespace, $type_namespace, $this->wsdl);
                     }
                 }
             }

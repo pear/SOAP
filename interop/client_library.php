@@ -75,15 +75,18 @@ function do_endpoint_method($endpoint, $method, $method_params) {
             }
             $soap = $endpoints[$endpoint]['client'];
             if ($soap->wsdl->fault) {
-                #echo "WSDL error in $endpoint\n";
+                $fault = $soap->wsdl->fault->getFault();
+                if ($show) echo "FAILED - WSDL: {$fault['faultstring']}\n";
                 $endpoints[$endpoint]["methods"][$method]['success'] = 0;
-                $endpoints[$endpoint]["methods"][$method]['reason'] = 'WSDL';
+                $endpoints[$endpoint]["methods"][$method]['fault'] = $fault;
                 return FALSE;
             }
         } else {
-            #echo "No WSDL for $endpoint\n";
+            if ($show) echo "FAILED - No WSDL for $endpoint\n";
             $endpoints[$endpoint]["methods"][$method]['success'] = 0;
-            $endpoints[$endpoint]["methods"][$method]['reason'] = 'WSDL';
+            $endpoints[$endpoint]["methods"][$method]['fault'] = array(
+                'faultcode'=>'WSDL',
+                'faultstring'=>"no WSDL defined for $endpoint");
             return FALSE;
         }
     } else {
@@ -162,13 +165,18 @@ function do_interopTest(&$method_params) {
     
     $i = 0;
     foreach($endpoints as $endpoint => $endpoint_info){
-        if ($specificendpoint && $endpoint_info['endpointURL'] != $specificendpoint) continue;
-        if (in_array($endpoint_info['endpointURL'], $skip)) continue;
+        if ($specificendpoint && $endpoint != $specificendpoint) continue;
+        $skipendpoint = FALSE;
         $totals['servers']++;
         $endpoints[$endpoint]["methods"] = array();
         if ($show) print "Processing $endpoint at {$endpoint_info['endpointURL']}<br>\n";
-        $skipendpoint = FALSE;
         foreach(array_keys($method_params) as $func){
+            if (in_array($endpoint, $skip)) {
+                $skipendpoint = TRUE;
+                $skipfault = array('faultcode'=>'SKIP','faultstring'=>'endpoint skipped');
+                $endpoints[$endpoint]["methods"][$func]['fault'] = $skipfault;
+                continue;
+            }
             if ($testfunc && $func != $testfunc) continue;
             if ($skipendpoint) {
                 $endpoints[$endpoint]["methods"][$func]['fault'] = $skipfault;
