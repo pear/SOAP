@@ -135,25 +135,25 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     var $_encoding = SOAP_DEFAULT_ENCODING;
 
+    /**
+     * headersOut
+     *
+     * @var  array  contains an array of SOAP_Headers that we are sending
+     */
+    var $headersOut = null;
 
     /**
-    * headersOut
-    *
-    * @var  array  contains an array of SOAP_Headers that we are sending
-    */
-    var $headersOut = null;
-    /**
-    * headersOut
-    *
-    * @var  array  contains an array headers we recieved back in the response
-    */
+     * headersOut
+     *
+     * @var  array  contains an array headers we recieved back in the response
+     */
     var $headersIn = null;
 
     /**
-    * __proxy_params
-    *
-    * @var  array  contains options for HTTP_Request class (see HTTP/Request.php)
-    */
+     * __proxy_params
+     *
+     * @var  array  contains options for HTTP_Request class (see HTTP/Request.php)
+     */
     var $__proxy_params = array();
 
     var $_soap_transport = null;
@@ -174,7 +174,7 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_portName = $portName;
         $this->__proxy_params = $proxy_params;
 
-        $wsdl = $wsdl?$wsdl:strcasecmp('wsdl',substr($endpoint,strlen($endpoint)-4))==0;
+        $wsdl = $wsdl ? $wsdl : strcasecmp('wsdl', substr($endpoint, strlen($endpoint) - 4)) == 0;
 
         // make values
         if ($wsdl) {
