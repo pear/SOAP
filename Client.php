@@ -224,7 +224,7 @@ class SOAP_Client extends SOAP_Base
         }
         // send the message
         $transport_options = array_merge($this->__proxy_params, $this->__options);
-        $this->xml = $soap_transport->send($soap_data, $this->__options);
+        $this->xml = $soap_transport->send($soap_data, $transport_options);
 
         // save the wire information for debugging
         if ($this->__options['trace'] > 0) {
