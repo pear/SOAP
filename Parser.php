@@ -429,10 +429,8 @@ class SOAP_Parser extends SOAP_Base
     
     function decodeEntities($text)
     {
-        foreach ($this->entities as $entity => $encoded) {
-            $text = str_replace($encoded,$entity,$text);
-        }
-        return $text;
+        $trans_tbl = array_flip($this->entities);
+        return strtr($text, $trans_tbl);
     }
 }
 
