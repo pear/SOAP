@@ -21,6 +21,7 @@
 //
 set_time_limit(0);
 require_once 'SOAP/interop/client_round2_interop.php';
+$SOAP_RAW_CONVERT = TRUE;
 
 $iop = new Interop_Client();
 // force a fetch of endpoints, this happens irregardless if no endpoints in database

@@ -26,6 +26,13 @@
    If the old behaviour is needed, set to false.  The old behaviour is depricated.
 */
 $SOAP_OBJECT_STRUCT = TRUE;
+/*
+   SOAP_RAW_CONVERT makes pear::soap attempt to determine what SOAP type
+   a php string COULD be.  This may result in slightly better interoperability when
+   you are not using WSDL, and are being lazy and not using SOAP_Value to define
+   types for your values.
+*/
+$SOAP_RAW_CONVERT = FALSE;
 
 require_once 'PEAR.php';
 #require_once 'SOAP/Fault.php';
@@ -72,7 +79,7 @@ if (version_compare(phpversion(), '4.1', '>=') &&
 define('INF',   1.8e307); 
 define('NAN',   0.0);
 
-define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.1');
+define('SOAP_LIBRARY_NAME', 'PEAR-SOAP 0.6.2');
 // set schema version
 define('SOAP_XML_SCHEMA_VERSION',   'http://www.w3.org/2001/XMLSchema');
 define('SOAP_XML_SCHEMA_INSTANCE',  'http://www.w3.org/2001/XMLSchema-instance');
@@ -93,7 +100,7 @@ define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
 if (!function_exists('is_a'))
 {
-   function is_a($object, $class_name)
+   function is_a(&$object, $class_name)
    {
       if (get_class($object) == $class_name) return TRUE;
       else return is_subclass_of($object, $class_name);
@@ -333,13 +340,15 @@ class SOAP_Base extends PEAR
         return NULL;
     }
     
-    function serializeValue($value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array())
+    function serializeValue(&$value, $name = '', $type = false, $elNamespace = NULL, $typeNamespace=NULL, $options=array(), $attributes = array())
     {
         $namespaces = array();
         $xmlout_value = NULL;
         $typePrefix = $elPrefix = $xmlout_offset = $xmlout_arrayType = $xmlout_type = $xmlns = '';
 
-        if (!$name || is_numeric($name)) $name = 'item';
+        if (!$name || is_numeric($name)) {
+            $name = 'item';
+        }
         
         if (!is_null($value)) {
             $ptype = $arrayType = $array_type_ns = '';
@@ -353,18 +362,20 @@ class SOAP_Base extends PEAR
             #} else
             if (strcasecmp($ptype,'Struct')==0 || strcasecmp($type,'Struct')==0) {
                 // struct
-                foreach ($value as $k => $v) {
-                    if (is_object($v)) {
-                        if (is_a($v,'soap_value')) {
-                            $xmlout_value .= $v->serialize($this);
+                if (is_array($value)) {
+                    foreach (array_keys($value) as $k) {
+                        if (is_object($value[$k])) {
+                            if (is_a($value[$k],'soap_value')) {
+                                $xmlout_value .= $value[$k]->serialize($this);
+                            } else {
+                                // XXX get the members and serialize them instead
+                                // converting to an array is more overhead than we
+                                // should realy do, but php-soap is on it's way.
+                                $xmlout_value .= $this->serializeValue(get_object_vars($value[$k]), $k);
+                            }
                         } else {
-                            // XXX get the members and serialize them instead
-                            // converting to an array is more overhead than we
-                            // should realy do, but php-soap is on it's way.
-                            $xmlout_value .= $this->serializeValue(get_object_vars($v), $k);
+                            $xmlout_value .= $this->serializeValue($value[$k],$k);
                         }
-                    } else {
-                        $xmlout_value .= $this->serializeValue($v,$k);
                     }
                 }
             } else if (strcasecmp($ptype,'Array')==0 || strcasecmp($type,'Array')==0) {
@@ -387,7 +398,9 @@ class SOAP_Base extends PEAR
                     $array_val = NULL;
                     
                     // serialize each array element
-                    foreach ($value as $array_val) {
+                    $ar_size = count($value);
+                    for ($i=0; $i < $ar_size; $i++) {
+                        $array_val =& $value[$i];
                         if (is_object($array_val)) {
                             $array_type = $array_val->type;
                             $array_types[$array_type] = 1;
@@ -400,7 +413,6 @@ class SOAP_Base extends PEAR
                         }
                     }
 
-                    $ar_size = count($value);
                     $xmlout_offset = " SOAP-ENC:offset=\"[0]\"";
                     if (!$arrayType) {
                         $numtypes = count($array_types);
@@ -472,7 +484,7 @@ class SOAP_Base extends PEAR
         if ($this->section5) {
             if ($xmlout_type) $xmlout_type = " xsi:type=\"$xmlout_type\"";
             if (is_null($xmlout_value)) {
-                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xml_attr/>";
+                $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xml_attr/>";
             } else {
                 $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType$xmlout_offset$xml_attr>".
                     $xmlout_value."</$xmlout_name>";
@@ -499,7 +511,7 @@ class SOAP_Base extends PEAR
     * @access   private
     */
     function _getType(&$value) {
-        global $SOAP_OBJECT_STRUCT;
+        global $SOAP_OBJECT_STRUCT,$SOAP_RAW_CONVERT;
         $type = gettype($value);
         switch ($type) {
         case 'object':
@@ -527,7 +539,7 @@ class SOAP_Base extends PEAR
             $type = '';
             break;
         case 'string':
-            if ($this->doconversion) {
+            if ($SOAP_RAW_CONVERT) {
                 if (is_numeric($value)) {
                     if (strstr($value,'.')) $type = 'float';
                     else $type = 'int';
@@ -556,8 +568,9 @@ class SOAP_Base extends PEAR
         $sz = count($value);
         if ($sz > 1) {
             // seems we have a multi dimensional array, figure it out if we do
-            foreach ($value as $array_val) {
-                $this->_multiArrayType($array_val, $type, $size, $xml);
+            $c = count($value);
+            for ($i=0; $i<$c; $i++) {
+                $this->_multiArrayType($value[$i], $type, $size, $xml);
             }
             
             if ($size) {
@@ -627,7 +640,7 @@ class SOAP_Base extends PEAR
     *
     * @param    mixed
     */
-    function decode($soapval)
+    function decode(&$soapval)
     {
         global $SOAP_OBJECT_STRUCT;
         
@@ -645,10 +658,12 @@ class SOAP_Base extends PEAR
             foreach ($soapval->value as $item) {
                 if (is_object($return)) {
                     if (!$isstruct || $item->type == 'Array') {
-                        if (is_object($return->{$item->name})) {
+                        if (isset($return->{$item->name}) &&
+                          is_object($return->{$item->name})) {
                             $return->{$item->name} = array();
                             $return->{$item->name} = $this->decode($item);
-                        } else if (is_array($return->{$item->name})) {
+                        } else if (isset($return->{$item->name}) &&
+                          is_array($return->{$item->name})) {
                             $return->{$item->name}[] = $this->decode($item);
                         } else if (is_array($return)) {
                             $return[] = $this->decode($item);
@@ -699,20 +714,22 @@ class SOAP_Base extends PEAR
      * @return associative array (headers,body)
      * @access private
      */
-    function _makeEnvelope($method, $headers=NULL, $encoding = SOAP_DEFAULT_ENCODING,$options = array())
+    function _makeEnvelope(&$method, &$headers, $encoding = SOAP_DEFAULT_ENCODING,$options = array())
     {
         $smsg = $header_xml = $ns_string = '';
 
         if ($headers) {
-            foreach ($headers as $header) {
-                $header_xml .= $header->serialize($this);
+            $c = count($headers);
+            for ($i=0; $i < $c; $i++) {
+                $header_xml .= $headers[$i]->serialize($this);
             }
             $header_xml = "<SOAP-ENV:Header>\r\n$header_xml\r\n</SOAP-ENV:Header>\r\n";
         }
         if (!isset($options['input']) || $options['input'] == 'parse') {
             if (is_array($method)) {
-                foreach ($method as $part) {
-                    $smsg .= $part->serialize($this);
+                $c = count($method);
+                for ($i = 0; $i < $c; $i++) {
+                    $smsg .= $method[$i]->serialize($this);
                 }
             }  else {
                 $smsg = $method->serialize($this);
@@ -740,7 +757,7 @@ class SOAP_Base extends PEAR
         return $xml;
     }
     
-    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING)
+    function _makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         global $SOAP_options;
         
@@ -760,14 +777,16 @@ class SOAP_Base extends PEAR
         $msg->addSubPart($xml, $params);
         
         // add the attachements
-        foreach ($this->attachments as $attachment) {
+        $c = count($this->attachments);
+        for ($i=0; $i < $c; $i++) {
+            $attachment =& $this->attachments[$i];
             $msg->addSubPart($attachment['body'],$attachment);
         }
         return $msg->encode();
     }
     
     // XXX this needs to be used from the Transport system
-    function _makeDIMEMessage($xml)
+    function _makeDIMEMessage(&$xml)
     {
         global $SOAP_options;
         
@@ -782,7 +801,9 @@ class SOAP_Base extends PEAR
         $msg = $dime->encodeData($xml,SOAP_ENVELOP,NULL,DIME_TYPE_URI);
         
         // add the attachements
-        foreach ($this->attachments as $attachment) {
+        $c = count($this->attachments);
+        for ($i=0; $i < $c; $i++) {
+            $attachment =& $this->attachments[$i];
             $msg .= $dime->encodeData($attachment['body'],$attachment['content_type'],$attachment['cid'],DIME_TYPE_MEDIA);
         }
         $msg .= $dime->endMessage();
@@ -816,7 +837,9 @@ class SOAP_Base extends PEAR
                 $mime_parts = array_splice($structure->parts,1);
                 // prepare the parts for the soap parser
                 
-                foreach ($mime_parts as $p) {
+                $c = count($mime_parts);
+                for ($i = 0; $i < $c; $i++) {
+                    $p =& $mime_parts[$i];
                     if (isset($p->headers['content-location'])) {
                         // XXX TODO: modify location per SwA note section 3
                         // http://www.w3.org/TR/SOAP-attachments
@@ -849,7 +872,9 @@ class SOAP_Base extends PEAR
         } else {
             $data = $dime->parts[0]['data'];
             $headers['content-type'] = 'text/xml'; // fake it for now
-            foreach ($dime->parts as $part) {
+            $c = count($dime->parts);
+            for ($i = 0; $i < $c; $i++) {
+                $part =& $dime->parts[$i];
                 // XXX we need to handle URI's better
                 $attachments['cid:'.$part['id']] = $part['data'];
             }

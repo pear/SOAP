@@ -19,8 +19,8 @@
   <license>PHP License</license>
   <release>
     <state>devel</state>
-    <version>0.6.1</version>
-    <date>2002-02-18</date>
+    <version>0.6.2</version>
+    <date>2002-07-06</date>
     <notes>
       This is the initial independent PEAR release.
     </notes>

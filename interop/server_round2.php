@@ -20,7 +20,7 @@
 //
 
 require_once 'SOAP/Server.php';
-
+$SOAP_OBJECT_STRUCT = false;
 $server = new SOAP_Server;
 
 require_once 'server_round2_base.php';

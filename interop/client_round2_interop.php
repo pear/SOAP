@@ -394,7 +394,7 @@ class Interop_Client extends SOAP_Base
             if (!array_key_exists('client',$endpoint_info)) {
                 $endpoint_info['client'] = new SOAP_Client($endpoint_info['endpointURL']);
             }
-            $soap = $endpoint_info['client'];
+            $soap = &$endpoint_info['client'];
             $namespace = $soapaction = 'http://soapinterop.org/';
             // hack to make tests work with MS SoapToolkit
             // it's the only one that uses this soapaction, and breaks if
@@ -407,6 +407,8 @@ class Interop_Client extends SOAP_Base
         // add headers to the test
         if ($soap_test->headers) {
             // $header is already a SOAP_Header class
+            $soap->headersOut = array();
+            $soap->headersIn = array();
             foreach ($soap_test->headers as $header) {
                 $soap->addHeader($header);
             }
@@ -439,10 +441,10 @@ class Interop_Client extends SOAP_Base
                         ($header->attributes['SOAP-ENV:actor'] == 'http://schemas.xmlsoap.org/soap/actor/next'
                          && $header->attributes['SOAP-ENV:mustUnderstand']);
                     if ($expect) {
-                        $hresult = $soap->headers[key($expect)];
+                        $hresult = $soap->headersIn[key($expect)];
                         $ok = !$need_result || $this->compareResult($hresult ,$expect[key($expect)]);
                     } else {
-                        $hresult = $soap->headers[$header->name];
+                        $hresult = $soap->headersIn[$header->name];
                         $expect = $this->decodeSoapval($header);
                         $ok = !$need_result || $this->compareResult($hresult ,$expect);
                     }
@@ -515,8 +517,8 @@ class Interop_Client extends SOAP_Base
         $this->totals = array();
         
         $i = 0;
-        foreach($this->endpoints as $endpoint => $endpoint_info){
-            
+        foreach(array_keys($this->endpoints) as $endpoint){
+            $endpoint_info =& $this->endpoints[$endpoint];
             // if we specify an endpoint, skip until we find it
             if ($this->specificEndpoint && $endpoint != $this->specificEndpoint) continue;
             if ($this->useWSDL && !$endpoint_info['endpointURL']) continue;
@@ -556,7 +558,9 @@ class Interop_Client extends SOAP_Base
                     
                     // is the header in the headers list?
                     $gotit = FALSE;
-                    foreach ($soap_test->headers as $header) {
+                    $thc = count($soap_test->headers);
+                    for ($thi = 0; $thi < $thc; $thi++) {
+                        $header =& $soap_test->headers[$thi];
                         if (get_class($header) == 'soap_header') {
                             if ($header->name == $m[2]) {
                                 $gotit = $header->attributes['SOAP-ENV:actor'] == ($m[3]?SOAP_TEST_ACTOR_NEXT:SOAP_TEST_ACTOR_OTHER);

@@ -68,7 +68,8 @@ class SOAP_Fault extends PEAR_Error
                     new SOAP_Value('detail', 'string', $this->userinfo)
                 );
         $methodValue = new SOAP_Value('{'.SOAP_ENVELOP.'}Fault', 'Struct', $params);
-        return $msg->_makeEnvelope($methodValue);
+        $headers = NULL;
+        return $msg->_makeEnvelope($methodValue, $headers);
     }
     
     /**

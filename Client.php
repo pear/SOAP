@@ -105,7 +105,19 @@ class SOAP_Client extends SOAP_Base
     */
     var $encoding = SOAP_DEFAULT_ENCODING;
     
-    var $headers = NULL;
+    
+    /**
+    * headersOut
+    *
+    * @var  array  contains an array of SOAP_Headers that we are sending
+    */
+    var $headersOut = NULL;
+    /**
+    * headersOut
+    *
+    * @var  array  contains an array headers we recieved back in the response
+    */
+    var $headersIn = NULL;
     
     /**
     * SOAP_Client constructor
@@ -166,11 +178,11 @@ class SOAP_Client extends SOAP_Base
         # add a new header to the message
         if (is_a($soap_value,'soap_header')) {
             #$this->soapmsg->addHeader($soap_value);
-            $this->headers[] = $soap_value;
+            $this->headersOut[] = $soap_value;
         } else if (gettype($soap_value) == 'array') {
             // name, value, namespace, mustunderstand, actor
             $h = new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3]);
-            $this->headers[] = $h;
+            $this->headersOut[] = $h;
         } else {
             $this->raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
@@ -208,7 +220,7 @@ class SOAP_Client extends SOAP_Base
     {
         $this->fault = null;
         $options = array('input'=>'parse','result'=>'parse');
-        if (gettype($params) != 'array') {
+        if ($params && gettype($params) != 'array') {
             $params = array($params);
         }
         if (gettype($namespace) == 'array') {
@@ -308,7 +320,7 @@ class SOAP_Client extends SOAP_Base
             $this->docparams = true;
             $mqname = new QName($method, $namespace);
             $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
-            $soap_msg = $this->_makeEnvelope($methodValue, $this->headers, $this->encoding,$options);
+            $soap_msg = $this->_makeEnvelope($methodValue, $this->headersOut, $this->encoding,$options);
         } else {
             if ($options['input'] == 'parse') {
                 if (is_array($params)) {
@@ -323,7 +335,7 @@ class SOAP_Client extends SOAP_Base
                     $params = $nparams;
                 }
             }
-            $soap_msg = $this->_makeEnvelope($params, $this->headers, $this->encoding,$options);
+            $soap_msg = $this->_makeEnvelope($params, $this->headersOut, $this->encoding,$options);
         }
 
         if (PEAR::isError($soap_msg)) {
@@ -399,7 +411,7 @@ class SOAP_Client extends SOAP_Base
         $return = $this->response->getResponse();
         $headers = $this->response->getHeaders();
         if ($headers) {
-            $this->headers = $this->decode($headers);
+            $this->headersIn = $this->decode($headers);
         }
         
         #$this->soapmsg = NULL;        
