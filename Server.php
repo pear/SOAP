@@ -28,6 +28,13 @@ require_once 'SOAP/WSDL.php';
 
 $soap_server_fault = null;
 function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
+    // the error handler should ignore '0' errors, eg. hidden by @ - see the
+    // set_error_handler manual page.. (thanks to Alan Knowles)
+
+    if (!$errno || $errno == E_NOTICE) {
+        return;
+    }
+
     global $soap_server_fault;
     $detail = "Errno: $errno\nFilename: $filename\nLineno: $linenum\n";
     // XXX very strange behaviour with error handling if we =& here.
