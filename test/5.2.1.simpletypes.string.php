@@ -34,7 +34,7 @@ if (string_compare($expect, $val)) {
 }
 # serialize a soap value with unknown type
 $expect = "hello world";
-$val = $soap_base->decode($v);
+$val = $soap_base->_decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize known SOAP_Value OK\n";
 } else {
@@ -53,7 +53,7 @@ if (string_compare($expect, $val)) {
 
 # serialize a soap value with unknown type
 $expect = "hello world";
-$val = $soap_base->decode($v);
+$val = $soap_base->_decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize Unknown SOAP_Value OK\n";
 } else {

@@ -67,8 +67,8 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email
         
         // we have a full set of headers, need to find the first blank line
         $this->_parseEmail($data);
-        if ($this->soapfault) {
-            $response = $this->getFaultMessage();
+        if ($this->fault) {
+            $response = $this->fault->message();
         }
         if ($this->headers['content-type']=='application/dime')
             $useEncoding='DIME';
@@ -96,7 +96,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email
                 foreach ($soap_transport->transport->attachments as $cid=>$body) {
                     $this->attachments[] = array('body' => $body, 'cid' => $cid, 'encoding' => 'base64');
                 }
-                if (count($this->attachments)) {
+                if (count($this->__attachments)) {
                     if ($useEncoding == 'Mime') {
                         $soap_msg = $this->_makeMimeMessage($response);
                         $options['headers']['MIME-Version'] = '1.0';
@@ -106,7 +106,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email
                         $options['headers']['Content-Type'] = 'application/dime';
                     }
                     if (PEAR::isError($soap_msg)) {
-                        return $this->raiseSoapFault($soap_msg);
+                        return $this->_raiseSoapFault($soap_msg);
                     }
                     if (is_array($soap_msg)) {
                         $response = $soap_msg['body'];

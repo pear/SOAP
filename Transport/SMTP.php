@@ -87,7 +87,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
             return $this->fault;
         }
         if (!$options || !array_key_exists('from',$options)) {
-            return $this->raiseSoapFault("No FROM address to send message with");
+            return $this->_raiseSoapFault("No FROM address to send message with");
         }
         
         if (isset($options['host'])) $this->host = $options['host'];
@@ -125,7 +125,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
                     $headers['Content-Transfer-Encoding'] = 'base64';
                     $out = chunk_split(base64_encode($msg),76,"\n");
                 } else {
-                    return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
+                    return $this->_raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
                 }
             } else {
                 // default to base64
@@ -198,16 +198,16 @@ class SOAP_Transport_SMTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['scheme']) ||
             strcasecmp($this->urlparts['scheme'], 'mailto') != 0) {
-                $this->raiseSoapFault("Unable to parse URL $url");
+                $this->_raiseSoapFault("Unable to parse URL $url");
                 return FALSE;
         }
         if (!isset($this->urlparts['path'])) {
-            $this->raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         return TRUE;

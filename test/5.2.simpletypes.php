@@ -68,7 +68,7 @@ if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val)))
 
 # deserialize a soap value
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
-$val = $soap_base->decode($v);
+$val = $soap_base->_decode($v);
 if (string_compare($expect, $val)) {
     print "$prefix Deserialize known SOAP_Value OK\n";
 } else {
@@ -93,7 +93,7 @@ if (string_compare(str_replace("\r\n","",$expect), str_replace("\r\n","",$val)))
 
 # serialize a soap value with unknown type
 $expect = array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue');
-$val = $soap_base->decode($v);
+$val = $soap_base->_decode($v);
 if (array_compare($expect, $val)) {
     print "$prefix Deserialize Unknown SOAP_Value OK\n";
 } else {

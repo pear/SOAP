@@ -101,9 +101,9 @@ class SOAP_Value
     * 
     * @return   string  xml representation
     */
-    function serialize(&$serializer)
+    function &serialize(&$serializer)
     {
-        return $serializer->serializeValue($this->value, $this->name, $this->type, $this->namespace, $this->type_namespace, $this->options, $this->attributes);
+        return $serializer->_serializeValue($this->value, $this->name, $this->type, $this->namespace, $this->type_namespace, $this->options, $this->attributes, $this->arrayType);
     }
 }
 

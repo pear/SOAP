@@ -74,11 +74,6 @@ class SOAP_Server extends SOAP_Base
     */
     var $xml_encoding = SOAP_DEFAULT_ENCODING;
     var $response_encoding = 'UTF-8';
-    /**
-    * 
-    * @var  boolean
-    */
-    var $soapfault = false;
     
     var $result = 'successful'; // for logging interop results to db
 
@@ -128,40 +123,40 @@ class SOAP_Server extends SOAP_Base
         // treat incoming data as UTF-8 if no encoding set
         if (isset($_SERVER['CONTENT_TYPE'])) {
             if (strcasecmp($_SERVER['CONTENT_TYPE'],'application/dime')==0) {
-                $this->decodeDIMEMessage($data,$headers,$attachments);
+                $this->_decodeDIMEMessage($data,$headers,$attachments);
                 $useEncoding = 'DIME';
             } else if (stristr($_SERVER['CONTENT_TYPE'],'multipart/related')) {
                 // this is a mime message, lets decode it.
                 $data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
-                $this->decodeMimeMessage($data,$headers,$attachments);
+                $this->_decodeMimeMessage($data,$headers,$attachments);
                 $useEncoding = 'Mime';
             }
             if (!isset($headers['content-type'])) {
                 $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
             }
-            if (!$this->soapfault &&
+            if (!$this->fault &&
                 !$this->_getContentEncoding($headers['content-type'])) {
                 $this->xml_encoding = SOAP_DEFAULT_ENCODING;
                 // an encoding we don't understand, return a fault
-                $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+                $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8','','','Server');
             }
         }
         
         // if this is not a POST with Content-Type text/xml, try to return a WSDL file
-        if (!$this->soapfault  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
+        if (!$this->fault  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
             strncmp($headers['content-type'],'text/xml',8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
-                $this->makeFault('Server',"Invalid SOAP request, must be POST with content-type: text/xml, got: {$headers['content-type']}");
+                $this->_raiseSoapFault("Invalid SOAP request, must be POST with content-type: text/xml, got: {$headers['content-type']}",'','','Server');
         }
         
-        if (!$this->soapfault) {
+        if (!$this->fault) {
             // $response is a soap_msg object
             $soap_msg = $this->parseRequest($data, $attachments);
             
             // handle Mime or DIME encoding
             // XXX DIME Encoding should move to the transport, do it here for now
             // and for ease of getting it done
-            if (count($this->attachments)) {
+            if (count($this->__attachments)) {
                 if ($useEncoding == 'Mime') {
                     $soap_msg = $this->_makeMimeMessage($soap_msg);
                 } else {
@@ -184,9 +179,9 @@ class SOAP_Server extends SOAP_Base
             }
         }
         
-        if ($this->soapfault) {
+        if ($this->fault) {
             $hdrs = "HTTP/1.1 500 Soap Fault\r\n";
-            $response = $this->getFaultMessage();
+            $response = $this->fault->message();
         } else {
            $hdrs = "HTTP/1.1 200 OK\r\n";
         }
@@ -267,7 +262,7 @@ class SOAP_Server extends SOAP_Base
         $parser = new SOAP_Parser($data,$this->xml_encoding,$attachments);
         // if fault occurred during message parsing
         if ($parser->fault) {
-            $this->soapfault = $parser->fault;
+            $this->fault = $parser->fault;
             return NULL;
         }
 
@@ -279,7 +274,7 @@ class SOAP_Server extends SOAP_Base
 
         if ($request_headers) {
             if (!is_a($request_headers,'soap_value')) {
-                $this->makeFault('Server',"parser did not return SOAP_Value object: $request_headers");
+                $this->_raiseSoapFault("parser did not return SOAP_Value object: $request_headers",'','','Server');
                 return NULL;
             }
             if ($request_headers->value) {
@@ -294,7 +289,7 @@ class SOAP_Server extends SOAP_Base
                     $header_val->actor == $this->endpoint);
                 
                 if (!$f_exists && $header_val->mustunderstand && $myactor) {
-                    $this->makeFault('MustUnderstand',"I don't understand header $header_val->name.");
+                    $this->_raiseSoapFault("I don't understand header $header_val->name.",'','','MustUnderstand');
                     return NULL;
                 }
                 
@@ -327,7 +322,7 @@ class SOAP_Server extends SOAP_Base
         $this->method_namespace = $parser->message[$parser->root_struct[0]]['namespace'];
         // does method exist?
         if (!$this->methodname || !$this->validateMethod($this->methodname,$this->method_namespace)) {
-            $this->makeFault('Server',"method '$this->methodname' not defined in service");
+            $this->_raiseSoapFault("method '{$this->method_namespace}$this->methodname' not defined in service",'','','Server');
             return NULL;
         }
 
@@ -335,7 +330,7 @@ class SOAP_Server extends SOAP_Base
             return NULL;
         }
         if (!is_a($request_val,'soap_value')) {
-            $this->makeFault('Server',"parser did not return SOAP_Value object: $request_val");
+            $this->_raiseSoapFault("parser did not return SOAP_Value object: $request_val",'','','Server');
             return NULL;
         }
         
@@ -347,7 +342,7 @@ class SOAP_Server extends SOAP_Base
         
         // need to set special error detection inside the value class
         // so as to differentiate between no params passed, and an error decoding
-        $request_data = $this->decode($request_val);
+        $request_data = $this->_decode($request_val);
 
         $method_response = $this->callMethod($this->methodname, $request_data);
 
@@ -405,19 +400,19 @@ class SOAP_Server extends SOAP_Base
                             strcasecmp($this->_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$this->_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])!=0)) {
 
                             $param = $params[$i];
-                            $this->makeFault('Client',"soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])));
+                            $this->_raiseSoapFault("soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])),'','','Client');
                             return false;
                         }
                     }
                     return true;
                 // oops, wrong number of paramss
                 } else {
-                    $this->makeFault('Client',"soap request contained incorrect number of parameters. method '$this->methodname' required ".count($sig).' and request provided '.count($params));
+                    $this->_raiseSoapFault("soap request contained incorrect number of parameters. method '$this->methodname' required ".count($sig).' and request provided '.count($params),'','','Client');
                     return false;
                 }
             // oops, no params...
             } else {
-                $this->makeFault('Client',"soap request contained incorrect number of parameters. method '$this->methodname' requires ".count($sig).' parameters, and request provided none');
+                $this->_raiseSoapFault("soap request contained incorrect number of parameters. method '$this->methodname' requires ".count($sig).' parameters, and request provided none','','','Client');
                 return false;
             }
         // no params
@@ -478,7 +473,7 @@ class SOAP_Server extends SOAP_Base
                 // XXX a bit of backwards compatibility
                 $namespace = $obj->namespace;
             } else {
-                $this->makeFault('Server','No namespace provided for class!');
+                $this->_raiseSoapFault('No namespace provided for class!','','','Server');
                 return FALSE;
             }
         }
@@ -493,27 +488,13 @@ class SOAP_Server extends SOAP_Base
     function addToMap($methodname, $in, $out, $namespace = NULL)
     {
         if (!function_exists($methodname)) {
-            $this->makeFault('Server',"error mapping function\n");
+            $this->_raiseSoapFault("error mapping function\n",'','','Server');
             return FALSE;
         }
         $this->dispatch_map[$methodname]['in'] = $in;
         $this->dispatch_map[$methodname]['out'] = $out;
         if ($namespace) $this->dispatch_map[$methodname]['namespace'] = $namespace;
         return TRUE;
-    }
-    
-    // set up a fault
-    function getFaultMessage()
-    {
-        if (!$this->soapfault) {
-            $this->makeFault('Server','fault message requested, but no fault has occured!');
-        }
-        return $this->soapfault->message();
-    }
-    
-    function makeFault($fault_code, $fault_string)
-    {
-        $this->soapfault = new SOAP_Fault($fault_string, $fault_code);
     }
 }
 

@@ -71,7 +71,7 @@ class SOAP_Parser extends SOAP_Base
     function SOAP_Parser($xml, $encoding = SOAP_DEFAULT_ENCODING, $attachments=NULL)
     {
         parent::SOAP_Base('Parser');
-        $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
+        $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         
         $this->xml = $xml;
         $this->xml_encoding = $encoding;
@@ -101,7 +101,7 @@ class SOAP_Parser extends SOAP_Base
                 $err = sprintf('XML error on line %d: %s',
                     xml_get_current_line_number($parser),
                     xml_error_string(xml_get_error_code($parser)));
-                $this->raiseSoapFault($err,htmlspecialchars($this->xml));
+                $this->_raiseSoapFault($err,htmlspecialchars($this->xml));
             } else {
                 // build the response
                 if (count($this->root_struct))
@@ -299,17 +299,19 @@ class SOAP_Parser extends SOAP_Base
                 $prefix = $kqn->name;
 
                 if (in_array($value, $this->_XMLSchema)) {
-                    $this->setSchemaVersion($value);
+                    $this->_setSchemaVersion($value);
                 }
-
-                $this->_namespaces[$prefix] = $value;
+                
+                $this->_namespaces[$value] = $prefix;
 
                 // set method namespace
                 # XXX unused???
                 #if ($name == $this->curent_root_struct_name) {
                 #    $this->methodNamespace = $value;
                 #}
-            
+            } elseif ($key == 'xmlns') {
+                $qname->ns = $this->_getNamespacePrefix($value);
+                $qname->namespace = $value;
             } elseif ($kqn->name == 'actor') {
                 $this->message[$pos]['actor'] = $value;
             } elseif ($kqn->name == 'mustUnderstand') {
@@ -319,7 +321,7 @@ class SOAP_Parser extends SOAP_Base
             } elseif ($kqn->name == 'type') {
                 $vqn = new QName($value);
                 $this->message[$pos]['type'] = $vqn->name;
-                $this->message[$pos]['type_namespace'] = $this->_namespaces[$vqn->ns];
+                $this->message[$pos]['type_namespace'] = $this->_getNamespaceForPrefix($vqn->ns);
                 #print "set type for {$this->message[$pos]['name']} to {$this->message[$pos]['type']}\n";
                 // should do something here with the namespace of specified type?
                 
@@ -367,9 +369,11 @@ class SOAP_Parser extends SOAP_Base
         // see if namespace is defined in tag
         if (array_key_exists('xmlns:'.$qname->ns,$attrs)) {
             $namespace = $attrs['xmlns:'.$qname->ns];
+        } else if ($qname->ns && !$qname->namespace) {
+            $namespace = $this->_getNamespaceForPrefix($qname->ns);
         } else {
         // get namespace
-            $namespace = $qname->ns?$this->_namespaces[$qname->ns]:$this->default_namespace;
+            $namespace = $qname->namespace?$qname->namespace:$this->default_namespace;
         }
         $this->message[$pos]['namespace'] = $namespace;
         $this->default_namespace = $namespace;
@@ -469,7 +473,7 @@ class SOAP_Parser extends SOAP_Base
         if ($this->soapresponse) {
             return $this->soapresponse;
         }
-        return $this->raiseSoapFault("couldn't build response");
+        return $this->_raiseSoapFault("couldn't build response");
     }
 
     /**

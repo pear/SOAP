@@ -124,7 +124,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
             return $this->_sendHTTPS($msg, $options);
         }
         
-        return $this->raiseSoapFault('Invalid url scheme '.$this->url);
+        return $this->_raiseSoapFault('Invalid url scheme '.$this->url);
     }
 
     /**
@@ -153,11 +153,11 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function _validateUrl()
     {
         if ( ! is_array($this->urlparts) ) {
-            $this->raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['host'])) {
-            $this->raiseSoapFault("No host in URL $url");
+            $this->_raiseSoapFault("No host in URL $url");
             return FALSE;
         }
         if (!isset($this->urlparts['port'])) {
@@ -171,7 +171,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
         if (isset($this->urlparts['user'])) {
             $this->setCredentials($this->urlparts['user'], $this->urlparts['pass']);
         }
-        
+        if (!isset($this->urlparts['path']) || !$this->urlparts['path'])
+            $this->urlparts['path'] = '/';
         return TRUE;
     }
     
@@ -208,25 +209,25 @@ class SOAP_Transport_HTTP extends SOAP_Base
             // find the response error, some servers response with 500 for soap faults
             if (preg_match("/^HTTP\/1\.. (\d+).*/s",$match[1],$status) &&
                 $status[1] >= 400 && $status[1] < 500) {
-                    $this->raiseSoapFault("HTTP Response $status[1] Not Found");
+                    $this->_raiseSoapFault("HTTP Response $status[1] Not Found");
                     return FALSE;
             }
             $this->_parseEncoding($match[1]);
             if ($this->result_content_type == 'application/dime') {
                 // XXX quick hack insertion of DIME
-                $this->decodeDIMEMessage($this->response,$this->headers,$this->attachments);
+                $this->_decodeDIMEMessage($this->response,$this->headers,$this->attachments);
                 $this->result_content_type = $this->headers['content-type'];
             } else if (stristr($this->result_content_type,'multipart/related')) {
                 $this->response = $this->incoming_payload;
-                $this->decodeMimeMessage($this->response,$this->headers,$this->attachments);
+                $this->_decodeMimeMessage($this->response,$this->headers,$this->attachments);
             } else if ($this->result_content_type != 'text/xml') {
-                $this->raiseSoapFault($this->response);
+                $this->_raiseSoapFault($this->response);
                 return FALSE;
             }
             // if no content, return false
             return strlen($this->response) > 0;
         }
-        $this->raiseSoapFault('Invalid HTTP Response');
+        $this->_raiseSoapFault('Invalid HTTP Response');
         return FALSE;
     }
     
@@ -242,6 +243,12 @@ class SOAP_Transport_HTTP extends SOAP_Base
         $fullpath = $this->urlparts['path'].
                         (isset($this->urlparts['query'])?'?'.$this->urlparts['query']:'').
                         (isset($this->urlparts['fragment'])?'#'.$this->urlparts['fragment']:'');
+        if (isset($options['proxy_host'])) {
+            $fullpath = ($https?'https://':'http://').$this->urlparts['host'].':'.$this->urlparts['port'].$fullpath;
+        }
+        if (isset($options['proxy_user'])) {
+            $this->headers['Proxy-Authorization'] = 'Basic ' . base64_encode($options['proxy_user'].":".$options['proxy_pass']);
+        }
         $this->headers['User-Agent'] = $this->_userAgent;
         $this->headers['Host'] = $this->urlparts['host'];
         $this->headers['Content-Type'] = "text/xml; charset=$this->encoding";
@@ -273,18 +280,23 @@ class SOAP_Transport_HTTP extends SOAP_Base
     function &_sendHTTP(&$msg, $options)
     {
         $this->_getRequest($msg, $options);
-        
+        $host = $this->urlparts['host'];
+        $port = $this->urlparts['port'];
+        if (isset($options['proxy_host'])) {
+            $host = $options['proxy_host'];
+            $port = isset($options['proxy_port'])?$options['proxy_port']:8080;
+        }
         // send
         if ($this->timeout > 0) {
-            $fp = fsockopen($this->urlparts['host'], $this->urlparts['port'], $this->errno, $this->errmsg, $this->timeout);
+            $fp = fsockopen($host, $port, $this->errno, $this->errmsg, $this->timeout);
         } else {
-            $fp = fsockopen($this->urlparts['host'], $this->urlparts['port'], $this->errno, $this->errmsg);
+            $fp = fsockopen($host, $port, $this->errno, $this->errmsg);
         }
         if (!$fp) {
-            return $this->raiseSoapFault("Connect Error to {$this->urlparts['host']}:{$this->urlparts['port']}");
+            return $this->raiseSoapFault("Connect Error to $host:$port");
         }
         if (!fputs($fp, $this->outgoing_payload, strlen($this->outgoing_payload))) {
-            return $this->raiseSoapFault("Error POSTing Data to {$this->urlparts['host']}");
+            return $this->raiseSoapFault("Error POSTing Data to $host");
         }
         
         // get reponse
@@ -316,12 +328,25 @@ class SOAP_Transport_HTTP extends SOAP_Base
         *  Your php must be compiled with CURL
         */
         if (!extension_loaded('curl')) {
-            return $this->raiseSoapFault('CURL Extension is required for HTTPS');
+            return $this->_raiseSoapFault('CURL Extension is required for HTTPS');
         }
         
         $this->_getRequest($msg, $options);
         
         $ch = curl_init(); 
+        
+        // XXX don't know if this proxy stuff is right for CURL
+        if (isset($options['proxy_host'])) {
+            // $options['http_proxy'] == 'hostname:port'
+            $host = $options['proxy_host'];
+            $port = isset($options['proxy_port'])?$options['proxy_port']:8080;
+            curl_setopt($ch, CURLOPT_PROXY, $host.":".$port); 
+        }
+        if (isset($options['proxy_user'])) {
+            // $options['http_proxy_userpw'] == 'username:password'
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy_user'].':'.$options['proxy_pass']); 
+        }
+        
         if ($this->timeout) {
             curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s 
         }

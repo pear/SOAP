@@ -70,7 +70,7 @@ class SOAP_Server_Email extends SOAP_Server {
             }
 
             if (!stristr($this->headers['content-type'],'text/xml')) {
-                    $this->makeFault('Client','Invalid Content Type');
+                    $this->_raiseSoapFault('Invalid Content Type','','','Client');
                     return FALSE;
             }
             
@@ -81,7 +81,7 @@ class SOAP_Server_Email extends SOAP_Server {
             #} else if (strcasecmp($this->headers['content-transfer-encoding'],'quoted-printable')==0) {
             #    $data = $match[2];
             #} else {
-            #    $this->makeFault('Client','Invalid Content-Transfer-Encoding');
+            #    $this->_raiseSoapFault('Invalid Content-Transfer-Encoding','','','Client');
             #    return FALSE;
             #}
             } else {
@@ -91,7 +91,7 @@ class SOAP_Server_Email extends SOAP_Server {
             // if no content, return false
             return strlen($this->request) > 0;
         }
-        $this->makeFault('Client','Invalid Email Format');
+        $this->_raiseSoapFault('Invalid Email Format','','','Client');
         return FALSE;
     }
 
@@ -101,12 +101,12 @@ class SOAP_Server_Email extends SOAP_Server {
 
         # if neither matches, we'll just try it anyway
         if (stristr($data,'Content-Type: application/dime')) {
-            $this->decodeDIMEMessage($data,$this->headers,$attachments);
+            $this->_decodeDIMEMessage($data,$this->headers,$attachments);
             $useEncoding = 'DIME';
         } else if (stristr($data,'MIME-Version:')) {
             // this is a mime message, lets decode it.
             #$data = 'Content-Type: '.stripslashes($_SERVER['CONTENT_TYPE'])."\r\n\r\n".$data;
-            $this->decodeMimeMessage($data,$this->headers,$attachments);
+            $this->_decodeMimeMessage($data,$this->headers,$attachments);
             $useEncoding = 'Mime';
         } else {
             // the old fallback, but decodeMimeMessage handles things fine.
@@ -118,7 +118,7 @@ class SOAP_Server_Email extends SOAP_Server {
         if (!$this->soapfault && !$this->_getContentEncoding($this->headers['content-type'])) {
             $this->xml_encoding = SOAP_DEFAULT_ENCODING;
             // an encoding we don't understand, return a fault
-            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+            $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8','','','Server');
         }
         
         if ($this->soapfault) {
@@ -153,7 +153,7 @@ class SOAP_Server_Email extends SOAP_Server {
         if (!$response && !$this->_getContentEncoding($this->headers['content-type'])) {
             $this->xml_encoding = SOAP_DEFAULT_ENCODING;
             // an encoding we don't understand, return a fault
-            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+            $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8','','','Server');
             $response = $this->getFaultMessage();                
         }
         
@@ -165,7 +165,7 @@ class SOAP_Server_Email extends SOAP_Server {
             // handle Mime or DIME encoding
             // XXX DIME Encoding should move to the transport, do it here for now
             // and for ease of getting it done
-            if (count($this->attachments)) {
+            if (count($this->__attachments)) {
                 if ($useEncoding == 'Mime') {
                     $soap_msg = $this->_makeMimeMessage($soap_msg);
                 } else {

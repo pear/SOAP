@@ -24,12 +24,14 @@ include("SOAP/Client.php");
  */
 $soapclient = new SOAP_Client("http://localhost/SOAP/example/server.php");
 // this namespace is the same as declared in server.php
-$namespace = 'urn:SOAP_Example_Server';
+$options = array('namespace' => 'urn:SOAP_Example_Server',
+                 'trace' => 1);
 
-$ret = $soapclient->call("echoStringSimple",array("inputString"=>"this is a test string"),$namespace);
+$ret = $soapclient->call("echoStringSimple",array("inputString"=>"this is a test string"),$options);
+print $soapclient->__get_wire();
 print_r($ret);echo "<br>\n";
 
-$ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$namespace);
+$ret = $soapclient->call("echoString",array("inputString"=>"this is a test string"),$options);
 print_r($ret);echo "<br>\n";
 
 class SOAPStruct {
@@ -41,7 +43,7 @@ class SOAPStruct {
 $SOAPStruct = new SOAPStruct;
 
 /* send an object, get an object back */
-$ret = $soapclient->call("echoStruct",array(new SOAP_Value('inputStruct','',$SOAPStruct)),$namespace);
+$ret = $soapclient->call("echoStruct",array(new SOAP_Value('inputStruct','',$SOAPStruct)),$options);
 print_r($ret);
 
 /**
@@ -49,7 +51,7 @@ print_r($ret);
  * must do a little work to make it happen here.  This requires knowledge on the
  * developers part to figure out how they want to deal with it.
  */
-list($string, $int, $float) = array_values($soapclient->call("echoStructAsSimpleTypes",$SOAPStruct,$namespace));
+list($string, $int, $float) = array_values($soapclient->call("echoStructAsSimpleTypes",$SOAPStruct,$options));
 echo "varString: $string<br>\nvarInt: $int<br>\nvarFloat: $float<br>\n";
 
 ?>

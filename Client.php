@@ -60,14 +60,14 @@ class SOAP_Client extends SOAP_Base
     * @var  string
     * @see  SOAP_Client()
     */
-    var $endpoint = '';
+    var $_endpoint = '';
     
     /**
     * portname
     *
     * @var string contains the SOAP PORT name that is used by the client
     */
-    var $portName = '';
+    var $_portName = '';
     
     
     /**
@@ -75,35 +75,23 @@ class SOAP_Client extends SOAP_Base
     *
     * @var  string  e.g. wdsl
     */
-    var $endpointType = '';
-    
-    /**
-    * WDSL object
-    *
-    * @var  object  SOAP_WDSL
-    */
-    var $wsdl = NULL;
+    var $__endpointType = '';
     
     /**
     * wire
     *
     * @var  string  contains outoing and incoming data stream for debugging.
     */
-    var $wire = NULL;
-    
-    /**
-    * soapmsg
-    *
-    * @var  SOAP_Message  The soap message class that is used for outgoing calls.
-    */
-    var $soapmsg = NULL;
-    
+    var $wire;
+    var $__last_request = NULL;
+    var $__last_response = NULL;
+    var $__options = array('trace'=>0);
     /**
     * encoding
     *
     * @var  string  Contains the character encoding used for XML parser, etc.
     */
-    var $encoding = SOAP_DEFAULT_ENCODING;
+    var $_encoding = SOAP_DEFAULT_ENCODING;
     
     
     /**
@@ -120,26 +108,34 @@ class SOAP_Client extends SOAP_Base
     var $headersIn = NULL;
     
     /**
+    * __proxy_params
+    *
+    * @var  array  contains options for HTTP_Request class (see HTTP/Request.php)
+    */
+    var $__proxy_params = array();
+    /**
     * SOAP_Client constructor
     *
     * @param string endpoint (URL)
     * @param boolean wsdl (true if endpoint is a wsdl file)
     * @param string portName
+    * @param array  contains options for HTTP_Request class (see HTTP/Request.php)
     * @access public
     */
-    function SOAP_Client($endpoint, $wsdl = false, $portName = false)
+    function SOAP_Client($endpoint, $wsdl = false, $portName = false, $proxy_params=array())
     {
         parent::SOAP_Base('Client');
-        $this->endpoint = $endpoint;
-        $this->portName = $portName;
+        $this->_endpoint = $endpoint;
+        $this->_portName = $portName;
+        $this->__proxy_params = $proxy_params;
         
         // make values
         if ($wsdl) {
-            $this->endpointType = 'wsdl';
+            $this->__endpointType = 'wsdl';
             // instantiate wsdl class
-            $this->wsdl = new SOAP_WSDL($this->endpoint);
-            if ($this->wsdl->fault) {
-                $this->raiseSoapFault($this->wsdl->fault);
+            $this->_wsdl = new SOAP_WSDL($this->_endpoint, $this->__proxy_params);
+            if ($this->_wsdl->fault) {
+                $this->_raiseSoapFault($this->_wsdl->fault);
             }
         }
     }
@@ -157,10 +153,10 @@ class SOAP_Client extends SOAP_Base
     function setEncoding($encoding)
     {
         if (in_array($encoding, $this->_encodings)) {
-            $this->encoding = $encoding;
+            $this->_encoding = $encoding;
             return NULL;
         }
-        return $this->raiseSoapFault('Invalid Encoding');
+        return $this->_raiseSoapFault('Invalid Encoding');
     }
     
     /**
@@ -173,18 +169,17 @@ class SOAP_Client extends SOAP_Base
     *
     * @access public
     */
-    function addHeader($soap_value)
+    function addHeader(&$soap_value)
     {
         # add a new header to the message
         if (is_a($soap_value,'soap_header')) {
-            #$this->soapmsg->addHeader($soap_value);
             $this->headersOut[] = $soap_value;
         } else if (gettype($soap_value) == 'array') {
             // name, value, namespace, mustunderstand, actor
             $h = new SOAP_Header($soap_value[0], NULL, $soap_value[1], $soap_value[2], $soap_value[3]);
             $this->headersOut[] = $h;
         } else {
-            $this->raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
+            $this->_raiseSoapFault("Don't understand the header info you provided.  Must be array or SOAP_Header.");
         }
     }
 
@@ -218,244 +213,37 @@ class SOAP_Client extends SOAP_Base
     */
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
-        $this->fault = null;
-        $options = array('input'=>'parse','result'=>'parse');
-        if ($params && gettype($params) != 'array') {
-            $params = array($params);
+        $soap_data = $this->__generate($method, $params, $namespace, $soapAction);
+        if (PEAR::isError($soap_data)) {
+            return $this->_raiseSoapFault($soap_data);
         }
-        if (gettype($namespace) == 'array') {
-            $options = array_merge($options,$namespace);
-            if (isset($options['namespace'])) $namespace = $options['namespace'];
-            else $namespace = false;
-        } else {
-            // we'll place soapaction into our array for usage in the transport
-            $options['soapaction'] = $soapAction;
-            $options['namespace'] = $namespace;
-        }
-        
-        if ($this->endpointType == 'wsdl') {
-            $this->setSchemaVersion($this->wsdl->xsd);
-            // get portName
-            if (!$this->portName) {
-                $this->portName = $this->wsdl->getPortName($method);
-                if (PEAR::isError($this->portName)) {
-                    return $this->raiseSoapFault($this->portName);
-                }
-            }
-            $namespace = $this->wsdl->getNamespace($this->portName, $method);
-
-            // get endpoint
-            $this->endpoint = $this->wsdl->getEndpoint($this->portName);
-            if (PEAR::isError($this->endpoint)) {
-                return $this->raiseSoapFault($this->endpoint);
-            }
-
-            // get operation data
-            $opData = $this->wsdl->getOperationData($this->portName, $method);
-            
-            if (PEAR::isError($opData)) {
-                return $this->raiseSoapFault($opData);
-            }
-            $options['style'] = $opData['style'];
-            $options['use'] = $opData['input']['use'];
-            $options['soapaction'] = $opData['soapAction'];
-
-            // set input params
-            if ($options['input'] == 'parse') {
-            $nparams = array();
-            if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
-                $i = 0;
-                reset($params);
-                foreach ($opData['input']['parts'] as $name => $part) {
-                    $xmlns = '';
-                    $attrs = array();
-                    // is the name actually a complex type?
-                    if (isset($part['element'])) {
-                        $xmlns = $this->wsdl->namespaces[$part['namespace']];
-                        $part = $this->wsdl->elements[$part['namespace']][$part['type']];
-                        $name = $part['name'];
-                    }
-                    if (isset($params[$name])) {
-                        $nparams[$name] = $params[$name];
-                    } else {
-                        // XXX assuming it's an array, not a hash
-                        // XXX this is pretty pethetic, but "fixes" a problem where
-                        // paremeter names do not match correctly
-                        
-                        $nparams[$name] = current($params);
-                        next($params);
-                    }
-                    if (gettype($nparams[$name]) != 'object' ||
-                        !is_a($nparams[$name],'soap_value')) {
-                        // type is a qname likely, split it apart, and get the type namespace from wsdl
-                        $qname = new QName($part['type']);
-                        if ($qname->ns) 
-                            $type_namespace = $this->wsdl->namespaces[$qname->ns];
-                        else if (isset($part['namespace']))
-                            $type_namespace = $this->wsdl->namespaces[$part['namespace']];
-                        else
-                            $type_namespace = NULL;
-                        $qname->namespace = $type_namespace;
-                        $type = $qname->name;
-                        $pqname = $name;
-                        if ($xmlns) $pqname = '{'.$xmlns.'}'.$name;
-                        $nparams[$name] = new SOAP_Value($pqname, $qname->fqn(), $nparams[$name],$attrs);
-                    } else {
-                        // wsdl fixups to the soap value
-                    }
-                }
-            }
-            $params = $nparams;
-            }
-        } else {
-            $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
-        }
-        
-        // serialize the message
-        $this->section5 = TRUE; // assume we encode with section 5
-        if (isset($options['use']) && $options['use']=='literal') $this->section5 = FALSE;
-        
-        if (!isset($options['style']) || $options['style'] == 'rpc') {
-            $options['style'] = 'rpc';
-            $this->docparams = true;
-            $mqname = new QName($method, $namespace);
-            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
-            $soap_msg = $this->_makeEnvelope($methodValue, $this->headersOut, $this->encoding,$options);
-        } else {
-            if (!$params) {
-                $mqname = new QName($method, $namespace);
-                $params = new SOAP_Value($mqname->fqn(), 'Struct', NULL);
-            } elseif ($options['input'] == 'parse') {
-                if (is_array($params)) {
-                    $nparams = array();
-                    foreach ($params as $n => $v) {
-                        if (gettype($v) != 'object') {
-                            $nparams[] = new SOAP_Value($n, false, $v);
-                        } else {
-                            $nparams[] = $v;
-                        }
-                    }
-                    $params = $nparams;
-                }
-            }
-            $soap_msg = $this->_makeEnvelope($params, $this->headersOut, $this->encoding,$options);
-        }
-
-        if (PEAR::isError($soap_msg)) {
-            return $this->raiseSoapFault($soap_msg);
-        }
-        
-        // handle Mime or DIME encoding
-        // XXX DIME Encoding should move to the transport, do it here for now
-        // and for ease of getting it done
-        if (count($this->attachments)) {
-            if ((isset($options['Attachments']) && $options['Attachments'] == 'Mime') || isset($options['Mime'])) {
-                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->encoding);
-            } else {
-                // default is dime
-                $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->encoding);
-                $options['headers']['Content-Type'] = 'application/dime';
-            }
-            if (PEAR::isError($soap_msg)) {
-                return $this->raiseSoapFault($soap_msg);
-            }
-        }
-        
-        // instantiate client
-        if (is_array($soap_msg)) {
-            $soap_data = $soap_msg['body'];
-            if (count($soap_msg['headers'])) {
-                if (isset($options['headers'])) {
-                    $options['headers'] = array_merge($options['headers'],$soap_msg['headers']);
-                } else {
-                    $options['headers'] = $soap_msg['headers'];
-                }
-            }
-        } else {
-            $soap_data = $soap_msg;
-        }
-        #$f = fopen('/tmp/dime.data','wb+');
-        #if ($f) {
-        #    fwrite($f,$soap_data);
-        #    fclose($f);
-        #    return;
-        #}
-        $soap_transport = new SOAP_Transport($this->endpoint, $this->encoding);
-        
+        $soap_transport = new SOAP_Transport($this->_endpoint, $this->_encoding);
         if ($soap_transport->fault) {
-            return $this->raiseSoapFault($soap_transport->fault);
+            return $this->_raiseSoapFault($soap_transport->fault);
         }
-        
         // send the message
-        $this->xml = $soap_transport->send($soap_data, $options);
+        $transport_options = array_merge($this->__proxy_params, $this->__options);
+        $this->xml = $soap_transport->send($soap_data, $this->__options);
 
         // save the wire information for debugging
-        $this->wire = "OUTGOING:\n\n".
-            $soap_transport->transport->outgoing_payload.
-            "\n\nINCOMING\n\n".
-            preg_replace("/></",">\r\n<",$soap_transport->transport->incoming_payload);
-        
-        if (isset($options['result']) && $options['result'] != 'parse') return $this->xml;
-        
-        if ($soap_transport->fault) {
-            return $this->raiseSoapFault($this->xml);
+        if ($this->__options['trace'] > 0) {
+            $this->__last_request =& $soap_transport->transport->outgoing_payload;
+            $this->__last_response =& $soap_transport->transport->incoming_payload;
+            $this->wire = $this->__get_wire();
         }
-        return $this->parseResponse($this->xml, $soap_transport->result_encoding,$soap_transport->transport->attachments);
+        if ($soap_transport->fault) {
+            return $this->_raiseSoapFault($this->xml);
+        }
+
+        $this->__attachements =& $soap_transport->transport->attachments;
+        $this->__result_encoding = $soap_transport->result_encoding;
+        unset($soap_transport);
+        
+        if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
+        
+        return $this->__parse($this->xml, $this->__result_encoding,$this->__attachements);
     }
     
-    function parseResponse($response, $encoding, $attachments)
-    {
-        // parse the response
-        $this->response = new SOAP_Parser($response, $encoding, $attachments);
-        if ($this->response->fault) {
-            return $this->raiseSoapFault($this->response->fault);
-        }
-        // return array of parameters
-        $return = $this->response->getResponse();
-        $headers = $this->response->getHeaders();
-        if ($headers) {
-            $this->headersIn = $this->decode($headers);
-        }
-        
-        #$this->soapmsg = NULL;        
-        
-        // check for valid response
-        if (PEAR::isError($return)) {
-            return $this->raiseSoapFault($return);
-        } else if (!is_a($return,'soap_value')) {
-            return $this->raiseSoapFault("didn't get SOAP_Value object back from client");
-        }
-
-        // decode to native php datatype
-        $returnArray = $this->decode($return);
-        // fault?
-        if (PEAR::isError($returnArray)) {
-            return $this->raiseSoapFault($returnArray);
-        }
-        if (is_object($returnArray)) {
-            $returnArray = get_object_vars($returnArray);
-        }
-
-        if (is_array($returnArray)) {
-            if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
-                $faultcode = $faultstring = $faultdetail = $faultactor = '';
-                foreach ($returnArray as $k => $v) {
-                    if (stristr($k,'faultcode')) $faultcode = $v;
-                    if (stristr($k,'faultstring')) $faultstring = $v;
-                    if (stristr($k,'detail')) $faultdetail = $v;
-                    if (stristr($k,'faultactor')) $faultactor = $v;
-                }
-                return $this->raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
-            }
-            // return array of return values
-            if (count($returnArray) == 1) {
-                return array_shift($returnArray);
-            }
-            return $returnArray;
-        }
-        return $returnArray;
-    }
-
     /**
     * SOAP_Client::__call
     *
@@ -474,11 +262,265 @@ class SOAP_Client extends SOAP_Base
     */
     function __call($method, $args, &$return_value)
     {
-        if ($this->wsdl) $this->wsdl->matchMethod($method);
+        if ($this->_wsdl) $this->_wsdl->matchMethod($method);
         $return_value = $this->call($method, $args);
         return TRUE;
     }
     
+    function &__getlastrequest()
+    {
+        return $this->__last_request;
+    }
+    
+    function &__getlastresponse()
+    {
+        return $this->__last_response;
+    }
+
+    function __use($use)
+    {
+        $this->__options['use'] = $use;
+    }
+    
+    function __style($style)
+    {
+        $this->__options['style'] = $style;
+    }
+    
+    function __trace($level)
+    {
+        $this->__options['trace'] = $level;
+    }
+    
+    function &__generate($method, $params = array(), $namespace = false, $soapAction = false)
+    {
+        $this->fault = null;
+        $this->__options['input']='parse';
+        $this->__options['result']='parse';
+        if ($params && gettype($params) != 'array') {
+            $params = array($params);
+        }
+        if (gettype($namespace) == 'array') {
+            $this->__options = array_merge($this->__options,$namespace);
+            if (isset($this->__options['namespace'])) $namespace = $this->__options['namespace'];
+            else $namespace = false;
+        } else {
+            // we'll place soapaction into our array for usage in the transport
+            $this->__options['soapaction'] = $soapAction;
+            $this->__options['namespace'] = $namespace;
+        }
+        
+        if ($this->__endpointType == 'wsdl') {
+            $this->_setSchemaVersion($this->_wsdl->xsd);
+            // get portName
+            if (!$this->_portName) {
+                $this->_portName = $this->_wsdl->getPortName($method);
+            }
+            if (PEAR::isError($this->_portName)) {
+                return $this->_raiseSoapFault($this->_portName);
+            }
+            $namespace = $this->_wsdl->getNamespace($this->_portName, $method);
+
+            // get endpoint
+            $this->_endpoint = $this->_wsdl->getEndpoint($this->_portName);
+            if (PEAR::isError($this->_endpoint)) {
+                return $this->_raiseSoapFault($this->_endpoint);
+            }
+
+            // get operation data
+            $opData = $this->_wsdl->getOperationData($this->_portName, $method);
+            
+            if (PEAR::isError($opData)) {
+                return $this->_raiseSoapFault($opData);
+            }
+            $this->__options['style'] = $opData['style'];
+            $this->__options['use'] = $opData['input']['use'];
+            $this->__options['soapaction'] = $opData['soapAction'];
+
+            // set input params
+            if ($this->__options['input'] == 'parse') {
+            $nparams = array();
+            if (isset($opData['input']['parts']) && count($opData['input']['parts']) > 0) {
+                $i = 0;
+                reset($params);
+                foreach ($opData['input']['parts'] as $name => $part) {
+                    $xmlns = '';
+                    $attrs = array();
+                    // is the name actually a complex type?
+                    if (isset($part['element'])) {
+                        $xmlns = $this->_wsdl->namespaces[$part['namespace']];
+                        $part = $this->_wsdl->elements[$part['namespace']][$part['type']];
+                        $name = $part['name'];
+                    }
+                    if (isset($params[$name])) {
+                        $nparams[$name] = $params[$name];
+                    } else {
+                        // XXX assuming it's an array, not a hash
+                        // XXX this is pretty pethetic, but "fixes" a problem where
+                        // paremeter names do not match correctly
+                        
+                        $nparams[$name] = current($params);
+                        next($params);
+                    }
+                    if (gettype($nparams[$name]) != 'object' ||
+                        !is_a($nparams[$name],'soap_value')) {
+                        // type is a qname likely, split it apart, and get the type namespace from wsdl
+                        $qname = new QName($part['type']);
+                        if ($qname->ns) 
+                            $type_namespace = $this->_wsdl->namespaces[$qname->ns];
+                        else if (isset($part['namespace']))
+                            $type_namespace = $this->_wsdl->namespaces[$part['namespace']];
+                        else
+                            $type_namespace = NULL;
+                        $qname->namespace = $type_namespace;
+                        $type = $qname->name;
+                        $pqname = $name;
+                        if ($xmlns) $pqname = '{'.$xmlns.'}'.$name;
+                        $nparams[$name] = new SOAP_Value($pqname, $qname->fqn(), $nparams[$name],$attrs);
+                    } else {
+                        // wsdl fixups to the soap value
+                    }
+                }
+            }
+            $params = $nparams;
+            }
+        } else {
+            $this->_setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
+        }
+        
+        // serialize the message
+        $this->section5 = TRUE; // assume we encode with section 5
+        if (isset($this->__options['use']) && $this->__options['use']=='literal') $this->section5 = FALSE;
+        
+        if (!isset($this->__options['style']) || $this->__options['style'] == 'rpc') {
+            $this->__options['style'] = 'rpc';
+            $this->docparams = true;
+            $mqname = new QName($method, $namespace);
+            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
+            $soap_msg = $this->_makeEnvelope($methodValue, $this->headersOut, $this->_encoding,$this->__options);
+        } else {
+            if (!$params) {
+                $mqname = new QName($method, $namespace);
+                $params = new SOAP_Value($mqname->fqn(), 'Struct', NULL);
+            } elseif ($this->__options['input'] == 'parse') {
+                if (is_array($params)) {
+                    $nparams = array();
+                    foreach ($params as $n => $v) {
+                        if (gettype($v) != 'object') {
+                            $nparams[] = new SOAP_Value($n, false, $v);
+                        } else {
+                            $nparams[] = $v;
+                        }
+                    }
+                    $params = $nparams;
+                }
+            }
+            $soap_msg = $this->_makeEnvelope($params, $this->headersOut, $this->_encoding,$this->__options);
+        }
+
+        if (PEAR::isError($soap_msg)) {
+            return $this->_raiseSoapFault($soap_msg);
+        }
+        
+        // handle Mime or DIME encoding
+        // XXX DIME Encoding should move to the transport, do it here for now
+        // and for ease of getting it done
+        if (count($this->__attachments)) {
+            if ((isset($this->__options['Attachments']) && $this->__options['Attachments'] == 'Mime') || isset($this->__options['Mime'])) {
+                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding);
+            } else {
+                // default is dime
+                $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->_encoding);
+                $this->__options['headers']['Content-Type'] = 'application/dime';
+            }
+            if (PEAR::isError($soap_msg)) {
+                return $this->_raiseSoapFault($soap_msg);
+            }
+        }
+        
+        // instantiate client
+        if (is_array($soap_msg)) {
+            $soap_data = $soap_msg['body'];
+            if (count($soap_msg['headers'])) {
+                if (isset($this->__options['headers'])) {
+                    $this->__options['headers'] = array_merge($this->__options['headers'],$soap_msg['headers']);
+                } else {
+                    $this->__options['headers'] = $soap_msg['headers'];
+                }
+            }
+        } else {
+            $soap_data = $soap_msg;
+        }
+        return $soap_data;
+    }
+
+    function &__parse($response, $encoding, $attachments)
+    {
+        // parse the response
+        $this->response = new SOAP_Parser($response, $encoding, $attachments);
+        if ($this->response->fault) {
+            return $this->_raiseSoapFault($this->response->fault);
+        }
+        // return array of parameters
+        $return = $this->response->getResponse();
+        $headers = $this->response->getHeaders();
+        if ($headers) {
+            $this->headersIn = $this->__decodeResponse($headers,false);
+        }
+        
+        return $this->__decodeResponse($return); 
+    }
+
+    function &__decodeResponse($response,$shift=true) 
+    {
+        if (!$response) return NULL;
+        // check for valid response
+        if (PEAR::isError($response)) {
+            return $this->_raiseSoapFault($response);
+        } else if (!is_a($response,'soap_value')) {
+            return $this->_raiseSoapFault("didn't get SOAP_Value object back from client");
+        }
+
+        // decode to native php datatype
+        $returnArray = $this->_decode($response);
+        // fault?
+        if (PEAR::isError($returnArray)) {
+            return $this->_raiseSoapFault($returnArray);
+        }
+        if (is_object($returnArray) && get_class($returnArray) == 'stdClass') {
+            $returnArray = get_object_vars($returnArray);
+        }
+
+        if (is_array($returnArray)) {
+            if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
+                $faultcode = $faultstring = $faultdetail = $faultactor = '';
+                foreach ($returnArray as $k => $v) {
+                    if (stristr($k,'faultcode')) $faultcode = $v;
+                    if (stristr($k,'faultstring')) $faultstring = $v;
+                    if (stristr($k,'detail')) $faultdetail = $v;
+                    if (stristr($k,'faultactor')) $faultactor = $v;
+                }
+                return $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+            }
+            // return array of return values
+            if ($shift && count($returnArray) == 1) {
+                return array_shift($returnArray);
+            }
+            return $returnArray;
+        }
+        return $returnArray;
+    }
+    
+    function __get_wire()
+    {
+        if ($this->__options['trace'] > 0) {
+            return "OUTGOING:\n\n".
+            $this->__last_request.
+            "\n\nINCOMING\n\n".
+            preg_replace("/></",">\r\n<",$this->__last_response);
+        }
+        return NULL;
+    }
 }
 
 if (extension_loaded('overload')) {

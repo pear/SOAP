@@ -70,7 +70,7 @@ function parseMessage($msg)
         return $response->fault->getFault();
     }
     $return = $response->getResponse();
-    $v = $response->decode($return);
+    $v = $response->_decode($return);
     if (gettype($v) == 'array' && count($v)==1) {
         return array_shift($v);
     }

@@ -69,7 +69,7 @@ class SOAP_Transport extends SOAP_Base
             $this->transport = new SOAP_Transport_SMTP($url, $encoding);
             return;
         }
-        $this->raiseSoapFault("No Transport for {$urlparts['scheme']}");
+        $this->_raiseSoapFault("No Transport for {$urlparts['scheme']}");
     }
     
     /**
@@ -90,7 +90,7 @@ class SOAP_Transport extends SOAP_Base
         
         $response = $this->transport->send($soap_data, $options);
         if (PEAR::isError($response)) {
-            return $this->raiseSoapFault($response);
+            return $this->_raiseSoapFault($response);
         }
         $this->result_encoding = $this->transport->result_encoding;
         #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";

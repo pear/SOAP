@@ -19,10 +19,17 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.6.2</version>
+    <version>0.6.3</version>
     <date>2002-07-06</date>
     <notes>
-      This is the initial independent PEAR release.
+      Includes minor API changes from 0.6.2.
+      Supports HTTP Proxy (SOAP_Client constructor 
+      takes 4th param of type array, SOAP_WSDL
+      constructor takes 2nd param of type array, see HTTP_Request
+      docs for proxy parameters).
+      Improved WSDL proxy generation.
+      Interop tests are moved to SOAP_Interop module, available
+      via CVS only.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
@@ -58,24 +65,6 @@
           <file role="php" name="duration.php"/>
           <file role="php" name="hexBinary.php"/>
         </dir>
-        <dir name="interop" role="test"> 
-          <file role="test" name="index.php"/>
-          <file role="test" name="client_round2.php"/>
-          <file role="test" name="client_round2_run.php"/>
-          <file role="test" name="client_round2_interop.php"/>
-          <file role="test" name="client_round2_params.php"/>
-          <file role="test" name="client_round2_results.php"/>
-          <file role="test" name="database_round2.sql"/>
-          <file role="test" name="echoheadersvc.wsdl"/>
-          <file role="test" name="interop.wsdl"/>
-          <file role="test" name="interopB.wsdl"/>
-          <file role="test" name="readme.txt"/>
-          <file role="test" name="server_round2.php"/>
-          <file role="test" name="server_round2_base.php"/>
-          <file role="test" name="server_round2_groupB.php"/>
-          <file role="test" name="server_round2_groupC.php"/>
-          <file role="test" name="server_round2_test.php"/>
-        </dir>
         <dir name="test" role="test"> 
           <file role="test" name="5.2.simpletypes.php"/>
           <file role="test" name="5.2.1.simpletypes.string.php"/>
@@ -92,7 +81,19 @@
       <dep type="ext" rel="has">bcmath</dep>
       <dep type="ext" rel="has">pcre</dep>
       <dep type="pkg" rel="has">Mail_Mime</dep>
+      <dep type="pkg" rel="has">HTTP_Request</dep>
+      <dep type="pkg" rel="ge" version="1.0.5">Net_URL</dep>
       <dep type="pkg" rel="ge" version="0.1">Net_DIME</dep>
     </deps>
   </release>
+  <changelog>
+  <release>
+    <state>beta</state>
+    <version>0.6.2</version>
+    <date>2002-07-06</date>
+    <notes>
+      This is the initial independent PEAR release.
+    </notes>
+  </release>
+  </changelog>
 </package>
