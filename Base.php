@@ -684,7 +684,6 @@ class SOAP_Base extends PEAR
                     if (!$isstruct || $item->type == 'Array') {
                         if (isset($return->{$item->name}) &&
                           is_object($return->{$item->name})) {
-                            $return->{$item->name} = array();
                             $return->{$item->name} = $this->decode($item);
                         } else if (isset($return->{$item->name}) &&
                           is_array($return->{$item->name})) {

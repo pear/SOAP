@@ -14,7 +14,7 @@ function do_wsdl($uri) {
     $wsdl = new SOAP_WSDL($uri);
     print $wsdl->generateProxyCode();
 }
-echo "<?php\n\n";
+echo "<?php\n\nrequire_once 'SOAP/Client.php';\n\n";
 do_wsdl($_SERVER['argv'][1]);
 echo "\n?>";
 ?>
