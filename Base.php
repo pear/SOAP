@@ -32,6 +32,7 @@ include_once 'Mail/mimePart.php';
 include_once 'Mail/mimeDecode.php';
 if (class_exists('Mail_mimePart')) {
     $SOAP_options['Mime'] = 1;
+    define('MAIL_MIMEPART_CRLF',"\n");
 }
 
 include_once 'Net/DIME.php';
@@ -755,6 +756,7 @@ class SOAP_Base extends PEAR
         $params['decode_bodies']  = TRUE;
         $params['decode_headers'] = TRUE;
 
+        // XXX lame thing to have to do for decoding
         $decoder = new Mail_mimeDecode($data);
         $structure = $decoder->decode($params);
         

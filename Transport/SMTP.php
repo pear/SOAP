@@ -112,7 +112,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
                     $out = &$msg;
                 } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
                     $headers['Content-Transfer-Encoding'] = 'base64';
-                    $out = chunk_split(base64_encode($msg));
+                    $out = chunk_split(base64_encode($msg),76,"\n");
                 } else {
                     return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
                 }
@@ -124,7 +124,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
         }
         
         foreach ($headers as $key => $value) {
-            $header_text .= "$key: $value\r\n";
+            $header_text .= "$key: $value\n";
         }
         
         $subject = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
