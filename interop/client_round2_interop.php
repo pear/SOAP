@@ -515,6 +515,7 @@ class Interop_Client
             
             // if we specify an endpoint, skip until we find it
             if ($this->specificEndpoint && $endpoint != $this->specificEndpoint) continue;
+            if ($this->useWSDL && !$endpoint_info['endpointURL']) continue;
             
             $skipendpoint = FALSE;
             $this->totals['servers']++;
@@ -666,15 +667,21 @@ class Interop_Client
         // calculate totals for this table
         $this->totals['success'] = 0;
         $this->totals['fail'] = 0;
-        $this->totals['servers'] = count($this->endpoints);
-        $this->totals['calls'] = count($methods) * $this->totals['servers'];
+        $this->totals['servers'] = 0; #count($this->endpoints);
         foreach ($this->endpoints as $endpoint => $endpoint_info) {
-            foreach ($methods as $method) {
-                $r = $endpoint_info['methods'][$method]['result'];
-                if ($r == 'OK') $this->totals['success']++;
-                else $this->totals['fail']++;
+            if (count($endpoint_info['methods']) > 0) {
+                $this->totals['servers']++;
+                foreach ($methods as $method) {
+                    $r = $endpoint_info['methods'][$method]['result'];
+                    if ($r == 'OK') $this->totals['success']++;
+                    else $this->totals['fail']++;
+                }
+            } else {
+                unset($this->endpoints[$endpoint]);
             }
         }
+        $this->totals['calls'] = count($methods) * $this->totals['servers'];
+
         if ($this->totals['fail'] == $this->totals['calls']) {
             // assume tests have not run, skip outputing table
             print "No Data Available<br>\n";

@@ -70,7 +70,7 @@ class SOAP_Fault extends PEAR_Error
                                         #'faultstring' => $this->message,
                                         new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix),
                                         #'faultactor' => $this->error_message_prefix,
-                                        new SOAP_Value('faultdetail', 'string', $this->userinfo)
+                                        new SOAP_Value('detail', 'string', $this->userinfo)
                                         #'faultdetail' => $this->userinfo
                                     ),
                                     SOAP_ENVELOP
@@ -84,7 +84,7 @@ class SOAP_Fault extends PEAR_Error
                 'faultcode' => $this->code,
                 'faultstring' => $this->message,
                 'faultactor' => $this->error_message_prefix,
-                'faultdetail' => $this->userinfo
+                'detail' => $this->userinfo
             );
     }
     

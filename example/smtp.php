@@ -21,11 +21,12 @@
 // include soap client class
 include("SOAP/Client.php");
 
-$soapclient = new SOAP_Client("mailto:shane@caraveo.com");
-$options = array('namespace'=>'http://soapinterop.org/','from'=>'shane@caraveo.com');
+$soapclient = new SOAP_Client("mailto:soaptest@yourdomain.com");
+$options = array('namespace'=>'http://soapinterop.org/','from'=>'shanec@ActiveState.com');
 $return = $soapclient->call("echoString",array("inputString"=>"this is a test"), $options);
+$return = $soapclient->call("echoStringArray",array('inputStringArray' => array('good','bad','ugly')), $options);
+// don't expect much of a result!
 print_r($return);
-unset($soapclient);
-
+print "<br>\n".$soapclient->wire;
 ?>
 

@@ -422,10 +422,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
             case 'element':
                 if (array_key_exists('type',$attrs)) {
-                    $qname = new QName($attrs['type']);
-                    $attrs['type'] = $qname->name;
-                    if ($qname->ns && array_key_exists($qname->ns, $this->wsdl->namespaces)) {
-                        $attrs['namespace'] = $this->wsdl->namespaces[$qname->ns];
+                    $qn = new QName($attrs['type']);
+                    $attrs['type'] = $qn->name;
+                    if ($qn->ns && array_key_exists($qn->ns, $this->wsdl->namespaces)) {
+                        $attrs['namespace'] = $this->wsdl->namespaces[$qn->ns];
                     }
                 }
                 if ($parent_tag == 'schema') {
@@ -475,6 +475,10 @@ class SOAP_WSDL_Parser extends SOAP_Base
                         if ($k != 'ref' && strstr($k, $q->name)) {
                             $vq = new QName($v);
                             $this->wsdl->complexTypes[$this->schema][$this->currentElement][$q->name] = $vq->name;
+                            if ($q->name == 'arrayType') {
+                                $this->wsdl->complexTypes[$this->schema][$this->currentElement]['type'] = $vq->name;
+                                $this->wsdl->complexTypes[$this->schema][$this->currentElement]['namespace'] = $vq->ns;
+                            }
                         }
                     }
                     $this->wsdl->complexTypes[$this->schema][$this->currentElement]['attrs'] = $attrs;
@@ -558,8 +562,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
         // set status
         switch($qname->name) {
         case 'import':
-            //XXX
-            $import = '';
             if (array_key_exists('location',$attrs)) {
                 $result = $this->parse($attrs['location'], $this->wsdl);
                 if (PEAR::isError($result)) {

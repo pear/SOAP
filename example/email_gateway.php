@@ -1,4 +1,4 @@
-<?
+<?php
 //
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -13,19 +13,36 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Shane Caraveo <Shane@Caraveo.com>                           |
+// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
-// include soap client class
-include("SOAP/Client.php");
 
-$soapclient = new SOAP_Client("mailto:shane@caraveo.com");
-$options = array('namespace'=>'http://soapinterop.org/','from'=>'shane@caraveo.com');
-$return = $soapclient->call("echoString",array("inputString"=>"this is a test"), $options);
-print_r($return);
-unset($soapclient);
+/*
+This reads a message from stdin, and passes the request to
+a soap server residing on a web server, sends the response
+out as an email
 
+You can use this from qmail by creating a .qmail-soapgateway file with:
+    | /usr/bin/php /path/to/email_server.php
+*/
+
+# include the email server class
+require_once 'SOAP/Server/Email_Gateway.php';
+
+# read stdin
+$fin = fopen('php://stdin','rb');
+if (!$fin) exit(0);
+
+$email = '';
+while (!feof($fin) && $data = fread($fin, 8096)) {
+  $email .= $data;
+}
+
+fclose($fin);
+
+# doit!
+$server = new SOAP_Server_Email_Gateway();
+$server->service($data, 'http://localhost/soap_interop/server_round2.php');
 ?>
-

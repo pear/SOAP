@@ -144,10 +144,24 @@ class SOAP_Client extends SOAP_Base
     /**
     * SOAP_Client::call
     *
+    * the namespace parameter is overloaded to accept an array of
+    * options that can contain data necessary for various transports
+    * if it is used as an array, it MAY contain a namespace value and a
+    * soapaction value.  If it is overloaded, the soapaction parameter is
+    * ignored and MUST be placed in the options array.  This is done
+    * to provide backwards compatibility with current clients, but
+    * may be removed in the future.
+    *
+    * OLD parameters
     * @param string method
     * @param array  params
     * @param string namespace  (not required if using wsdl)
     * @param string soapAction   (not required if using wsdl)
+    *
+    * NEW parameters
+    * @param string method
+    * @param array  params
+    * @param array options (hash with namespace, soapaction, timeout, from, subject, etc.)
     *
     * @return array of results
     * @access public
@@ -155,13 +169,22 @@ class SOAP_Client extends SOAP_Base
     function call($method, $params = array(), $namespace = false, $soapAction = false)
     {
         $this->fault = null;
-
+        $options = array();
+        
         // make message
         if (!$this->soapmsg) {
             soap_reset_namespaces();
             $this->soapmsg = new SOAP_Message(NULL, $this->wsdl);
         }
-
+        
+        if (gettype($namespace) == 'array') {
+            $options = $namespace;
+            $namespace = $options['namespace'];
+        } else {
+            // we'll place soapaction into our array for usage in the transport
+            $options['soapaction'] = $soapAction;
+        }
+        
         if ($this->endpointType == 'wsdl') {
             $this->setSchemaVersion($this->wsdl->xsd);
             // get portName
@@ -184,7 +207,7 @@ class SOAP_Client extends SOAP_Base
             if (PEAR::isError($opData)) {
                 return $this->raiseSoapFault($opData);
             }
-            $soapAction = $opData['soapAction'];
+            $options['soapaction'] = $opData['soapAction'];
 
             // set input params
             $nparams = array();
@@ -241,7 +264,7 @@ class SOAP_Client extends SOAP_Base
         }
         
         // send the message
-        $this->response = $soap_transport->send($soap_data, $soapAction);
+        $this->response = $soap_transport->send($soap_data, $options);
 
         // save the wire information for debugging
         $this->wire = "OUTGOING:\n\n".

@@ -1,4 +1,4 @@
-<?
+<?php
 //
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -13,19 +13,41 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Shane Caraveo <Shane@Caraveo.com>                           |
+// | Authors: Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more   |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
-// include soap client class
-include("SOAP/Client.php");
 
-$soapclient = new SOAP_Client("mailto:shane@caraveo.com");
-$options = array('namespace'=>'http://soapinterop.org/','from'=>'shane@caraveo.com');
-$return = $soapclient->call("echoString",array("inputString"=>"this is a test"), $options);
-print_r($return);
-unset($soapclient);
+/*
+This reads a message from stdin, and calls the soap server defined
+
+You can use this from qmail by creating a .qmail-soaptest file with:
+    | /usr/bin/php /path/to/email_server.php
+*/
+
+# include the email server class
+require_once 'SOAP/Server/Email.php';
+
+$server = new SOAP_Server_Email;
+
+# include the soap classes
+require_once 'SOAP/interop/server_round2_base.php';
+require_once 'SOAP/interop/server_round2_groupB.php';
+require_once 'SOAP/interop/server_round2_groupC.php';
+
+# read stdin
+$fin = fopen('php://stdin','rb');
+if (!$fin) exit(0);
+
+$email = '';
+while (!feof($fin) && $data = fread($fin, 8096)) {
+  $email .= $data;
+}
+
+fclose($fin);
+
+# doit!
+$server->service($email);
 
 ?>
-

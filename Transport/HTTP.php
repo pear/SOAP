@@ -110,19 +110,19 @@ class SOAP_Transport_HTTP extends SOAP_Base
     * @return string|fault response
     * @access public
     */
-    function &send(&$msg, $action = '', $timeout = 0)
+    function &send(&$msg,  /*array*/ $options = NULL)
     {
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
         
         if ($timeout) 
-            $this->timeout = $timeout;
+            $this->timeout = (int)$options['timeout'];
     
         if (strcasecmp($this->urlparts['scheme'], 'HTTP') == 0) {
-            return $this->_sendHTTP($msg, $action);
+            return $this->_sendHTTP($msg, $options['soapaction']);
         } else if (strcasecmp($this->urlparts['scheme'], 'HTTPS') == 0) {
-            return $this->_sendHTTPS($msg, $action);
+            return $this->_sendHTTPS($msg, $options['soapaction']);
         }
         
         return $this->raiseSoapFault('Invalid url scheme '.$this->url);

@@ -34,6 +34,11 @@ require_once 'SOAP/Base.php';
 /**
 *  SMTP Transport for SOAP
 *
+* implements SOAP-SMTP as defined at
+* http://www.pocketsoap.com/specs/smtpbinding/
+*
+* TODO: use PEAR smtp and Mime classes
+*
 * @access public
 * @version $Id$
 * @package SOAP::Transport::SMTP
@@ -48,6 +53,7 @@ class SOAP_Transport_SMTP extends SOAP_Base
     var $incoming_payload = '';
     var $_userAgent = SOAP_LIBRARY_NAME;
     var $encoding = SOAP_DEFAULT_ENCODING;
+
     /**
     * SOAP_Transport_SMTP Constructor
     *
@@ -73,21 +79,52 @@ class SOAP_Transport_SMTP extends SOAP_Base
     * @return string &$response   response data, minus http headers
     * @access public
     */
-    function send(&$msg, $action = '', $timeout = 0)
+    function send(&$msg,  /*array*/ $options = NULL)
     {
+        $this->outgoing_payload = &$msg;
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
-
-        $headers = "From: $action\n".
+        if (!$options || !array_key_exists('from',$options)) {
+            return $this->raiseSoapFault("No FROM address to send message with");
+        }
+        $headers = "From: {$options['from']}\n".
                             "X-Mailer: $this->_userAgent\n".
                             "MIME-Version: 1.0\n".
-                            "Content-Type: text/xml; charset=\"utf-8\"\n".
-                            "Content-Transfer-Encoding: quoted-printable\n";
-        $subject = 'SOAP Message';
-
+                            "Content-Disposition: inline\n".
+                            "Content-Type: text/xml; charset=\"$this->encoding\"\n";
+        
+        if (array_key_exists('transfer-encoding', $options)) {
+            if (strcasecmp($options['transfer-encoding'],'quoted-printable')==0) {
+                $headers .="Content-Transfer-Encoding: {$options['transfer-encoding']}\n";
+                $out = &$msg;
+            } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
+                $headers .="Content-Transfer-Encoding: base64\n";
+                $out = chunk_split(base64_encode($msg));
+            } else {
+                return $this->raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
+            }
+        } else {
+            // default to base64
+            $headers .="Content-Transfer-Encoding: base64\n";
+            $out = chunk_split(base64_encode($msg));
+        }
+                            
+        if (array_key_exists('soapaction', $options)) {
+            "Soapaction: \"{$options['soapaction']}\"\n";
+        }
+        
+        if (array_key_exists('headers', $options)) {
+            foreach ($options['headers'] as $key => $value) {
+                $headers .= "$key: $value\n";
+            }
+        }
+        
+        $subject = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
+        
+        $this->outgoing_payload = $headers."\n\n".$this->outgoing_payload;
         # we want to return a proper XML message
-        $result = mail($this->urlparts['path'], $subject, $msg, $headers);
+        $result = mail($this->urlparts['path'], $subject, $out, $headers);
 
         if ($result) {
             $val = new SOAP_Value('return','boolean',TRUE);
@@ -98,10 +135,11 @@ class SOAP_Transport_SMTP extends SOAP_Base
                 ));
         }
 
-        $return_msg = new SOAP_Message('Response',array($val),'smtp');
-        $response = $return_msg->serialize();
+        $return_msg = new SOAP_Message();
+        $return_msg->method('Response',array($val),'smtp');
+        $this->incoming_payload = $return_msg->serialize();
 
-        return $result;
+        return $this->incoming_payload;
     }
 
     /**

@@ -82,13 +82,13 @@ class SOAP_Transport extends SOAP_Base
     * @return string &$response   soap response (in xml)
     * @access public
     */
-    function &send(&$soap_data, $action = '', $timeout = 0)
+    function &send(&$soap_data, /*array*/ $options = NULL)
     {
         if (!$this->transport) {
             return $this->fault;
         }
         
-        $response = $this->transport->send($soap_data, $action, $timeout);
+        $response = $this->transport->send($soap_data, $options);
         if (PEAR::isError($response)) {
             return $this->raiseSoapFault($response);
         }

@@ -36,6 +36,7 @@ function SOAP_ServerErrorHandler($errno, $errmsg, $filename, $linenum, $vars) {
     $soap_server_fault = new SOAP_Fault($errmsg, 'Server', NULL,NULL, array('detail'=>$detail));
 }
 
+
 /**
 *  SOAP::Server
 * SOAP Server Class
@@ -93,6 +94,22 @@ class SOAP_Server {
         ini_set('track_errors',1);
     }
     
+    function _getContentEncoding($content_type)
+    {
+        global $SOAP_Encodings;
+        // get the character encoding of the incoming request
+        // treat incoming data as UTF-8 if no encoding set
+        $this->xml_encoding = 'UTF-8';
+        if (!$test && strpos($content_type,'=')) {
+            $enc = strtoupper(str_replace('"',"",substr(strstr($content_type,'='),1)));
+            if (!in_array($enc, $SOAP_Encodings)) {
+                return FALSE;
+            }
+            $this->xml_encoding = $enc;
+        }
+        return TRUE;
+    }
+    
     // parses request and posts response
     function service($data, $endpoint = '', $test = FALSE)
     {
@@ -105,14 +122,25 @@ class SOAP_Server {
             if ($_SERVER['SERVER_PORT']) $this->endpoint .= ':'.$_SERVER['SERVER_PORT'];
             $this->endpoint .= $PHP_SELF;
         }
+
+        // get the character encoding of the incoming request
+        // treat incoming data as UTF-8 if no encoding set
+        if (!$this->_getContentEncoding($_SERVER['CONTENT_TYPE'])) {
+            $this->xml_encoding = SOAP_DEFAULT_ENCODING;
+            // an encoding we don't understand, return a fault
+            $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
+            $response = $this->getFaultMessage();                
+        }
         
         // if this is not a POST with Content-Type text/xml, try to return a WSDL file
-        if (!$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
-            strncmp($_SERVER['CONTENT_TYPE'], 'text/xml', 8) != 0)) {
+        if (!$response  && !$test && ($_SERVER['REQUEST_METHOD'] != 'POST' ||
+            strncmp($_SERVER['CONTENT_TYPE'],'text/xml',8) != 0)) {
                 // this is not possibly a valid soap request, try to return a WSDL file
                 $this->makeFault('Server',"Invalid SOAP request, must be POST with content-type: text/xml");
                 $response = $this->getFaultMessage();
-        } else {
+        }
+        
+        if (!$response) {
             // $response is a soap_msg object
             $response = $this->parseRequest($data);
         }
@@ -199,20 +227,7 @@ class SOAP_Server {
     {
         global $_ENV, $_SERVER, $SOAP_Encodings;
         
-        // get the character encoding of the incoming request
-        // treat incoming data as UTF-8 if no encoding set
-        $this->xml_encoding = 'UTF-8';
-        if (strpos($_SERVER['CONTENT_TYPE'],'=')) {
-            $enc = strtoupper(str_replace('"',"",substr(strstr($_SERVER['CONTENT_TYPE'],'='),1)));
-            if (in_array($enc, $SOAP_Encodings)) {
-                $this->xml_encoding = $enc;
-            } else {
-                $this->xml_encoding = SOAP_DEFAULT_ENCODING;
-                // an encoding we don't understand, return a fault
-                $this->makeFault('Server','Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8');
-                return $this->getFaultMessage();                
-            }
-        }
+
 
         $this->request = $dump."\r\n\r\n".$data;
         // parse response, get soap parser obj
@@ -488,4 +503,7 @@ class SOAP_Server {
         $this->soapfault = new SOAP_Fault($fault_string, $fault_code);
     }
 }
+
+
+
 ?>
