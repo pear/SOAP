@@ -46,10 +46,9 @@ class SOAP_Transport_HTTP
     */
     function SOAP_Transport_HTTP($URL)
     {
-        global $SOAP_LibraryName;
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
-        $this->_userAgent = $SOAP_LibraryName;
+        $this->_userAgent = SOAP_LIBRARY_NAME;
     }
     
     /**
@@ -129,7 +128,8 @@ class SOAP_Transport_HTTP
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s",$this->incoming_payload,$match)) {
             $this->response = preg_replace("/[\r|\n]/","",$match[2]);
-            return TRUE;
+            // if no content, return false
+            return strlen($this->response) > 0;
         }
         return FALSE;
     }

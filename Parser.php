@@ -59,9 +59,13 @@ class SOAP_Parser
     var $xml = "";
     var $xml_encoding = "";
     var $root_struct = "";
-
+    var $references = array();
+    var $need_references = array();
+    var $XMLSchemaVersion;
+    
     function SOAP_Parser($xml,$encoding="UTF-8")
     {
+        $this->setSchemaVersion(SOAP_XML_SCHEMA_VERSION);
         //global $soapTypes;
         //$this->soapTypes = $soapTypes;
         $this->xml = $xml;
@@ -101,6 +105,16 @@ class SOAP_Parser
         }
     }
     
+    function setSchemaVersion($schemaVersion)
+    {
+        global $SOAP_namespaces;
+        $this->XMLSchemaVersion = $schemaVersion;
+        $tmpNS = array_flip($SOAP_namespaces);
+        $tmpNS["xsd"] = $this->XMLSchemaVersion;
+        $tmpNS["xsi"] = $this->XMLSchemaVersion."-instance";
+        $SOAP_namespaces = array_flip($tmpNS);
+    }
+    
     // loop through msg, building response structures
     function buildResponse($pos)
     {
@@ -114,6 +128,39 @@ class SOAP_Parser
                 if ($this->message[$child_pos]["type"] != NULL) {
                     $this->debug("entering buildResponse() for ".$this->message[$child_pos]["name"].", array pos $c, pos: $child_pos");
                     $response[] = $this->buildResponse($child_pos);
+                }
+            }
+            if (array_key_exists('arraySize',$this->message[$pos])) {
+                $ardepth = count($this->message[$pos]['arraySize']);
+                if ($ardepth > 1) {
+                    $ar = array_pad(array(), $ardepth, 0);
+                    if (array_key_exists('arrayOffset',$this->message[$pos])) {
+                        for ($i = 0; $i < $ardepth; $i++) {
+                            $ar[$i] += $this->message[$pos]['arrayOffset'][$i];
+                        }
+                    }
+                    $elc = count($response);
+                    for ($i = 0; $i < $elc; $i++) {
+                        $al = "\$newresp";
+                        for ($ad = 0; $ad < $ardepth; $ad++) {
+                            $al .= "[".($ar[$ad])."]";
+                        }
+                        eval("$al = \$response[".$i."];");
+                        
+                        # increment our array pointers
+                        $ad = $ardepth - 1;
+                        $ar[$ad]++;
+                        while ($ad > 0 && $ar[$ad] >= $this->message[$pos]['arraySize'][$ad]) {
+                            $ar[$ad] = 0;
+                            $ad--;
+                            $ar[$ad]++;
+                        }
+                    }
+                    $response = $newresp;
+                } else if ($this->message[$pos]['arrayOffset'][0] > 0) {
+                    # check for padding
+                    $pad = $this->message[$pos]['arrayOffset'][0]+count($response)*-1;
+                    $response = array_pad($response,$pad,NULL);
                 }
             }
         }
@@ -155,22 +202,32 @@ class SOAP_Parser
         $this->parent = $pos;
         
         // set status
-        if (preg_match("/:Envelope$/",$name)) {
+        if (preg_match("/:Envelope$/i",$name)) {
             $this->status = "envelope";
-        } elseif (preg_match("/:Header$/",$name)) {
+        } elseif (preg_match("/:Header$/i",$name)) {
             $this->status = "header";
-        } elseif (preg_match("/:Body$/",$name)) {
+        } elseif (preg_match("/:Body$/i",$name)) {
             $this->status = "body";
         // set method
         } elseif ($this->status == "body") {
-            $this->status = "method";
-            if (strpos($name,":") !== false) {
-                $this->root_struct_name = substr(strrchr($name,":"),1);
-            } else {
-                $this->root_struct_name = $name;
+            // is this element allowed to be a root?
+            // XXX this needs to be optimized, we loop through attrs twice now
+            $can_root = TRUE;
+            foreach ($attrs as $key => $value) {
+                if (preg_match('/:root$/i', $key) && !$value) {
+                    $can_root = FALSE;
+                }
             }
-            $this->root_struct = $pos;
-            $this->message[$pos]["type"] = "struct";
+            $this->status = "method";
+            if ($can_root) {
+                if (strpos($name,":") !== false) {
+                    $this->root_struct_name = substr(strrchr($name,":"),1);
+                } else {
+                    $this->root_struct_name = $name;
+                }
+                $this->root_struct = $pos;
+                $this->message[$pos]["type"] = "struct";
+            }
         }
         // set my status
         $this->message[$pos]["status"] = $this->status;
@@ -190,15 +247,10 @@ class SOAP_Parser
         // loop through atts, logging ns and type declarations
         foreach ($attrs as $key => $value) {
             // if ns declarations, add to class level array of valid namespaces
-            if (strstr($key,"xmlns:")) {
+            if (preg_match('/^xmlns:/i',$key)) {
                 $prefix = substr(strrchr($key,":"),1);
                 if ($prefix == "xsd") {
-                    global $SOAP_XMLSchemaVersion,$SOAP_namespaces;
-                    $SOAP_XMLSchemaVersion = $value;
-                    $tmpNS = array_flip($SOAP_namespaces);
-                    $tmpNS["xsd"] = $SOAP_XMLSchemaVersion;
-                    $tmpNS["xsi"] = $SOAP_XMLSchemaVersion."-instance";
-                    $SOAP_namespaces = array_flip($tmpNS);
+                    $this->setSchemaVersion($value);
                 }
                 $this->namespaces[substr(strrchr($key,":"),1)] = $value;
                 // set method namespace
@@ -206,14 +258,40 @@ class SOAP_Parser
                     $this->methodNamespace = $value;
                 }
             // if it's a type declaration, set type
-            } elseif ($key == "xsi:type") {
+            } elseif (preg_match('/:type$/i',$key)) {
                 $type = substr(strrchr($value,":"),1);
                 if (!$type) $type = $value;
                 $this->message[$pos]["type"] = $type;
                 #print "set type for {$this->message[$pos]['name']} to {$this->message[$pos]['type']}\n";
                 // should do something here with the namespace of specified type?
-            } elseif ($key == "SOAP-ENC:arrayType") {
+            } elseif (preg_match('/:arrayType$/i',$key)) {
                 $this->message[$pos]['type'] = 'array';
+                $type = substr(strrchr($value,':'),1);
+                if (!$type) $type = $value;
+                $sa = strpos($type,'[');
+                if ($sa > 0) {
+                    $this->message[$pos]['arraySize'] = split(',',substr($type,$sa+1, strlen($type)-$sa-2));
+                    $type = substr($type, 0, $sa);
+                }
+                $this->message[$pos]['arrayType'] = $type;
+            } elseif (preg_match('/:offset$/i',$key)) {
+                $this->message[$pos]['arrayOffset'] = split(',',substr($value, 1, strlen($value)-2));
+            } elseif ($key == 'id') {
+                # save id to reference array
+                $this->references[$value] = $pos;
+                $this->message[$pos]['id'] = $value;
+            } elseif ($key == 'href' && $value[0] == '#') {
+                $ref = substr($value, 1);
+                if (array_key_exists($ref,$this->references)) {
+                    # cdata, type, inval
+                    $ref_pos = $this->references[$ref];
+                    $this->message[$pos]['cdata'] = &$this->message[$ref_pos]['cdata'];
+                    $this->message[$pos]['type'] = &$this->message[$ref_pos]['type'];
+                    $this->message[$pos]['inval'] = &$this->message[$ref_pos]['inval'];
+                } else {
+                    # reverse reference, store in 'need reference'
+                    $this->need_references[$ref][] = $pos;
+                }
             }
         }
     }
@@ -227,12 +305,18 @@ class SOAP_Parser
         $this->depth--;
         
         // get type if not explicitly declared in an xsi:type attribute
-        // man is this fucked up. can't do wsdl like dis!
-        if ($this->message[$pos]["type"] == "") {
-            if ($this->message[$pos]["children"] != "") {
-                $this->message[$pos]["type"] = "struct";
+        // XXX check on integrating wsdl validation here
+        if ($this->message[$pos]['type'] == "") {
+            if ($this->message[$pos]['children'] != "") {
+                $this->message[$pos]['type'] = 'struct';
             } else {
-                $this->message[$pos]["type"] = "string";
+                $parent = $this->message[$pos]['parent'];
+                if ($this->message[$parent]['type'] == 'array' &&
+                  array_key_exists('arrayType', $this->message[$parent])) {
+                    $this->message[$pos]['type'] = $this->message[$parent]['arrayType'];
+                } else {
+                    $this->message[$pos]['type'] = 'string';
+                }
             }
         }
         
@@ -257,6 +341,20 @@ class SOAP_Parser
         $this->parent = $this->message[$pos]["parent"];
         $this->debug("parsed $name end, type '".$this->message[$pos]["type"]."' children = ".$this->message[$pos]["children"]);
         #print ("parsed $name end, type '".$this->message[$pos]["type"]."' children = ".$this->message[$pos]["children"]."\n");
+        
+        # handle any reverse references now
+        $idref = $this->message[$pos]['id'];
+        if ($idref != "" && array_key_exists($idref,$this->need_references)) {
+            foreach ($this->need_references[$idref] as $ref_pos) {
+                #XXX is this stuff there already?
+                $this->message[$ref_pos]['children'] = &$this->message[$pos]['children'];
+                $this->message[$ref_pos]['cdata'] = &$this->message[$pos]['cdata'];
+                $this->message[$ref_pos]['type'] = &$this->message[$pos]['type'];
+                $this->message[$ref_pos]['inval'] = &$this->message[$pos]['inval'];
+            }
+            # wipe out our waiting list
+            $this->need_references[$idref] = array();
+        }
     }
     
     // element content handler

@@ -148,24 +148,30 @@ $method_params["GroupB"]['soapval']["echoSimpleTypesAsStruct"] =
     );
 
 # XXX I know this isn't quite right, need to deal with this better
-$method_params["GroupB"]['php']["echo2DStringArray"]['input2DStringArray'] =
-    array(
-            "row0col0",
-            "row0col1",
-            "row0col2",
-            "row1col0",
-            "row2col1",
-            "row3col2"
-    );
+function make_2d($x, $y)
+{
+    for ($_x = 0; $_x < $x; $_x++) {
+        for ($_y = 0; $_y < $y; $_y++) {
+            $a[$_x][$_y] = "x{$_x}y{$_y}";
+        }
+    }
+    return $a;
+}
+
+$method_params["GroupB"]['php']["echo2DStringArray"]['input2DStringArray'] = make_2d(3,3);
 $method_params["GroupB"]['soapval']["echo2DStringArray"]['input2DStringArray'] =
     new SOAP_Value("input2DStringArray","Array",
         array(
+            array(
                 new SOAP_Value("item","string","row0col0"),
                 new SOAP_Value("item","string","row0col1"),
-                new SOAP_Value("item","string","row0col2"),
+                new SOAP_Value("item","string","row0col2")
+                 ),
+            array(
                 new SOAP_Value("item","string","row1col0"),
-                new SOAP_Value("item","string","row2col1"),
-                new SOAP_Value("item","string","row3col2")
+                new SOAP_Value("item","string","row1col1"),
+                new SOAP_Value("item","string","row1col2")
+                )
         )
     );
 
@@ -205,7 +211,7 @@ $method_params["GroupB"]['php']["echoNestedArray"]['inputStruct'] =
         "varArray" => array("red","blue","green")
     );
 $method_params["GroupB"]['soapval']["echoNestedArray"]['inputStruct'] =
-        new SOAP_Value("inputStruct","Array",
+        new SOAP_Value("inputStruct","struct",
             array( #push struct elements into one soap value
                 new SOAP_Value("varString","string","arg"),
                 new SOAP_Value("varInt","int",34),

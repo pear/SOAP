@@ -79,13 +79,12 @@ class SOAP_Message
     */
     function _makeEnvelope($payload)
     {
-        global $SOAP_SchemaEncoding;
         global $SOAP_namespaces;
         $ns_string = "";
         foreach ($SOAP_namespaces as $k => $v) {
-            $ns_string .= "xmlns:$v=\"$k\" ";
+            $ns_string .= "xmlns:$v=\"$k\"\n ";
         }
-        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"$SOAP_SchemaEncoding\">\n".
+        return "<SOAP-ENV:Envelope $ns_string SOAP-ENV:encodingStyle=\"".SOAP_SCHEMA_ENCODING."\">\n".
                    $payload.
                    "</SOAP-ENV:Envelope>\n";
     }
@@ -113,7 +112,7 @@ class SOAP_Message
         $value = $this->value;
         $payload = $this->_makeEnvelope($this->_makeBody($value->serialize()));
         $this->debug($value->debug_str);
-        $payload = "<?xml version=\"1.0\"?>\n".$payload;
+        $payload = "<?xml version=\"1.0\"?>\n\n".$payload;
         if ($this->debug_flag) {
             $payload .= $this->serializeDebug();
         }

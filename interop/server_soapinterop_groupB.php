@@ -1,4 +1,4 @@
-<?php
+<?
 //
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -19,31 +19,40 @@
 //
 // $Id$
 //
+require_once('SOAP/Server.php');
 
-// 1. include server.php
-include("SOAP/Server.php");
-
-// 2. instantiate server object
-$server = new SOAP_Server;
-
-/* 3. call the addToMap() method for each service (function) you want to expose:
-
-$server->addToMap(
-	"echoString",		// function name
-	array("string"),	// array of input types
-	array("string")		// array of output types
-);
-
-function echoString($string){
-	return $string;
+$server->addToMap('echoStructAsSimpleTypes',
+		  array('inputStruct' => 'struct'),
+		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'));
+function echoStructAsSimpleTypes ($struct)
+{
+    # convert a SOAPStruct to an array
+    return array_values($struct);
 }
 
-*/
-include("server_soapinterop_base.php");
-include("server_soapinterop_groupB.php");
+$server->addToMap('echoSimpleTypesAsStruct',
+		  array('outputString' => 'string', 'outputInteger' => 'int', 'outputFloat' => 'float'),
+		  array('return' => 'struct'));
+function echoSimpleTypesAsStruct($string, $int, $float)
+{
+    # convert a SOAPStruct to an array
+    $ret = array($string, $int, $float);
+    return $ret;
+}
 
-// 4. call the service method to initiate transaction
-// and send response
-$server->service($HTTP_RAW_POST_DATA, TRUE);
+function echoNestedStruct($struct)
+{
+    return $struct;
+}
+
+function echo2DStringArray($ary)
+{
+    return $ary;
+}
+
+function echoNestedArray($ary)
+{
+    return $ary;
+}
 
 ?>

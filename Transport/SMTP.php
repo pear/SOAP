@@ -58,10 +58,9 @@ class SOAP_Transport_SMTP
     */
     function SOAP_Transport_SMTP($URL)
     {
-        global $SOAP_LibraryName;
         $this->urlparts = @parse_url($URL);
         $this->url = $URL;
-        $this->_userAgent = $SOAP_LibraryName;
+        $this->_userAgent = SOAP_LIBRARY_NAME;
     }
     
     /**

@@ -60,7 +60,6 @@ class SOAP_Server {
     // parses request and posts response
     function service($data)
     {
-        global $SOAP_LibraryName;
         // $response is a soap_msg object
         $response = $this->parseRequest($data);
         $this->debug("parsed request and got an object of this class '".get_class($response)."'");
@@ -78,7 +77,7 @@ class SOAP_Server {
             //$header[] = "HTTP/1.0 200 OK\r\n";
             $header[] = "Status: 200 OK\r\n";
         }
-        $header[] = "Server: $SOAP_LibraryName\r\n";
+        $header[] = "Server: ".SOAP_LIBRARY_NAME."\r\n";
         $header[] = "Connection: Close\r\n";
         $header[] = "Content-Type: text/xml; charset=$this->xml_encoding\r\n";
         $header[] = "Content-Length: ".strlen($payload)."\r\n\r\n";
@@ -151,11 +150,11 @@ class SOAP_Server {
             /* set namespaces
             if ($parser->namespaces["xsd"] != "") {
                 //print "got ".$parser->namespaces["xsd"];
-                global $SOAP_XMLSchemaVersion,$SOAP_namespaces;
-                $SOAP_XMLSchemaVersion = $parser->namespaces["xsd"];
+                global $SOAP_namespaces;
+                $this->XMLSchemaVersion = $parser->namespaces["xsd"];
                 $tmpNS = array_flip($SOAP_namespaces);
-                $tmpNS["xsd"] = $SOAP_XMLSchemaVersion;
-                $tmpNS["xsi"] = $SOAP_XMLSchemaVersion."-instance";
+                $tmpNS["xsd"] = $this->XMLSchemaVersion;
+                $tmpNS["xsi"] = $this->XMLSchemaVersion."-instance";
                 $SOAP_namespaces = array_flip($tmpNS);
             }*/
             if (strcasecmp(get_class($request_val),"SOAP_Value")==0) {
@@ -190,18 +189,33 @@ class SOAP_Server {
                     } else {
                         // if return val is SOAP_Value object
                         if (strcasecmp(get_class($method_response),"SOAP_Value")==0) {
-                            $return_val = $method_response;
+                            $return_val = array($method_response);
                         // create soap_val object w/ return values from method, use method signature to determine type
                         } else {
                             $this->debug("creating new SOAP_Value to return, of type $this->return_type");
-                            $return_val = new SOAP_Value($this->methodname,$this->return_type,$method_response);
+                            if (is_array($this->return_type) && is_array($method_response)) {
+                                $i = 0;
+                                foreach ($this->return_type as $key => $type) {
+                                    if (is_numeric($key)) $key = "item";
+                                    $return_val[] = new SOAP_Value($key,$type,$method_response[$i++]);
+                                }
+                            } else {
+                                $return_name = 'return';
+                                if (is_array($this->return_type)) {
+                                    $keys = array_keys($this->return_type);
+                                    if (!is_numeric($keys[0])) $return_name = $keys[0];
+                                    $values = array_values($this->return_type);
+                                    $this->return_type = $values[0];
+                                }
+                                $return_val = array(new SOAP_Value($return_name,$this->return_type,$method_response));
+                            }
                         }
                         if ($this->debug_flag) {
                             $this->debug($return_val->debug_str);
                         }
                         $this->debug("creating return soap_msg object: ".$this->methodname."Response");
                         // response object is a soap_msg object
-                        $return_msg =  new SOAP_Message($this->methodname."Response",array($return_val),"$this->service");
+                        $return_msg =  new SOAP_Message($this->methodname."Response",$return_val,"$this->service");
                     }
                     if ($this->debug_flag) {
                         $return_msg->debug_flag = true;
@@ -228,7 +242,7 @@ class SOAP_Server {
     
     function verifyMethod($request)
     {
-        global $SOAP_typemap, $SOAP_XMLSchemaVersion;
+        global $SOAP_typemap;
         //return true;
         $this->debug("entered verifyMethod() w/ request name: ".$request->name);
         $params = $request->value;
@@ -250,21 +264,22 @@ class SOAP_Server {
                     foreach ($params as $param) {
                         $p[] = strtolower($param->type);
                     }
+                    $sig_t = array_values($sig);
                     // validate each param's type
                     for($i=0; $i < count($p); $i++) {
                         // type not match
                         // if soap types do not match, we ok it if the mapped php types match
                         // this allows using plain php variables to work (ie. stuff like Decimal would fail otherwise)
                         // XXX we should do further validation of the value of the type
-                        if (strtolower($sig[$i]) != strtolower($p[$i]) &&
-                            !(isset($SOAP_typemap[$SOAP_XMLSchemaVersion][$sig[$i]]) &&
-                            strtolower($SOAP_typemap[$SOAP_XMLSchemaVersion][$sig[$i]]) == strtolower($SOAP_typemap[$SOAP_XMLSchemaVersion][$p[$i]]))) {
+                        if (strcasecmp($sig_t[$i],$p[$i])!=0 &&
+                            !(isset($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]]) &&
+                            strcasecmp($SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$sig_t[$i]],$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$p[$i]])==0)) {
                             $param = $params[$i];
-                            $this->debug("mismatched parameter types: $sig[$i] != $p[$i]");
-                            $this->makeFault("Client","soap request contained mismatching parameters of name $param->name had type $p[$i], which did not match signature's type: $sig[$i]");
+                            $this->debug("mismatched parameter types: [{$sig_t[$i]}] != [{$p[$i]}]");
+                            $this->makeFault("Client","soap request contained mismatching parameters of name $param->name had type [{$p[$i]}], which did not match signature's type: [{$sig_t[$i]}], matched? ".(strcasecmp($sig_t[$i],$p[$i])));
                             return false;
                         }
-                        $this->debug("parameter type match: $sig[$i] = $p[$i]");
+                        $this->debug("parameter type match: $sig_t[$i] = $p[$i]");
                     }
                     return true;
                 // oops, wrong number of paramss
@@ -291,8 +306,12 @@ class SOAP_Server {
     // get string return type from dispatch map
     function getReturnType()
     {
-        if (count($this->dispatch_map[$this->methodname]["out"]) >= 1) {
-            $type = array_shift($this->dispatch_map[$this->methodname]["out"]);
+        if (is_array($this->dispatch_map[$this->methodname]['out'])) {
+            if (count($this->dispatch_map[$this->methodname]['out']) > 1) {
+                $this->debug("got multiple return types from dispatch map: '$type'");
+                return $this->dispatch_map[$this->methodname]['out'];
+            }
+            $type = array_shift($this->dispatch_map[$this->methodname]['out']);
             $this->debug("got return type from dispatch map: '$type'");
             return $type;
         }

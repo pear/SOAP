@@ -161,10 +161,10 @@ class SOAP_Client extends PEAR
         $dbg = "sending msg w/ soapaction '$soapAction'...";
         
         $soap_data = $soapmsg->serialize();
-        if ($soap_transport->send($this->response,$soap_data,$soapAction)) {
+        $result = $soap_transport->send($this->response,$soap_data,$soapAction);
+        if ($result && !PEAR::isError($result)) {
             // parse the response
             $return = $soapmsg->parseResponse($this->response);
-            
             $this->debug($soap_transport->debug_str);
             $this->debug($dbg."sent message successfully and got a(n) ".gettype($return)." back");
             // check for valid response
@@ -173,14 +173,14 @@ class SOAP_Client extends PEAR
                 $returnArray = $return->decode();
                 // fault?
                 if (is_array($returnArray)) {
-                    if (isset($returnArray['faultcode'])) {
+                    if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
                         $this->debug('got fault');
                         $this->fault = true;
                         foreach ($returnArray as $k => $v) {
                             //print "$k = $v<br>";
-                            if ($k == 'faultcode') $this->faultcode = $v;
-                            if ($k == 'faultstring') $this->faultstring = $v;
-                            if ($k == 'faultdetail') $this->faultdetail = $v;
+                            if (stristr($k,'faultcode')) $this->faultcode = $v;
+                            if (stristr($k,'faultstring')) $this->faultstring = $v;
+                            if (stristr($k,'faultdetail')) $this->faultdetail = $v;
                             $this->debug("$k = $v<br>");
                         }
                         return false;

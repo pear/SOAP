@@ -21,29 +21,50 @@
 //
 require_once("SOAP/Client.php");
 require_once("client_params.php");
+require_once("SOAP/test/test.utility.php");
+
 error_reporting(E_ALL ^ E_NOTICE);
 
-$localonly = 1; // set to 1 to test only your local server
-$test = 'base';  // which test to do: base, GroupB, GroupC
+$localonly = 0; // set to 1 to test only your local server
+$usebuiltin = 1; // use builtin list of endpoints
+$test = 'GroupB';  // which test to do: base, GroupB, GroupC
 $parm = 'soapval'; // use base types: php, soapval
 $show = 1;
 $debug = 0;
-$numservers = 1; // zero for all of them
-$testfunc = ""; // test a single function
-$specificendpoint = ""; //"http://63.142.188.184:1122/"; // endpoint url
+$numservers = 0; // zero for all of them
+$testfunc = "echo2DStringArray"; // test a single function
+$specificendpoint = "http://soap.4s4c.com/ilab/soap.asp"; //"http://63.142.188.184:1122/"; // endpoint url
 
 if ($localonly) {
     # define your test servers endpointURL here
     $endpoints[$SOAP_LibraryName] = array(
             "endpointURL" => "http://127.0.0.1/soap/interop.php",
             "name" => $SOAP_LibraryName);
+} elseif ($usebuiltin) {
+    $endpoints["4s4c"] = array(
+            "endpointURL" => "http://soap.4s4c.com/ilab/soap.asp",
+            "name" => "4s4c");
+    $endpoints["Apache Axis"] = array(
+            "endpointURL" => "http://nagoya.apache.org:5049/axis/services/echo",
+            "name" => "Apache Axis");
+    #$endpoints["GLUE"] = array(
+    #        "endpointURL" => "http://www.themindelectric.net:8005/glue/round2",
+    #        "name" => "GLUE");
+    #$endpoints["HP SOAP"] = array(
+    #        "endpointURL" => "http://soap.bluestone.com/hpws/soap/EchoService",
+    #        "name" => "HP SOAP");
+    #$endpoints["IONA XMLBus"] = array(
+    #        "endpointURL" => "http://interop.xmlbus.com:7002/xmlbus/container/InteropTest/BaseService/BasePort",
+    #        "name" => "IONA XMLBus");
 }
 
 /********************************************************************
 * you don't need to do anything below here
 */
 
-if ($localonly || getInteropEndpoints($test)) {
+if ($localonly || $usebuiltin ||
+    getInteropEndpoints($test)
+    ) {
     do_interopTest($method_params[$test][$parm], $testfunc, $numservers);
 }
 
@@ -52,6 +73,10 @@ function getInteropEndpoints($base = "base") {
     // get other interop endpoints
     $soapclient = new SOAP_Client("http://www.whitemesa.net/interopInfo");
     if($endpointArray = $soapclient->call("GetEndpointInfo",array("groupName"=>$base),"http://soapinterop.org/info/","http://soapinterop.org/info/")){
+        if (PEAR::isError($endpointArray)) {
+            print_r($endpointArray);
+            return FALSE;
+        }
         #print_r($endpointArray);
         foreach($endpointArray as $k => $v){
             $endpoints[$v["endpointName"]] = $v;
@@ -101,7 +126,7 @@ function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debu
     $soap->debug_flag = true;
     $return = $soap->call($method,$method_params,"http://soapinterop.org/","http://soapinterop.org/");
     
-    if(!$soap->fault){
+    if(!PEAR::isError($return) && !$soap->fault){
         if (is_array($method_params) && count($method_params) == 1) {
             $sent = array_shift($method_params);
         } else {
@@ -114,6 +139,8 @@ function do_endpoint_method($endpoint, $method, $method_params, $show = 0, $debu
         $sent = decode_soapval($sent);
 
         $ok = 0;
+        $sent_type = gettype($sent);
+        $return_type = gettype($return);
         if ($sent_type == "array" && $return_type == "array") {
             # compare arrays
             $ok = array_compare($sent, $return);
@@ -206,55 +233,6 @@ function do_interopTest(&$method_params, $onlyfunc, $num_endpoints = 1) {
         }
     }
 */
-}
-
-
-
-function number_compare($f1, $f2)
-{
-    # figure out which has the least fractional digits
-    preg_match('/.*?\.(.*)/',$f1,$m1);
-    preg_match('/.*?\.(.*)/',$f2,$m2);
-    #print_r($m1);
-    # always use at least 2 digits of precision
-    $d = max(min(strlen($m1[1]),strlen($m2[1])),2);
-    $f1 = round($f1, $d);
-    $f2 = round($f2, $d);
-    return bccomp($f1, $f2, $d) == 0;
-}
-
-function string_compare($e1, $e2)
-{
-    if (is_numeric($e1) && is_numeric($e2)) {
-        return number_compare($e1, $e2);
-    }
-    # handle dateTime comparison
-    $e1_type = gettype($e1);
-    $e2_type = gettype($e2);
-    $ok = FALSE;
-    if ($e1_type == "string") {
-        $dt = new SOAP_Type_dateTime();
-        $ok = $dt->compare($e1, $e2) == 0;
-    }
-    return $ok || $e1 == $e2 || strcasecmp($e1, $e2) == 0;
-}
-
-function array_compare($ar1, $ar2)
-{
-    # first a shallow diff
-    $diff = array_diff($sent, $return);
-    if (count($diff) == 0) return TRUE;
-
-    # diff failed, do a full check of the array
-    foreach ($ar1 as $k => $v) {
-        print "comparing $v == $ar2[$k]\n";
-        if (gettype($v) == "array") {
-            if (!array_compare($v, $ar2[$k])) return FALSE;
-        } else {
-            if (!string_compare($v, $ar2[$k])) return FALSE;
-        }
-    }
-    return FALSE;
 }
 
 ?>

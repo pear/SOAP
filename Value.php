@@ -52,7 +52,7 @@ class SOAP_Value
     
     function SOAP_Value($name="",$type=false,$value=-1,$namespace=false,$type_namespace=false)
     {
-        global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace, $SOAP_XMLSchemaVersion;
+        global $soapTypes, $SOAP_typemap, $SOAP_namespaces, $methodNamespace;
         // detect type if not passed
         
         #print("Entering SOAP_Value - name: '$name' type: '$type' value: $value\n");
@@ -91,23 +91,23 @@ class SOAP_Value
         }
         
         // if scalar
-        if (in_array($this->type,$SOAP_typemap[$SOAP_XMLSchemaVersion])) {
-            $this->type_code = 1;
+        if (in_array($this->type,$SOAP_typemap[SOAP_XML_SCHEMA_VERSION])) {
+            $this->type_code = VALUE_SCALAR;
             $this->addScalar($value,$this->type,$name);
         // if array
         } elseif (strcasecmp("array",$this->type) == 0 ||
              strcasecmp("ur-type",$this->type) == 0) {
-            $this->type_code = 2;
+            $this->type_code = VALUE_ARRAY;
             $this->addArray($value);
         // if struct
         } elseif (stristr($this->type,"struct")) {
-            $this->type_code = 3;
+            $this->type_code = VALUE_STRUCT;
             $this->addStruct($value);
         } elseif (is_array($value)) {
-            $this->type_code = 3;
+            $this->type_code = VALUE_STRUCT;
             $this->addStruct($value);
         } else {
-            $this->type_code = 1;
+            $this->type_code = VALUE_SCALAR;
             $this->addScalar($value,"string",$name);
         }
     }
@@ -168,6 +168,42 @@ class SOAP_Value
         return true;
     }
     
+    function _getArrayType(&$value, &$type, &$size, &$xml)
+    {
+        foreach ($value as $array_val) {
+            $array_types[$array_val->type] = 1;
+            #$xml .= $this->serializeval($array_val);
+        }
+        if ($array_val->type_prefix) {
+            $type = $array_val->type_prefix.":".$array_val->type;
+        } else {
+            $type = $array_val->type;
+        }
+        $sz = count($value);
+        if (count($array_types) == 1) {
+            if (array_key_exists("array",$array_types)) {
+                // seems we have a multi dimensional array, figure it out if we do
+                foreach ($value as $array_val) {
+                    $numtypes = $this->_getArrayType($array_val->value, $type, $size, $xml);
+                    if ($numtypes > 1) return $numtypes;
+                }
+                if ($sz) {
+                    $size = $sz.",".$size;
+                } else {
+                    $size = $sz;
+                }
+                return 1;
+            } else {
+                foreach ($value as $array_val) {
+                    #$array_types[$array_val->type] = 1;
+                    $xml .= $this->serializeval($array_val);
+                }
+            }
+        }
+        $size = $sz;
+        return count($array_types);
+    }
+    
     // turn SOAP_Value's into xml, woohoo!
     function serializeval($soapval=false)
     {
@@ -206,21 +242,32 @@ class SOAP_Value
             break;
         case 2:
             // array
-            foreach ($soapval->value as $array_val) {
-                $array_types[$array_val->type] = 1;
-                $xml .= $this->serializeval($array_val);
-            }
-            if (count($array_types) > 1) {
-                $array_type = "xsd:ur-type";
-            } elseif (count($array_types) >= 1) {
-                if ($array_val->type_prefix != "") {
-                    $array_type = $array_val->type_prefix.":".$array_val->type;
-                } else {
-                    $array_type = $array_val->type;
+            $offset ="";
+            // XXX this will be slow on larger array's.  We can probably move this
+            // out to an external helper function.  Basicly, it flattens array's to allow us
+            // to serialize multi-dimensional array's
+            $numtypes = $this->_getArrayType($soapval->value, $array_type, $ar_size, $xml);
+            #$numtypes = 0;
+            if ($numtypes != 1) {
+                $xml ="";
+                foreach ($soapval->value as $array_val) {
+                    $array_types[$array_val->type] = 1;
+                    $xml .= $this->serializeval($array_val);
                 }
+                $ar_size = count($soapval->value);
+                if (count($array_types) > 1) {
+                    $array_type = "xsd:ur-type";
+                } elseif (count($array_types) == 1) {
+                    if ($array_val->type_prefix != "") {
+                        $array_type = $array_val->type_prefix.":".$array_val->type;
+                    } else {
+                        $array_type = $array_val->type;
+                    }
+                }
+                $offset = " SOAP-ENC:offset=\"[0]\"";
             }
             
-            $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[".sizeof($soapval->value)."]\">\n".$xml."</$soapval->name>\n";
+            $xml = "<$soapval->name xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"".$array_type."[$ar_size]\"$offset>\n".$xml."</$soapval->name>\n";
             break;
         case 1:
             if ($soapval->prefix && $soapval->type_prefix) {
@@ -249,13 +296,13 @@ class SOAP_Value
     
     function decode($soapval=false)
     {
-        global $SOAP_XMLSchemaVersion, $SOAP_typemap;
+        global $SOAP_typemap;
         if (!$soapval) {
             $soapval = $this;
         }
         $this->debug("inside SOAP_Value->decode for $soapval->name of type $soapval->type and value: $soapval->value");
         // scalar decode
-        if ($soapval->type_code == 1) {
+        if ($soapval->type_code == VALUE_SCALAR) {
             if ($soapval->type == "boolean") {
                 #echo strcasecmp($soapval->value,"false");
                 if ($soapval->value != "0" &&
@@ -270,14 +317,14 @@ class SOAP_Value
             #    # THOUGHT: we could return a class instead.
             #    $dt = new SOAP_Type_dateTime($soapval->value);
             #    $soapval->value = $dt->toUnixtime();
-            } else if (in_array($soapval->type, $SOAP_typemap[$SOAP_XMLSchemaVersion], TRUE)) {
+            } else if (in_array($soapval->type, $SOAP_typemap[SOAP_XML_SCHEMA_VERSION], TRUE)) {
                 # if we can, lets set php's variable type
-                settype($soapval->value,$SOAP_typemap[$SOAP_XMLSchemaVersion][$soapval->type]);
+                settype($soapval->value,$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
             }
-            #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[$SOAP_XMLSchemaVersion][$soapval->type]}\n";
+            #print "value: $soapval->value type: $soapval->type phptype: {$SOAP_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]}\n";
             return $soapval->value;
         // array decode
-        } elseif ($soapval->type_code == 2) {
+        } elseif ($soapval->type_code == VALUE_ARRAY) {
             if (is_array($soapval->value)) {
                 foreach ($soapval->value as $item) {
                     $return[] = $this->decode($item);
@@ -286,12 +333,17 @@ class SOAP_Value
             }
             return $soapval->value;
         // struct decode
-        } elseif ($soapval->type_code == 3) {
+        } elseif ($soapval->type_code == VALUE_STRUCT) {
             if (is_array($soapval->value)) {
                 $counter = 1;
                 foreach ($soapval->value as $item) {
                     if (isset($return[$item->name])) {
-                        $return[$item->name.($counter++)] = $this->decode($item);
+                        if (!is_array($return[$item->name])) {
+                            $val = $return[$item->name];
+                            $return[$item->name] = array();
+                            $return[$item->name][] = $val;
+                        }
+                        $return[$item->name][] = $this->decode($item);
                     } else {
                         $return[$item->name] = $this->decode($item);
                     }
@@ -311,7 +363,7 @@ class SOAP_Value
     // pass it a type, and it attempts to return a namespace uri
     function verifyType($type)
     {
-        global $SOAP_typemap,$SOAP_namespaces,$SOAP_XMLSchemaVersion;
+        global $SOAP_typemap,$SOAP_namespaces;
         /*foreach ($SOAP_typemap as $namespace => $types) {
             if (is_array($types) && in_array($type,$types)) {
                 return $namespace;

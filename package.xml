@@ -37,6 +37,7 @@
 	</dir>
 	<dir name="Transport"> 
 	  <file role="php">HTTP.php</file>
+	  <file role="php">SMTP.php</file>
 	</dir>
 	<dir name="Type"> 
 	  <file role="php">dateTime.php</file>
@@ -47,6 +48,14 @@
 	  <file role="test">client_round2_base.php</file>
 	  <file role="test">interop.php</file>
 	  <file role="test">server_soapinterop_base.php</file>
+	  <file role="test">server_soapinterop_groupB.php</file>
+	</dir>
+	<dir name="test" role="test"> 
+	  <file role="test">5.2.simpletypes.php</file>
+	  <file role="test">5.2.1.simpletypes.string.php</file>
+	  <file role="test">5.2.1.simpletypes.multiref.php</file>
+	  <file role="test">all.php</file>
+	  <file role="test">test.utility.php</file>
 	</dir>
       </dir>
     </filelist>

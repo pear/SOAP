@@ -19,7 +19,7 @@
 //
 // $Id$
 //
-
+require_once("PEAR.php");
 /**
 * SOAP Transport Layer
 * This layer can use different protocols dependant on the endpoint url provided
@@ -31,7 +31,7 @@
 * @package SOAP::Transport
 * @author Shane Caraveo <shane@php.net>
 */
-class SOAP_Transport
+class SOAP_Transport extends PEAR
 {
     var $transport = NULL;
     var $outgoing_payload = "";
@@ -75,16 +75,16 @@ class SOAP_Transport
     */
     function send(&$response, &$soap_data, $action = "", $timeout=0)
     {
-        if (!$this->transport) return FALSE;
+        if (!$this->transport) return $this->raiseError($this->errmsg, -1);
         
         if (!$this->transport->send($soap_data, $response, $action, $timeout)) {
             $this->errmsg = $this->transport->errmsg;
-            return FALSE;
+            return $this->raiseError($this->transport->errmsg, -1);
         }
         $this->outgoing_payload = $this->transport->outgoing_payload;
-        #echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
+        echo "\n OUTGOING: ".$this->transport->outgoing_payload."\n\n";
         #echo "\n INCOMING: ".$this->transport->incoming_payload."\n\n";
-        #echo "\n INCOMING: ".preg_replace("/>/","/>\n/",$this->transport->incoming_payload)."\n\n";
+        echo "\n INCOMING: ".preg_replace("/>/",">\n",$this->transport->incoming_payload)."\n\n";
         return TRUE;
     }
 

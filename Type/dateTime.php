@@ -116,7 +116,8 @@ class SOAP_Type_dateTime
             $date1 = $this->toUnixtime($date1);
         if (!is_numeric($date2))
             $date2 = $this->toUnixtime($date2);
-        return $date1 - $date2;
+        if ($date1 != -1 && $date2 != -1) return $date1 - $date2;
+        return -1;
     }
     
     function _test($orig = "2001-04-25T09:31:41-0700")
