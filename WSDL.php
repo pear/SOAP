@@ -1874,7 +1874,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                     'namespace' => $this->tnsPrefix,
                     'address' => array('location' =>
                         'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'] .
-                        ($_SERVER['QUERY_STRING']? '?' . $_SERVER['QUERY_STRING'] : '')),
+                        (isset($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')),
                     'type' => 'soap');
         }
 

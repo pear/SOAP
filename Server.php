@@ -306,7 +306,7 @@ class SOAP_Server extends SOAP_Base
         if ($request_headers) {
             if (!is_a($request_headers,'soap_value')) {
                 $this->_raiseSoapFault("parser did not return SOAP_Value object: $request_headers",'','','Server');
-                return NULL;
+                return null;
             }
             if ($request_headers->value) {
             // handle headers now
@@ -321,7 +321,7 @@ class SOAP_Server extends SOAP_Base
 
                 if (!$f_exists && $header_val->mustunderstand && $myactor) {
                     $this->_raiseSoapFault("I don't understand header $header_val->name.",'','','MustUnderstand');
-                    return NULL;
+                    return null;
                 }
 
                 // we only handle the header if it's for us
@@ -335,7 +335,8 @@ class SOAP_Server extends SOAP_Base
                     $hr =& $this->callMethod($header_method, $header_data);
                     # if they return a fault, then it's all over!
                     if (PEAR::isError($hr)) {
-                        return $hr->message();
+                        $this->_raiseSoapFault($method_response);
+                        return null;
                     }
                     $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
                 }
@@ -400,7 +401,8 @@ class SOAP_Server extends SOAP_Base
         $method_response =& $this->callMethod($this->call_methodname, $request_data);
 
         if (PEAR::isError($method_response)) {
-            return $method_response->message();
+            $this->_raiseSoapFault($method_response);
+            return null;
         }
 
         if ($this->__options['parameters'] || !$method_response || $this->__options['style']=='rpc') {
