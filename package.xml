@@ -24,6 +24,7 @@
   </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
+	<file role="php">Base.php</file>
 	<file role="php">Client.php</file>
 	<file role="php">Server.php</file>
 	<file role="php">Fault.php</file>
