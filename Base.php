@@ -25,14 +25,14 @@
    rather than arrays.  This has been done to provide a closer match to php-soap.
    If the old behaviour is needed, set to false.  The old behaviour is depricated.
 */
-$SOAP_OBJECT_STRUCT = TRUE;
+$GLOBALS['SOAP_OBJECT_STRUCT'] = TRUE;
 /*
    SOAP_RAW_CONVERT makes pear::soap attempt to determine what SOAP type
    a php string COULD be.  This may result in slightly better interoperability when
    you are not using WSDL, and are being lazy and not using SOAP_Value to define
    types for your values.
 */
-$SOAP_RAW_CONVERT = FALSE;
+$GLOBALS['SOAP_RAW_CONVERT'] = FALSE;
 
 require_once 'PEAR.php';
 #require_once 'SOAP/Fault.php';
@@ -40,28 +40,28 @@ require_once 'SOAP/Type/dateTime.php';
 require_once 'SOAP/Type/hexBinary.php';
 
 // optional features
-$SOAP_options = array();
+$GLOBALS['SOAP_options'] = array();
 
 @include_once 'Mail/mimePart.php';
 @include_once 'Mail/mimeDecode.php';
 if (class_exists('Mail_mimePart')) {
-    $SOAP_options['Mime'] = 1;
+    $GLOBALS['SOAP_options']['Mime'] = 1;
     define('MAIL_MIMEPART_CRLF',"\n");
 }
 
 @include_once 'Net/DIME.php';
 if (class_exists('Net_DIME_Message')) {
-    $SOAP_options['DIME'] = 1;
+    $GLOBALS['SOAP_options']['DIME'] = 1;
 }
 
-#error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL);
 
 /**
 * Enable debugging informations?
 *
 * @const    SOAP_DEBUG
 */
-define('SOAP_DEBUG', false);
+$GLOBALS['SOAP_DEBUG']=false;
 
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
@@ -204,7 +204,7 @@ class SOAP_Base extends PEAR
     * @var  boolean if true debugging informations will be store in $debug_data
     * @see  $debug_data, SOAP_Base
     */
-    var $debug_flag = SOAP_DEBUG;
+    var $debug_flag = false;
     
     /**
     * String containing debugging informations if $debug_flag is set to true
@@ -253,6 +253,7 @@ class SOAP_Base extends PEAR
     {
         $this->myfaultcode = $faultcode;
         $this->resetNamespaces();
+        $this->debug_flag = $GLOBALS['SOAP_DEBUG'];
         parent::PEAR('SOAP_Fault');
     }
     
@@ -310,14 +311,12 @@ class SOAP_Base extends PEAR
             $this->fault = $str;
         } else {
             if (!$code) $code = $this->myfaultcode;
-            $this->fault =  $this->raiseError($str,
-                             $code,
-                             $mode,
-                             $options,
-                             $detail,
-                             'SOAP_Fault',
-                             $skipmsg);
-            $this->fault->error_message_prefix = $actorURI;
+            $this->fault = new SOAP_Fault($str, 
+                                          $code, 
+                                          $actorURI,
+                                          $detail,
+                                          $mode,
+                                          $options);
         }
         return $this->fault;
     }

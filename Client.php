@@ -433,23 +433,9 @@ class SOAP_Client extends SOAP_Base
             return $this->raiseSoapFault($returnArray);
         }
         if (is_object($returnArray)) {
-            $vars = get_object_vars($returnArray);
-            if (array_key_exists('faultcode',$vars) || array_key_exists('Fault',$vars)) {
-                $faultcode = $faultstring = $faultdetail = $faultactor = '';
-                foreach ($returnArray as $k => $v) {
-                    if (stristr($k,'faultcode')) $faultcode = $v;
-                    if (stristr($k,'faultstring')) $faultstring = $v;
-                    if (stristr($k,'detail')) $faultdetail = $v;
-                    if (stristr($k,'faultactor')) $faultactor = $v;
-                }
-                return $this->raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
-            }
-            if (count($vars) == 1) {
-                return array_shift($vars);
-            }
-            // multiple return arguments!
-            return $vars;
-        } else
+            $returnArray = get_object_vars($returnArray);
+        }
+
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
