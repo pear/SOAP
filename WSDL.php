@@ -494,10 +494,10 @@ class SOAP_WSDL extends SOAP_Base
             return null;
         }
 
-        if (is_array($this->proxy) && count($this->proxy) > 0) {
+        if (is_array($this->proxy) && count($this->proxy)) {
             $class = "class $classname extends SOAP_Client\n{\n" .
-            "    function $classname()\n{\n" .
-            "        \$this->SOAP_Client(\"$clienturl\", 0, 0,
+            "    function $classname(\$path = \"$clienturl\")\n{\n" .
+            "        \$this->SOAP_Client(\$path, 0, 0,
                     array(";
 
             foreach ($this->proxy as $key => $val) {
@@ -515,8 +515,8 @@ class SOAP_WSDL extends SOAP_Base
             $class = str_replace(',))', '))', $class);
         } else {
             $class = "class $classname extends SOAP_Client\n{\n" .
-            "    function $classname()\n    {\n" .
-            "        \$this->SOAP_Client(\"$clienturl\", 0);\n" .
+            "    function $classname(\$path = \"$clienturl\")\n    {\n" .
+            "        \$this->SOAP_Client(\$path, 0);\n" .
             "    }\n";
         }
 
@@ -613,12 +613,12 @@ class SOAP_WSDL extends SOAP_Base
 
             $class .= "    function &$opname_php($args)\n    {\n$comments$wrappers" .
                 "        return \$this->call('$opname',\n" .
-                "                            \$v = $argarray,\n" .
-                "                            array('namespace' => '$namespace',\n" .
-                "                                  'soapaction' => '$soapaction',\n" .
-                "                                  'style' => '$opstyle',\n" .
-                "                                  'use' => '$use'" .
-                ($this->trace?"\n,                                  'trace' => 1" : '') . "));\n" .
+                "                           \$v = $argarray,\n" .
+                "                           array('namespace' => '$namespace',\n" .
+                "                                 'soapaction' => '$soapaction',\n" .
+                "                                 'style' => '$opstyle',\n" .
+                "                                 'use' => '$use'" .
+                ($this->trace?",\n                                 'trace' => 1" : '') . "));\n" .
                 "    }\n";
         }
 

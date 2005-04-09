@@ -74,6 +74,9 @@
       - Fix PEAR bug #4063 - correctly mark NULLs in request XML.
 
       - Fix PEAR bug #4074 - overwriting of some arguments in proxy code.
+
+      - Allow overriding the WSDL endpoint in generated proxy classes
+        (PEAR bug #4076).
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
