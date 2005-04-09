@@ -72,6 +72,8 @@
       - Never try to redefine SOAP_Client_Overload.
 
       - Fix PEAR bug #4063 - correctly mark NULLs in request XML.
+
+      - Fix PEAR bug #4074 - overwriting of some arguments in proxy code.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

@@ -553,7 +553,6 @@ class SOAP_WSDL extends SOAP_Base
             foreach ($operation['input'] as $argname => $argtype) {
                 if ($argname == 'message') {
                     foreach ($this->messages[$argtype] as $_argname => $_argtype) {
-                        $comments = '';
                         if ($opstyle == 'document' && $use == 'literal' &&
                             $_argtype['name'] == 'parameters') {
                             // The type or element refered to is used
@@ -576,9 +575,7 @@ class SOAP_WSDL extends SOAP_Base
                                         $this->_addArg($args, $argarray, $elname);
                                     }
                                 }
-                            }/* else {
-                                $comments = $this->_complexTypeArg($args, $argarray, $elattrs, $elattrs['name']);
-                            }*/
+                            }
                             if ($el['complex'] && $argarray) {
                                 $wrapname = '{' . $this->namespaces[$_argtype['namespace']].'}' . $el['name'];
                                 $comments .= "        \${$el['name']} =& new SOAP_Value('$wrapname', false, \$v = array($argarray));\n";
@@ -587,10 +584,10 @@ class SOAP_WSDL extends SOAP_Base
                         } else {
                             if (isset($_argtype['element'])) {
                                 // Element argument.
-                                $comments = $this->_elementArg($args, $argarray, $_argtype, $_argtype['type']);
+                                $comments .= $this->_elementArg($args, $argarray, $_argtype, $_argtype['type']);
                             } else {
                                 // Complex type argument.
-                                $comments = $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
+                                $comments .= $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
                             }
                         }
                     }
