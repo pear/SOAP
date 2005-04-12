@@ -1239,7 +1239,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 // attributes: name
                 // children: wsdl:input wsdl:output wsdl:fault
                 $this->currentOperation = $attrs['name'];
-                //$this->wsdl->portTypes[$this->currentPortType][$this->currentOperation]['parameterOrder'] = $attrs['parameterOrder'];
                 $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation] = $attrs;
                 break;
 
@@ -1280,14 +1279,18 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // sect 3.3
                     // soap:binding, attributes: transport(required), style(optional, default = document)
                     // if style is missing, it is assumed to be 'document'
-                    if (!isset($attrs['style'])) $attrs['style'] = 'document';
+                    if (!isset($attrs['style'])) {
+                        $attrs['style'] = 'document';
+                    }
                     $this->wsdl->bindings[$this->currentBinding] = array_merge($this->wsdl->bindings[$this->currentBinding], $attrs);
                     break;
 
                 case 'operation':
                     // sect 3.4
                     // soap:operation, attributes: soapAction(required), style(optional, default = soap:binding:style)
-                    if (!isset($attrs['style'])) $attrs['style'] = $this->wsdl->bindings[$this->currentBinding]['style'];
+                    if (!isset($attrs['style'])) {
+                        $attrs['style'] = $this->wsdl->bindings[$this->currentBinding]['style'];
+                    }
                     if (isset($this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation])) {
                         $this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation] = array_merge($this->wsdl->bindings[$this->currentBinding]['operations'][$this->currentOperation], $attrs);
                     } else {
@@ -1559,7 +1562,9 @@ class SOAP_WSDL_Parser extends SOAP_Base
         case 'binding':
             // sect 2.5 wsdl:binding attributes: name type
             // children: wsdl:operation soap:binding http:binding
-            if ($qname->ns && $qname->ns != $this->tns) break;
+            if ($qname->ns && $qname->ns != $this->tns) {
+                break;
+            }
             $this->status = 'binding';
             $this->currentBinding = $attrs['name'];
             $qn =& new QName($attrs['type']);
@@ -1578,12 +1583,11 @@ class SOAP_WSDL_Parser extends SOAP_Base
             // sec 2.1 wsdl:definitions
             // attributes: name targetNamespace xmlns:*
             // children: wsdl:import wsdl:types wsdl:message wsdl:portType wsdl:binding wsdl:service
-            //$this->status = 'definitions';
             $this->wsdl->definition = $attrs;
             foreach ($attrs as $key => $value) {
                 if (strstr($key, 'xmlns:') !== false) {
                     $qn =& new QName($key);
-                    // XXX need to refactor ns handling
+                    // XXX need to refactor ns handling.
                     $this->wsdl->namespaces[$qn->name] = $value;
                     $this->wsdl->ns[$value] = $qn->name;
                     if ($key == 'targetNamespace' ||
@@ -1614,15 +1618,17 @@ class SOAP_WSDL_Parser extends SOAP_Base
     {
         $stacksize = count($this->element_stack);
         if ($stacksize) {
-            if ($this->element_stack[$stacksize - 1] ==  'definitions') {
+            if ($this->element_stack[$stacksize - 1] == 'definitions') {
                 $this->status = '';
             }
             array_pop($this->element_stack);
         }
+
         if (stristr($name, 'schema')) {
             array_pop($this->schema_stack);
             $this->schema = '';
         }
+
         if ($this->schema) {
             array_pop($this->schema_stack);
             if (count($this->schema_stack) <= 1) {
@@ -1650,11 +1656,6 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
             }
         }
-
-        // position of current element is equal to the last value left in depth_array for my depth
-        // $pos = $this->depth_array[$this->depth];
-        // bring depth down a notch
-        // $this->depth--;
     }
 
     /**
@@ -1664,59 +1665,50 @@ class SOAP_WSDL_Parser extends SOAP_Base
     {
         // Store the documentation in the WSDL file.
         if ($this->currentTag == 'documentation') {
+            $data = trim(preg_replace('/\s/', ' ', $data));
+            if (!strlen($data)) {
+                return;
+            }
+
             switch ($this->status) {
             case 'service':
-                $this->wsdl->services[$this->currentService][$this->currentTag] .= $data;
+                $ptr =& $this->wsdl->services[$this->currentService];
                 break;
 
             case 'portType':
-                if ($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag]) {
-                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] .= $data;
-                } else {
-                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] = $data;
-                }
+                $ptr =& $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation];
                 break;
 
             case 'binding':
-                if ($this->wsdl->bindings[$this->currentBinding][$this->currentTag]) {
-                    $this->wsdl->bindings[$this->currentBinding][$this->currentTag] .= $data;
-                } else {
-                    $this->wsdl->bindings[$this->currentBinding][$this->currentTag] = $data;
-                }
+                $ptr =& $this->wsdl->bindings[$this->currentBinding];
                 break;
 
             case 'message':
-                if ($this->wsdl->messages[$this->currentMessage][$this->currentTag]) {
-                    $this->wsdl->messages[$this->currentMessage][$this->currentTag] .= $data;
-                } else {
-                    $this->wsdl->messages[$this->currentMessage][$this->currentTag] = $data;
-                }
+                $ptr =& $this->wsdl->messages[$this->currentMessage];
                 break;
 
             case 'operation':
-                if ($this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag]) {
-                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] .= $data;
-                } else {
-                    $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$this->currentTag] = $data;
-                }
                 break;
 
             case 'types':
                 if (isset($this->currentComplexType) &&
                     isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType])) {
-                    $data = trim($data);
-                    if (!strlen($data)) {
-                        break;
-                    }
-
-                    if (!isset($this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'])) {
-                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] = '';
+                    if ($this->currentElement) {
+                        $ptr =& $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['elements'][$this->currentElement];
                     } else {
-                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] .= ' ';
+                        $ptr =& $this->wsdl->complexTypes[$this->schema][$this->currentComplexType];
                     }
-                    $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['documentation'] .= trim($data);
                 }
                 break;
+            }
+
+            if (isset($ptr)) {
+                if (!isset($ptr['documentation'])) {
+                    $ptr['documentation'] = '';
+                } else {
+                    $ptr['documentation'] .= ' ';
+                }
+                $ptr['documentation'] .= $data;
             }
         }
     }
