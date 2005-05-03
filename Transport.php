@@ -23,45 +23,44 @@
 require_once 'SOAP/Base.php';
 
 /**
-* SOAP Transport Layer
-*
-* This layer can use different protocols dependant on the endpoint url provided
-* no knowlege of the SOAP protocol is available at this level
-* no knowlege of the transport protocols is available at this level
-*
-* @access   public
-* @version  $Id$
-* @package  SOAP::Transport
-* @author   Shane Caraveo <shane@php.net>
-*/
+ * SOAP Transport Layer
+ *
+ * This layer can use different protocols dependant on the endpoint url provided
+ * no knowlege of the SOAP protocol is available at this level
+ * no knowlege of the transport protocols is available at this level
+ *
+ * @access   public
+ * @package  SOAP::Transport
+ * @author   Shane Caraveo <shane@php.net>
+ */
 class SOAP_Transport
 {
     function &getTransport($url, $encoding = SOAP_DEFAULT_ENCODING)
     {
         $urlparts = @parse_url($url);
-        
+
         if (!$urlparts['scheme']) {
             return SOAP_Base_Object::_raiseSoapFault("Invalid transport URI: $url");
         }
-        
+
         if (strcasecmp($urlparts['scheme'], 'mailto') == 0) {
             $transport_type = 'SMTP';
-        } else if (strcasecmp($urlparts['scheme'], 'https') == 0) {
+        } elseif (strcasecmp($urlparts['scheme'], 'https') == 0) {
             $transport_type = 'HTTP';
         } else {
             /* handle other transport types */
             $transport_type = strtoupper($urlparts['scheme']);
         }
-        $transport_include = 'SOAP/Transport/'.$transport_type.'.php';
+        $transport_include = 'SOAP/Transport/' . $transport_type . '.php';
         $res = @include_once($transport_include);
-        if(!$res && !in_array($transport_include, get_included_files())) {
+        if (!$res && !in_array($transport_include, get_included_files())) {
             return SOAP_Base_Object::_raiseSoapFault("No Transport for {$urlparts['scheme']}");
         }
         $transport_class = "SOAP_Transport_$transport_type";
         if (!class_exists($transport_class)) {
             return SOAP_Base_Object::_raiseSoapFault("No Transport class $transport_class");
         }
-        return new $transport_class($url, $encoding);
+        return $t =& new $transport_class($url, $encoding);
     }
-} // end SOAP_Transport
-?>
+
+}

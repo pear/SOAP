@@ -22,10 +22,12 @@
 require_once 'SOAP/Base.php';
 
 /**
- *  SOAP::Value
- * this class converts values between PHP and SOAP
+ * SOAP::Value
  *
- * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ * This class converts values between PHP and SOAP.
+ *
+ * Originally based on SOAPx4 by Dietrich Ayala
+ * http://dietrich.ganx4.com/soapx4
  *
  * @access public
  * @package SOAP::Client
@@ -113,11 +115,12 @@ class SOAP_Value
 /**
  * SOAP::Header
  *
- * this class converts values between PHP and SOAP
- * it is a simple wrapper around SOAP_Value, adding support for
- * soap actor and mustunderstand parameters
+ * This class converts values between PHP and SOAP. It is a simple
+ * wrapper around SOAP_Value, adding support for SOAP actor and
+ * mustunderstand parameters.
  *
- * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ * Originally based on SOAPx4 by Dietrich Ayala
+ * http://dietrich.ganx4.com/soapx4
  *
  * @access public
  * @package SOAP::Header
@@ -126,7 +129,6 @@ class SOAP_Value
  */
 class SOAP_Header extends SOAP_Value
 {
-
     /**
      * Constructor
      *
@@ -170,7 +172,6 @@ class SOAP_Header extends SOAP_Value
  */
 class SOAP_Attachment extends SOAP_Value
 {
-
     /**
      * Constructor
      *
@@ -206,7 +207,7 @@ class SOAP_Attachment extends SOAP_Value
                                );
     }
 
-    /*
+    /**
      * Returns the contents of the given file name as string
      * @param string $file_name
      * @return string

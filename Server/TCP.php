@@ -34,9 +34,8 @@ require_once 'SOAP/Server.php';
  *   implement support for attachments
  *
  * @access   public
- * @version  $Id$
  * @package  SOAP
- * @author   Shane Caraveo <shane@php.net> 
+ * @author   Shane Caraveo <shane@php.net>
  */
 class SOAP_Server_TCP extends SOAP_Server {
 
@@ -45,7 +44,7 @@ class SOAP_Server_TCP extends SOAP_Server {
     var $port;
     var $listen;
     var $reuse;
-    
+
     function SOAP_Server_TCP($localaddr = '127.0.0.1', $port = 10000,
                              $listen = 5, $reuse = true)
     {
@@ -64,14 +63,14 @@ class SOAP_Server_TCP extends SOAP_Server {
         if ($this->reuse &&
             !@socket_setopt($sock, SOL_SOCKET, SO_REUSEADDR, 1)) {
             return $this->_raiseSoapFault('socket_setopt() failed. Reason: ' . socket_strerror(socket_last_error($sock)));
-        }        
+        }
         if (($ret = socket_bind($sock, $this->localaddr, $this->port)) < 0) {
             return $this->_raiseSoapFault('socket_bind() failed. Reason: ' . socket_strerror($ret));
         }
         if (($ret = socket_listen($sock, $this->listen)) < 0) {
             return $this->_raiseSoapFault('socket_listen() failed. Reason: ' . socket_strerror($ret));
         }
-        
+
         while (true) {
             $data = null;
             if (($msgsock = socket_accept($sock)) < 0) {
@@ -84,7 +83,7 @@ class SOAP_Server_TCP extends SOAP_Server {
                 }
                 $data .= $buf;
             }
-            
+
             if ($data) {
                 $response = $this->service($data);
                 /* Write to the socket. */
@@ -92,16 +91,16 @@ class SOAP_Server_TCP extends SOAP_Server {
                     return $this->_raiseSoapFault('Error sending response data reason ' . socket_strerror());
                 }
             }
-            
+
             socket_close ($msgsock);
         }
-        
+
         socket_close ($sock);
     }
-    
+
     function service(&$data)
     {
         /* TODO: we need to handle attachments somehow. */
         return $this->parseRequest($data, $attachments);
-    }    
+    }
 }

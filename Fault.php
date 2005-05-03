@@ -29,7 +29,6 @@ require_once('PEAR.php');
  * @access   public
  * @author   Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
  * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author
- * @version  $Id$
  */
 class SOAP_Fault extends PEAR_Error
 {

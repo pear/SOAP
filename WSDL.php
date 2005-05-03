@@ -30,7 +30,8 @@ define('WSDL_CACHE_USE',     0); // set to zero to turn off caching
  * This class parses WSDL files, and can be used by SOAP::Client to
  * properly register soap values for services.
  *
- * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ * Originally based on SOAPx4 by Dietrich Ayala
+ * http://dietrich.ganx4.com/soapx4
  *
  * TODO:
  *   add wsdl caching
@@ -44,7 +45,6 @@ define('WSDL_CACHE_USE',     0); // set to zero to turn off caching
  */
 class SOAP_WSDL extends SOAP_Base
 {
-
     var $tns = null;
     var $definition = array();
     var $namespaces = array();
@@ -1665,7 +1665,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
     {
         // Store the documentation in the WSDL file.
         if ($this->currentTag == 'documentation') {
-            $data = trim(preg_replace('/\s/', ' ', $data));
+            $data = trim(preg_replace('/\s+/', ' ', $data));
             if (!strlen($data)) {
                 return;
             }

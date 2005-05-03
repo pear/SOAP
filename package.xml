@@ -77,6 +77,8 @@
 
       - Allow overriding the WSDL endpoint in generated proxy classes
         (PEAR bug #4076).
+
+      - Fix PEAR bug #4062 - decode base64-encoded data.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

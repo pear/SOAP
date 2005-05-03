@@ -35,15 +35,14 @@ require_once 'SOAP/Transport.php';
  * then sending the HTTP response out as an email.
  *
  * @access   public
- * @version  $Id$
  * @package  SOAP
- * @author   Shane Caraveo <shane@php.net> 
+ * @author   Shane Caraveo <shane@php.net>
  */
 class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
 
     var $gateway = null;
     var $dump = false;
-    
+
     function SOAP_Server_Email_Gateway($gateway = '', $send_response = true,
                                        $dump = false)
     {
@@ -52,7 +51,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         $this->gateway = $gateway;
         $this->dump = $dump;
     }
-    
+
     function service(&$data, $gateway = '', $endpoint = '',
                      $send_response = true, $dump = false)
     {
@@ -63,7 +62,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         if (!$gateway) {
             $gateway = $this->gateway;
         }
-        
+
         /* We have a full set of headers, need to find the first blank
          * line. */
         $this->_parseEmail($data);
@@ -72,7 +71,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
         }
         if ($this->headers['content-type'] == 'application/dime')
             $useEncoding = 'DIME';
-        
+
         /* Call the HTTP Server. */
         if (!$response) {
             $soap_transport =& SOAP_Transport::getTransport($gateway, $this->xml_encoding);
@@ -80,16 +79,16 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
                 $response = $soap_transport->fault->message();
             }
         }
-        
+
         /* Send the message. */
         if (!$response) {
             $options['soapaction'] = $this->headers['soapaction'];
             $options['headers']['Content-Type'] = $this->headers['content-type'];
-            
+
             $response = $soap_transport->send($data, $options);
             if (isset($this->headers['mime-version']))
                 $options['headers']['MIME-Version'] = $this->headers['mime-version'];
-            
+
             if ($soap_transport->fault) {
                 $response = $soap_transport->fault->message();
             } else {
@@ -121,8 +120,8 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
                 }
             }
         }
-        
-        if ($this->send_response) {        
+
+        if ($this->send_response) {
             if ($this->dump || $dump) {
                 print $response;
             } else {
@@ -135,5 +134,5 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
                 $soap_transport->send($response, $options);
             }
         }
-    }    
+    }
 }

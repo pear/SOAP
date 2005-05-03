@@ -62,16 +62,17 @@ if (!class_exists('SOAP_Client_Overload')) {
 
 /**
  * SOAP Client Class
- * this class is the main interface for making soap requests
+ *
+ * This class is the main interface for making soap requests.
  *
  * basic usage:
  *   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
  *   echo $soapclient->call( string methodname [ , array parameters] );
  *
- * originaly based on SOAPx4 by Dietrich Ayala http://dietrich.ganx4.com/soapx4
+ * Originally based on SOAPx4 by Dietrich Ayala
+ * http://dietrich.ganx4.com/soapx4
  *
  * @access   public
- * @version  $Id$
  * @package  SOAP::Client
  * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  * @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
@@ -102,7 +103,6 @@ class SOAP_Client extends SOAP_Client_Overload
      * @var string contains the SOAP PORT name that is used by the client
      */
     var $_portName = '';
-
 
     /**
      * Endpoint type
@@ -293,11 +293,11 @@ class SOAP_Client extends SOAP_Client_Overload
         }
         $this->_soap_transport->encoding = $this->_encoding;
 
-        // send the message
+        // Send the message.
         $transport_options = array_merge_recursive($this->__proxy_params, $this->__options);
         $this->xml =& $this->_soap_transport->send($soap_data, $transport_options);
 
-        // save the wire information for debugging
+        // Save the wire information for debugging.
         if ($this->__options['trace'] > 0) {
             $this->__last_request =& $this->_soap_transport->outgoing_payload;
             $this->__last_response =& $this->_soap_transport->incoming_payload;
@@ -310,7 +310,9 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->__attachments =& $this->_soap_transport->attachments;
         $this->__result_encoding = $this->_soap_transport->result_encoding;
 
-        if (isset($this->__options['result']) && $this->__options['result'] != 'parse') return $this->xml;
+        if (isset($this->__options['result']) && $this->__options['result'] != 'parse') {
+            return $this->xml;
+        }
 
         return $this->__parse($this->xml, $this->__result_encoding, $this->__attachments);
     }
@@ -581,26 +583,27 @@ class SOAP_Client extends SOAP_Client_Overload
         $return =& $response->getResponse();
         $headers =& $response->getHeaders();
         if ($headers) {
-            $this->headersIn =& $this->__decodeResponse($headers,false);
+            $this->headersIn =& $this->__decodeResponse($headers, false);
         }
         return $this->__decodeResponse($return);
     }
 
-    function &__decodeResponse(&$response, $shift=true)
+    function &__decodeResponse(&$response, $shift = true)
     {
         if (!$response) {
             return null;
         }
-        // check for valid response
+        // Check for valid response.
         if (PEAR::isError($response)) {
             return $this->_raiseSoapFault($response);
-        } else if (!is_a($response,'soap_value')) {
+        } elseif (!is_a($response, 'soap_value')) {
             return $this->_raiseSoapFault("didn't get SOAP_Value object back from client");
         }
 
-        // decode to native php datatype
+        // Decode to native php datatype.
         $returnArray =& $this->_decode($response);
-        // fault?
+
+        // Fault?
         if (PEAR::isError($returnArray)) {
             return $this->_raiseSoapFault($returnArray);
         }
@@ -611,14 +614,14 @@ class SOAP_Client extends SOAP_Client_Overload
             if (isset($returnArray['faultcode']) || isset($returnArray['SOAP-ENV:faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($returnArray as $k => $v) {
-                    if (stristr($k,'faultcode')) $faultcode = $v;
-                    if (stristr($k,'faultstring')) $faultstring = $v;
-                    if (stristr($k,'detail')) $faultdetail = $v;
-                    if (stristr($k,'faultactor')) $faultactor = $v;
+                    if (stristr($k, 'faultcode')) $faultcode = $v;
+                    if (stristr($k, 'faultstring')) $faultstring = $v;
+                    if (stristr($k, 'detail')) $faultdetail = $v;
+                    if (stristr($k, 'faultactor')) $faultactor = $v;
                 }
                 return $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
             }
-            // return array of return values
+            // Return array of return values.
             if ($shift && count($returnArray) == 1) {
                 return array_shift($returnArray);
             }

@@ -34,14 +34,13 @@ require_once 'Mail/mimeDecode.php';
  * parameter to the service function call.
  *
  * @access   public
- * @version  $Id$
  * @package  SOAP
- * @author   Shane Caraveo <shane@php.net> 
+ * @author   Shane Caraveo <shane@php.net>
  */
 class SOAP_Server_Email extends SOAP_Server {
 
     var $headers = array();
-    
+
     function SOAP_Server_Email($send_response = true)
     {
         parent::SOAP_Server();
@@ -59,7 +58,7 @@ class SOAP_Server_Email extends SOAP_Server {
     function _parseEmail(&$data)
     {
         if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s", $data, $match)) {
-            
+
             if (preg_match_all('/^(.*?):\s+(.*)$/m', $match[1], $matches)) {
                 $hc = count($matches[0]);
                 for ($i = 0; $i < $hc; $i++) {
@@ -71,7 +70,7 @@ class SOAP_Server_Email extends SOAP_Server {
                     $this->_raiseSoapFault('Invalid Content Type', '', '', 'Client');
                     return false;
             }
-            
+
             if (strcasecmp($this->headers['content-transfer-encoding'], 'base64')==0) {
                 /* Unfold lines. */
                 $enctext = preg_replace("/[\r|\n]/", '', $match[2]);
@@ -79,7 +78,7 @@ class SOAP_Server_Email extends SOAP_Server {
             } else {
                 $data = $match[2];
             }
-            
+
             /* If no content, return false. */
             return strlen($this->request) > 0;
         }
@@ -105,7 +104,7 @@ class SOAP_Server_Email extends SOAP_Server {
             /* The old fallback, but decodeMimeMessage handles things fine. */
             $this->_parseEmail($data);
         }
-        
+
         /* Get the character encoding of the incoming request treat incoming
          * data as UTF-8 if no encoding set. */
         if (!$this->soapfault &&
@@ -114,7 +113,7 @@ class SOAP_Server_Email extends SOAP_Server {
             /* An encoding we don't understand, return a fault. */
             $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8', '', '', 'Server');
         }
-        
+
         if ($this->soapfault) {
             return $this->soapfault->getFault();
         }
@@ -123,7 +122,7 @@ class SOAP_Server_Email extends SOAP_Server {
 
         return $client->__parse($data, $this->xml_encoding, $this->attachments);
     }
-    
+
     function service(&$data, $endpoint = '', $send_response = true,
                      $dump = false)
     {
@@ -143,7 +142,7 @@ class SOAP_Server_Email extends SOAP_Server {
             /* The old fallback, but decodeMimeMessage handles things fine. */
             $this->_parseEmail($data);
         }
-        
+
         /* Get the character encoding of the incoming request treat incoming
          * data as UTF-8 if no encoding set. */
         if (!$response &&
@@ -151,14 +150,14 @@ class SOAP_Server_Email extends SOAP_Server {
             $this->xml_encoding = SOAP_DEFAULT_ENCODING;
             /* An encoding we don't understand, return a fault. */
             $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8', '', '', 'Server');
-            $response = $this->getFaultMessage();                
+            $response = $this->getFaultMessage();
         }
-        
+
         if ($this->soapfault) {
             $response = $this->soapfault->message();
         } else {
             $soap_msg = $this->parseRequest($data,$attachments);
-            
+
             /* Handle Mime or DIME encoding. */
             /* TODO: DIME Encoding should move to the transport, do it here
              * for now and for ease of getting it done. */
@@ -174,7 +173,7 @@ class SOAP_Server_Email extends SOAP_Server {
                     return $this->raiseSoapFault($soap_msg);
                 }
             }
-            
+
             if (is_array($soap_msg)) {
                 $response = $soap_msg['body'];
                 if (count($soap_msg['headers'])) {
@@ -185,7 +184,7 @@ class SOAP_Server_Email extends SOAP_Server {
             }
         }
 
-        if ($this->send_response) {        
+        if ($this->send_response) {
             if ($dump) {
                 print $response;
             } else {
@@ -198,5 +197,5 @@ class SOAP_Server_Email extends SOAP_Server {
                 $soap_transport->send($response, $options);
             }
         }
-    }    
+    }
 }
