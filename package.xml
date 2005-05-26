@@ -82,6 +82,8 @@
 
       - Fix PEAR bug #953 - stop code flow and return SOAP fault on errors in
         userland code.
+
+      - Fix PEAR bug #1657 - create WSDL element in the correct order.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
