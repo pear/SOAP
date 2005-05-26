@@ -79,6 +79,9 @@
         (PEAR bug #4076).
 
       - Fix PEAR bug #4062 - decode base64-encoded data.
+
+      - Fix PEAR bug #953 - stop code flow and return SOAP fault on errors in
+        userland code.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
