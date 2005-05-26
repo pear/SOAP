@@ -407,7 +407,7 @@ class SOAP_WSDL extends SOAP_Base
         if ($argarray) {
             $argarray .= ', ';
         }
-        $argarray .= "\"$argname\" => \$" . $argname;
+        $argarray .= "'$argname' => \$" . $argname;
     }
 
     function _elementArg(&$args, &$argarray, &$_argtype, $_argname)
@@ -496,26 +496,26 @@ class SOAP_WSDL extends SOAP_Base
 
         if (is_array($this->proxy) && count($this->proxy)) {
             $class = "class $classname extends SOAP_Client\n{\n" .
-            "    function $classname(\$path = \"$clienturl\")\n{\n" .
-            "        \$this->SOAP_Client(\$path, 0, 0,
-                    array(";
+            "    function $classname(\$path = '$clienturl')\n    {\n" .
+            "        \$this->SOAP_Client(\$path, 0, 0,\n" .
+            '                           array(';
 
             foreach ($this->proxy as $key => $val) {
                 if (is_array($val)) {
-                    $class .= "\"$key\" => array(";
+                    $class .= "'$key' => array(";
                     foreach ($val as $key2 => $val2) {
-                        $class .= "\"$key2\" => \"$val2\",";
+                        $class .= "'$key2' => '$val2', ";
                     }
                     $class .= ')';
                 } else {
-                    $class .= "\"$key\" => \"$val\",";
+                    $class .= "'$key' => '$val', ";
                 }
             }
-            $class .= "));\n }\n";
-            $class = str_replace(',))', '))', $class);
+            $class .= "));\n    }\n";
+            $class = str_replace(', ))', '))', $class);
         } else {
             $class = "class $classname extends SOAP_Client\n{\n" .
-            "    function $classname(\$path = \"$clienturl\")\n    {\n" .
+            "    function $classname(\$path = '$clienturl')\n    {\n" .
             "        \$this->SOAP_Client(\$path, 0);\n" .
             "    }\n";
         }
