@@ -84,6 +84,9 @@
         userland code.
 
       - Fix PEAR bug #1657 - create WSDL element in the correct order.
+
+      - Fix PEAR bug #2694 - don't use return element for single, simple
+        return values.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

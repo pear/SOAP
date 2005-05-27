@@ -556,7 +556,7 @@ class SOAP_Server extends SOAP_Base
         /* If there are input parameters required. */
         if ($sig = $map['in']) {
             $this->input_value = count($sig);
-            $this->return_type = $this->getReturnType($map['out']);
+            $this->return_type = is_array($map['out']) ? $map['out'] : false;
             if (is_array($params)) {
                 /* Validate the number of parameters. */
                 if (count($params) == count($sig)) {
@@ -596,21 +596,6 @@ class SOAP_Server extends SOAP_Base
 
         /* We'll try it anyway. */
         return true;
-    }
-
-    /**
-     * Returns string return type from dispatch map.
-     */
-    function getReturnType($returndata)
-    {
-        if (is_array($returndata)) {
-            if (count($returndata) > 1) {
-                return $returndata;
-            }
-            $type = array_shift($returndata);
-            return $type;
-        }
-        return false;
     }
 
     function validateMethod($methodname, $namespace = null)
