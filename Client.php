@@ -71,7 +71,7 @@ if (!class_exists('SOAP_Client_Overload')) {
  * http://dietrich.ganx4.com/soapx4
  *
  * @access   public
- * @package  SOAP::Client
+ * @package  SOAP
  * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  * @author   Stig Bakken <ssb@fast.no> Conversion to PEAR
  * @author   Dietrich Ayala <dietrich@ganx4.com> Original Author

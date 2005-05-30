@@ -39,7 +39,7 @@ define('WSDL_CACHE_USE',     0); // set to zero to turn off caching
  *   implement IDL type syntax declaration so we can generate WSDL
  *
  * @access public
- * @package SOAP::Client
+ * @package SOAP
  * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
  */

@@ -39,7 +39,7 @@ require_once 'Mail/smtp.php';
  * TODO: use PEAR smtp and Mime classes
  *
  * @access public
- * @package SOAP::Transport::SMTP
+ * @package SOAP
  * @author Shane Caraveo <shane@php.net>
  */
 class SOAP_Transport_SMTP extends SOAP_Base

@@ -35,7 +35,7 @@ require_once 'SOAP/Base.php';
  *  HTTP Transport for SOAP
  *
  * @access public
- * @package SOAP::Transport::HTTP
+ * @package SOAP
  * @author Shane Caraveo <shane@php.net>
  */
 class SOAP_Transport_HTTP extends SOAP_Base

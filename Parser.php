@@ -31,7 +31,7 @@ require_once 'SOAP/Value.php';
  * http://dietrich.ganx4.com/soapx4
  *
  * @access public
- * @package SOAP::Parser
+ * @package SOAP
  * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
  */

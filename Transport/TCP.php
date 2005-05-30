@@ -30,9 +30,9 @@ require_once 'SOAP/Base.php';
  *   implement support for attachments
  *
  *
- * @access public
- * @package SOAP::Transport::TCP
- * @author Shane Hanna <iordy_at_iordy_dot_com>
+ * @access  public
+ * @package SOAP
+ * @author  Shane Hanna <iordy_at_iordy_dot_com>
  */
 class SOAP_Transport_TCP extends SOAP_Base_Object
 {

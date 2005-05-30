@@ -30,7 +30,7 @@ require_once 'SOAP/Base.php';
  * no knowlege of the transport protocols is available at this level
  *
  * @access   public
- * @package  SOAP::Transport
+ * @package  SOAP
  * @author   Shane Caraveo <shane@php.net>
  */
 class SOAP_Transport
