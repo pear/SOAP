@@ -19,7 +19,6 @@
       <name>Jan Schneider</name>
       <email>jan@horde.org</email>
     </maintainer>
-  </maintainers>
     <maintainer>
       <user>shane</user>
       <name>Shane Caraveo</name>
@@ -45,58 +44,49 @@
     <version>0.9.0</version>
     <date>2005-05-30</date>
     <notes>
-      - Fix #3456
+- Fix #3456
 
-      - SOAP_Base now has a $_namespace property for the object's default
-        namespace (included as xmlns="foo", and given no ns prefix).
+- SOAP_Base now has a $_namespace property for the object's default namespace (included as xmlns="foo", and given no ns prefix).
 
-      - If a name has more than one colon, don't split it as a prefix:foo
-        QName, treat it as a namespace name instead.
+- If a name has more than one colon, don't split it as a prefix:foo QName, treat it as a namespace name instead.
 
-      - Never put a colon in if a namespace prefix is empty.
+- Never put a colon in if a namespace prefix is empty.
 
-      - SOAP_Header objects can take regular SOAP_Value attributes.
+- SOAP_Header objects can take regular SOAP_Value attributes.
 
-      - validateString() is not a NOP anymore.
+- validateString() is not a NOP anymore.
 
-      - E_ALL warnings during WSDL parsing are fixed.
+- E_ALL warnings during WSDL parsing are fixed.
 
-      - ref="" elements in WSDL are correctly treated as QNames now.
+- ref="" elements in WSDL are correctly treated as QNames now.
 
-      - Save the outgoing payload when sending by HTTPS as well as by HTTP
-        (for tracing).
+- Save the outgoing payload when sending by HTTPS as well as by HTTP (for tracing).
 
-      - Avoid infinite loops when wsdl:import files create a circular
-        dependency.
+- Avoid infinite loops when wsdl:import files create a circular dependency.
 
-      - Provide a mechanism in SOAP_WSDL to turn on documentation parsing in
-        SOAP_WSDL_Parser objects.
+- Provide a mechanism in SOAP_WSDL to turn on documentation parsing in SOAP_WSDL_Parser objects.
 
-      - Pass $this->docs to child SOAP_WSDL_Parser objects.
+- Pass $this->docs to child SOAP_WSDL_Parser objects.
 
-      - Successfully parse the &lt;schema&gt; sections of XSD documents
-        imported via &lt;wsdl:import&gt;.
+- Successfully parse the &lt;schema&gt; sections of XSD documents imported via &lt;wsdl:import&gt;.
 
-      - Allow overriding the name of the class used for WSDL parsing.
+- Allow overriding the name of the class used for WSDL parsing.
 
-      - Never try to redefine SOAP_Client_Overload.
+- Never try to redefine SOAP_Client_Overload.
 
-      - Fix PEAR bug #4063 - correctly mark NULLs in request XML.
+- Fix PEAR bug #4063 - correctly mark NULLs in request XML.
 
-      - Fix PEAR bug #4074 - overwriting of some arguments in proxy code.
+- Fix PEAR bug #4074 - overwriting of some arguments in proxy code.
 
-      - Allow overriding the WSDL endpoint in generated proxy classes (PEAR
-        bug #4076).
+- Allow overriding the WSDL endpoint in generated proxy classes (PEAR bug #4076).
 
-      - Fix PEAR bug #4062 - decode base64-encoded data.
+- Fix PEAR bug #4062 - decode base64-encoded data.
 
-      - Fix PEAR bug #953 - stop code flow and return SOAP fault on errors in
-        userland code.
+- Fix PEAR bug #953 - stop code flow and return SOAP fault on errors in userland code.
 
-      - Fix PEAR bug #1657 - create WSDL element in the correct order.
+- Fix PEAR bug #1657 - create WSDL element in the correct order.
 
-      - Fix PEAR bug #2694 - don't use return element for single, simple
-        return values.
+- Fix PEAR bug #2694 - don't use return element for single, simple return values.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
