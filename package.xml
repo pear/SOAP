@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- do not use the "Type" attribute here, that one is only for
-     generated package.xml files -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.0">
 <package version="1.0">
   <name>SOAP</name>
@@ -9,6 +7,19 @@
     Implementation of SOAP protocol and services
   </description>
   <maintainers>
+    <maintainer>
+      <user>chagenbu</user>
+      <role>lead</role>
+      <name>Chuck Hagenbuch</name>
+      <email>chuck@horde.org</email>
+    </maintainer>
+    <maintainer>
+      <user>yunosh</user>
+      <role>lead</role>
+      <name>Jan Schneider</name>
+      <email>jan@horde.org</email>
+    </maintainer>
+  </maintainers>
     <maintainer>
       <user>shane</user>
       <name>Shane Caraveo</name>
@@ -31,17 +42,16 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.8.2</version>
-    <date>2005-04-16</date>
+    <version>0.9.0</version>
+    <date>2005-05-30</date>
     <notes>
       - Fix #3456
 
-      - SOAP_Base now has a $_namespace property for the object's
-        default namespace (included as xmlns="foo", and given no ns
-        prefix).
+      - SOAP_Base now has a $_namespace property for the object's default
+        namespace (included as xmlns="foo", and given no ns prefix).
 
-      - If a name has more than one colon, don't split it as a
-        prefix:foo QName, treat it as a namespace name instead.
+      - If a name has more than one colon, don't split it as a prefix:foo
+        QName, treat it as a namespace name instead.
 
       - Never put a colon in if a namespace prefix is empty.
 
@@ -53,14 +63,14 @@
 
       - ref="" elements in WSDL are correctly treated as QNames now.
 
-      - Save the outgoing payload when sending by HTTPS as well as by
-        HTTP (for tracing).
+      - Save the outgoing payload when sending by HTTPS as well as by HTTP
+        (for tracing).
 
       - Avoid infinite loops when wsdl:import files create a circular
         dependency.
 
-      - Provide a mechanism in SOAP_WSDL to turn on documentation
-        parsing in SOAP_WSDL_Parser objects.
+      - Provide a mechanism in SOAP_WSDL to turn on documentation parsing in
+        SOAP_WSDL_Parser objects.
 
       - Pass $this->docs to child SOAP_WSDL_Parser objects.
 
@@ -75,8 +85,8 @@
 
       - Fix PEAR bug #4074 - overwriting of some arguments in proxy code.
 
-      - Allow overriding the WSDL endpoint in generated proxy classes
-        (PEAR bug #4076).
+      - Allow overriding the WSDL endpoint in generated proxy classes (PEAR
+        bug #4076).
 
       - Fix PEAR bug #4062 - decode base64-encoded data.
 
