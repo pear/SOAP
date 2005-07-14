@@ -41,11 +41,10 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.9.1</version>
-    <date>2005-05-31</date>
+    <version>0.9.2</version>
+    <date>2005-99-99</date>
     <notes>
-* Remove debugging code
-* Update phpdoc
+* Don't return a SOAP fault if the server code raises an E_STRICT error. (Bug 4828).
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
