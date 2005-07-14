@@ -118,7 +118,8 @@ class SOAP_Server extends SOAP_Base
     {
         /* The error handler should ignore '0' errors, eg. hidden by @ - see
          * the set_error_handler manual page. (thanks to Alan Knowles). */
-        if (!$errno || $errno == E_NOTICE) {
+        if (!$errno || $errno == E_NOTICE ||
+            (defined('E_STRICT') && $errno == constant('E_STRICT'))) {
             return;
         }
 
