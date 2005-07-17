@@ -1900,13 +1900,11 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
             // Struct = array("item1" => "value1", "item2" => "value2", ...)
 
             if (is_array($typeValue)) {
-                reset($typeValue);
                 if (is_array(current($typeValue)) && count($typeValue) == 1
                     && count(current($typeValue)) == 1) {
                     // It's an array
 
                     $thisType['type'] = 'Array';
-                    reset(current($typeValue));
                     list($nsPrefix, $typeName) = $this->_getTypeNs(current(current($typeValue)));
                     $thisType['namespace'] = $nsPrefix;
                     $thisType['arrayType'] = $typeName . '[]';
