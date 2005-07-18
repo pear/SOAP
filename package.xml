@@ -45,6 +45,7 @@
     <date>2005-99-99</date>
     <notes>
 * Don't return a SOAP fault if the server code raises an E_STRICT error. (Bug 4828).
+* Fix client treating all "literal" services being "encoded" (Bug 4639).
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
