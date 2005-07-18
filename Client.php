@@ -545,8 +545,8 @@ class SOAP_Client extends SOAP_Client_Overload
         }
 
         // Serialize the message.
-        $this->_section5 = (isset($this->__options['use']) &&
-                            $this->__options['use'] == 'literal');
+        $this->_section5 = (!isset($this->__options['use']) ||
+                            $this->__options['use'] != 'literal');
 
         if (!isset($this->__options['style']) ||
             $this->__options['style'] == 'rpc') {
