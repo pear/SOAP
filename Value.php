@@ -32,36 +32,32 @@ require_once 'SOAP/Base.php';
  * Originally based on SOAPx4 by Dietrich Ayala
  * http://dietrich.ganx4.com/soapx4
  *
- * @access public
+ * @access  public
  * @package SOAP
- * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
- * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+ * @author  Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author  Dietrich Ayala <dietrich@ganx4.com> Original Author
  */
 class SOAP_Value
 {
     /**
-     *
-     *
-     * @var  string
+     * @var string
      */
     var $value = null;
 
     /**
-     *
-     * @var  string
+     * @var string
      */
     var $name = '';
 
     /**
-     *
-     * @var  string
+     * @var string
      */
     var $type = '';
 
     /**
      * Namespace
      *
-     * @var  string
+     * @var string
      */
     var $namespace = '';
     var $type_namespace = '';
@@ -69,7 +65,6 @@ class SOAP_Value
     var $attributes = array();
 
     /**
-     *
      * @var string
      */
     var $arrayType = '';
@@ -82,12 +77,14 @@ class SOAP_Value
     /**
      * Constructor.
      *
-     * @param string $name        name of the soap-value {namespace}name
-     * @param mixed  $type        soap value {namespace}type, if not set an automatic
-     * @param mixed  $value       value to set
-     * @param array  $attributes  (optional) Attributes.
+     * @param string $name       Name of the SOAP value {namespace}name.
+     * @param mixed $type        SOAP value {namespace}type. Determined
+     *                           automatically if not set.
+     * @param mixed $value       Value to set.
+     * @param array $attributes  Attributes.
      */
-    function SOAP_Value($name = '', $type = false, $value = null, $attributes = array())
+    function SOAP_Value($name = '', $type = false, &$value = null,
+                        $attributes = array())
     {
         // Detect type if not passed.
         $this->nqn =& new QName($name);
@@ -102,47 +99,53 @@ class SOAP_Value
     }
 
     /**
-     * Serialize.
+     * Serializes this value.
      *
-     * @param SOAP_Base &$serializer  A SOAP_Base instance or subclass to serialize with.
+     * @param SOAP_Base $serializer  A SOAP_Base instance or subclass to
+     *                               serialize with.
      *
      * @return string  XML representation of $this.
      */
     function &serialize(&$serializer)
     {
-        return $serializer->_serializeValue($this->value, $this->name, $this->type, $this->namespace, $this->type_namespace, $this->options, $this->attributes, $this->arrayType);
+        return $serializer->_serializeValue($this->value,
+                                            $this->name,
+                                            $this->type,
+                                            $this->namespace,
+                                            $this->type_namespace,
+                                            $this->options,
+                                            $this->attributes,
+                                            $this->arrayType);
     }
 
 }
 
 /**
- * SOAP::Header
- *
- * This class converts values between PHP and SOAP. It is a simple
- * wrapper around SOAP_Value, adding support for SOAP actor and
- * mustunderstand parameters.
+ * This class converts values between PHP and SOAP. It is a simple wrapper
+ * around SOAP_Value, adding support for SOAP actor and mustunderstand
+ * parameters.
  *
  * Originally based on SOAPx4 by Dietrich Ayala
  * http://dietrich.ganx4.com/soapx4
  *
- * @access public
+ * @access  public
  * @package SOAP
- * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
- * @author Dietrich Ayala <dietrich@ganx4.com> Original Author
+ * @author  Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author  Dietrich Ayala <dietrich@ganx4.com> Original Author
  */
 class SOAP_Header extends SOAP_Value
 {
     /**
      * Constructor
      *
-     * @param string  $name            name of the soap-value {namespace}name
-     * @param mixed   $type            soap value {namespace}type, if not set an automatic
-     * @param mixed   $value           value to set
+     * @param string $name             Name of the SOAP value {namespace}name.
+     * @param mixed $type              SOAP value {namespace}type. Determined
+     *                                 automatically if not set.
+     * @param mixed $value             Value to set
      * @param integer $mustunderstand  Zero or one.
-     * @param mixed   $attributes      (optional) Attributes.
+     * @param mixed $attributes        Attributes.
      */
-    function SOAP_Header($name = '', $type, $value,
-                         $mustunderstand = 0,
+    function SOAP_Header($name = '', $type, $value, $mustunderstand = 0,
                          $attributes = array())
     {
         if (!is_array($attributes)) {
@@ -163,69 +166,77 @@ class SOAP_Header extends SOAP_Value
 }
 
 /**
- * SOAP::Attachment
- * this class converts values between PHP and SOAP
- * it handles Mime attachements per W3C Note on Soap Attachements at
+ * This class handles MIME attachements per W3C's Note on Soap Attachements at
  * http://www.w3.org/TR/SOAP-attachments
  *
- *
- * @access public
+ * @access  public
  * @package SOAP
- * @author Shane Caraveo <shane@php.net> Conversion to PEAR and updates
+ * @author  Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  */
 class SOAP_Attachment extends SOAP_Value
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param    string  name of the soap-value <value_name>
-     * @param    mixed   soap header value
-     * @param    string namespace
+     * @param string $name      Name of the SOAP value <value_name>
+     * @param string $type      The attachment's MIME type.
+     * @param string $filename  The attachment's file name. Ignored if $file
+     *                          is provide.
+     * @param string $file      The attachment data.
      */
     function SOAP_Attachment($name = '', $type = 'application/octet-stream',
                              $filename, $file = null)
     {
-        global $SOAP_options;
-        if (!isset($SOAP_options['Mime'])) {
-            return PEAR::raiseError('Mail_mime is not installed, unable to support SOAP Attachements');
-        }
         parent::SOAP_Value($name, null, null);
+
+        if (!isset($GLOBALS['SOAP_options']['Mime'])) {
+            $this->options['attachment'] = PEAR::raiseError('Mail_mime is not installed, unable to support SOAP Attachements');
+            return;
+        }
 
         $filedata = ($file === null) ? $this->_file2str($filename) : $file;
         $filename = basename($filename);
         if (PEAR::isError($filedata)) {
-            return $filedata;
+            $this->options['attachment'] = $filedata;
+            return;
         }
 
         $cid = md5(uniqid(time()));
 
-        $this->attributes['href'] = 'cid:'.$cid;
+        $this->attributes['href'] = 'cid:' . $cid; 
 
-        $this->options['attachment'] = array(
-                                'body'     => $filedata,
-                                'disposition'     => $filename,
-                                'content_type'   => $type,
-                                'encoding' => 'base64',
-                                'cid' => $cid
-                               );
+        $this->options['attachment'] = array('body' => $filedata,
+                                             'disposition' => $filename,
+                                             'content_type' => $type,
+                                             'encoding' => 'base64',
+                                             'cid' => $cid);
     }
 
     /**
-     * Returns the contents of the given file name as string
-     * @param string $file_name
-     * @return string
-     * @acces private
+     * Returns the contents of the given file name as string.
+     *
+     * @access private
+     *
+     * @param string $file_name  The file location.
+     *
+     * @return string  The file data or a PEAR_Error.
      */
     function &_file2str($file_name)
     {
         if (!is_readable($file_name)) {
-            return PEAR::raiseError('File is not readable ' . $file_name);
+            return PEAR::raiseError('File is not readable: ' . $file_name);
         }
+
+        if (function_exists('file_get_contents')) {
+            return file_get_contents($file_name);
+        }
+
         if (!$fd = fopen($file_name, 'rb')) {
             return PEAR::raiseError('Could not open ' . $file_name);
         }
         $cont = fread($fd, filesize($file_name));
         fclose($fd);
+
         return $cont;
     }
 
