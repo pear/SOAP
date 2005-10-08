@@ -626,7 +626,8 @@ class SOAP_Base extends SOAP_Base_Object
         }
 
         // Store the attachment for mime encoding.
-        if (isset($options['attachment'])) {
+        if (isset($options['attachment']) &&
+            !PEAR::isError($options['attachment'])) {
             $this->__attachments[] = $options['attachment'];
         }
 
