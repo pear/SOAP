@@ -80,7 +80,9 @@ class SOAP_Server extends SOAP_Base
     var $method_namespace = null;
     var $__options = array('use' => 'encoded',
                            'style' => 'rpc',
-                           'parameters' => 0);
+                           'parameters' => 0,
+                           'http_status_success' => '200 OK',
+                           'http_status_fault' => '500 SOAP Fault');
 
     function SOAP_Server($options = null)
     {
@@ -254,10 +256,10 @@ class SOAP_Server extends SOAP_Base
         }
 
         if ($this->fault) {
-            $hdrs = "$hdrs_type 500 Soap Fault\r\n";
+            $hdrs = '$hdrs_type ' . $this->__options['http_status_fault'] . "\r\n";
             $response = $this->fault->message();
         } else {
-            $hdrs = "$hdrs_type 200 OK\r\n";
+            $hdrs = '$hdrs_type ' . $this->__options['http_status_success'] . "\r\n";
         }
         header($hdrs);
 
