@@ -30,25 +30,25 @@
  * @author   Shane Caraveo <shane@php.net>       Port to PEAR and more
  * @author   Jan Schneider <jan@horde.org>       Maintenance
  */
-class SOAP_Type_dateTime
+class SOAP_Type_dateTime 
 {
-    var $ereg_iso8601 =
-        // centuries & years CCYY-
-        '(-?[0-9]{4})-' .
-        // months MM-
-        '([0-9]{2})-' .
-        // days DD
-        '([0-9]{2})' .
-        // separator T
-        'T' .
-        // hours hh:
-        '([0-9]{2}):' .
-        // minutes mm:
-        '([0-9]{2}):' .
-        // seconds ss.ss...
-        '([0-9]{2})(\.[0-9]*)?' .
-        // Z to indicate UTC, -/+HH:MM:SS.SS... for local tz's
-        '(Z|[+\-][0-9]{4}|[+\-][0-9]{2}:[0-9]{2})?';
+    var $_iso8601 =
+        '# centuries & years CCYY-
+         (-?[0-9]{4})-
+         # months MM-
+         ([0-9]{2})-
+         # days DD
+         ([0-9]{2})
+         # separator T
+         T
+         # hours hh:
+         ([0-9]{2}):
+         # minutes mm:
+         ([0-9]{2}):
+         # seconds ss.ss...
+         ([0-9]{2})(\.[0-9]*)?
+         # Z to indicate UTC, -+HH:MM:SS.SS... for local zones
+         (Z|[+\-][0-9]{4}|[+\-][0-9]{2}:[0-9]{2})?';
 
     var $timestamp = -1;
 
@@ -114,7 +114,7 @@ class SOAP_Type_dateTime
             $datestr = $this->toString($datestr);
         }
 
-        if (ereg($this->ereg_iso8601, $datestr, $regs)) {
+        if (preg_match('/' . $this->_iso8601 . '/x', $datestr, $regs)) {
             if ($regs[8] != '' && $regs[8] != 'Z') {
                 $op = substr($regs[8], 0, 1);
                 $h = substr($regs[8], 1, 2);
@@ -217,26 +217,6 @@ class SOAP_Type_dateTime
         }
 
         return -1;
-    }
-
-    function _test($orig = '2001-04-25T09:31:41-0700')
-    {
-        $utc = $this->toUTC($orig);
-        $ts1 = $this->toUnixtime($orig);
-        $ts2 = $this->toUnixtime($utc);
-        $b1 = $this->toString($ts1);
-        $b2 = $this->toString($ts2);
-        print "orig: $orig\n";
-        print "orig toUTC: $utc\n";
-        print "orig ts: $ts1\n";
-        print "utc ts: $ts2\n";
-        print "orig ts back: $b1\n";
-        print "utc ts back: $b2\n";
-        if ($b1 != $orig || $b2 != $orig) {
-            echo "Error in iso8601 conversions\n";
-        } else {
-            echo "dateTime OK\n";
-        }
     }
 
 }
