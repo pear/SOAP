@@ -46,7 +46,8 @@
     <notes>* Don't return a SOAP fault if the server code raises an E_STRICT error. (Bug 4828).
 * Fix client treating all "literal" services being "encoded" (Bug 4639).
 * List all dependencies in the package definition (Bug 4882).
-* Allow to customize success and fault HTTP headers in SOAP_Server (Request 4118).</notes>
+* Allow to customize success and fault HTTP headers in SOAP_Server (Request 4118).
+* Fix parsing of date/time strings without timezone information (Bug 4523).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php"/>

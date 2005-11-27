@@ -33,21 +33,21 @@
 class SOAP_Type_dateTime 
 {
     var $_iso8601 =
-        '# centuries & years CCYY-
+        '# 1: centuries & years CCYY-
          (-?[0-9]{4})-
-         # months MM-
+         # 2: months MM-
          ([0-9]{2})-
-         # days DD
+         # 3: days DD
          ([0-9]{2})
-         # separator T
+         # 4: separator T
          T
-         # hours hh:
+         # 5: hours hh:
          ([0-9]{2}):
-         # minutes mm:
+         # 6: minutes mm:
          ([0-9]{2}):
-         # seconds ss.ss...
+         # 7: seconds ss.ss...
          ([0-9]{2})(\.[0-9]*)?
-         # Z to indicate UTC, -+HH:MM:SS.SS... for local zones
+         # 8: Z to indicate UTC, -+HH:MM:SS.SS... for local zones
          (Z|[+\-][0-9]{4}|[+\-][0-9]{2}:[0-9]{2})?';
 
     var $timestamp = -1;
@@ -115,7 +115,17 @@ class SOAP_Type_dateTime
         }
 
         if (preg_match('/' . $this->_iso8601 . '/x', $datestr, $regs)) {
-            if ($regs[8] != '' && $regs[8] != 'Z') {
+            if (empty($regs[8])) {
+                $timestamp = strtotime(sprintf('%04d-%02d-%02d %02d:%02d:%02d',
+                                               $regs[1],
+                                               $regs[2],
+                                               $regs[3],
+                                               $regs[4],
+                                               $regs[5],
+                                               $regs[6]));
+                $regs[8] = date('O', $timestamp);
+            }
+            if ($regs[8] != 'Z') {
                 $op = substr($regs[8], 0, 1);
                 $h = substr($regs[8], 1, 2);
                 if (strstr($regs[8], ':')) {
@@ -184,7 +194,13 @@ class SOAP_Type_dateTime
     {
         $regs = $this->_split($datestr);
         if ($regs) {
-            return strtotime("$regs[1]-$regs[2]-$regs[3] $regs[4]:$regs[5]:$regs[6]Z");
+            return strtotime(sprintf('%04d-%02d-%02d %02d:%02d:%02dZ',
+                                     $regs[1],
+                                     $regs[2],
+                                     $regs[3],
+                                     $regs[4],
+                                     $regs[5],
+                                     $regs[6]));
         }
         return -1;
     }
