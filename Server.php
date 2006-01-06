@@ -219,7 +219,7 @@ class SOAP_Server extends SOAP_Base
                     $this->headers['Content-Type'] = 'application/dime';
                 }
                 if (PEAR::isError($soap_msg)) {
-                    return $this->raiseSoapFault($soap_msg);
+                    return $this->_raiseSoapFault($soap_msg);
                 }
             }
 
