@@ -49,7 +49,9 @@
 * Allow to customize success and fault HTTP headers in SOAP_Server (Request 4118).
 * Fix parsing of date/time strings without timezone information (Bug 4523).
 * Fix reference notices with PHP 4.4 and PHP 5 (Bugs 4870, 6371).
-* Catch all errors from wrapped function calls in SOAP_Server (Bug 4922). </notes>
+* Catch all errors from wrapped function calls in SOAP_Server (Bug 4922).
+* Fix undefined method call in SOAP_Server's service() method (Bug 4923).
+* Fix decoding of MIME attachments (Bug 4980).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php"/>
