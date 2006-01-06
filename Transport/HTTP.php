@@ -139,7 +139,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
      * @return string|SOAP_Fault
      * @access public
      */
-    function send(&$msg, $options = null)
+    function send($msg, $options = null)
     {
         if (!$this->_validateUrl()) {
             return $this->fault;
@@ -420,6 +420,8 @@ class SOAP_Transport_HTTP extends SOAP_Base
      */
     function _getRequest($msg, $options)
     {
+        $this->headers = array();
+
         $action = isset($options['soapaction']) ? $options['soapaction'] : '';
         $fullpath = $this->urlparts['path'];
         if (isset($this->urlparts['query'])) {
@@ -546,7 +548,7 @@ class SOAP_Transport_HTTP extends SOAP_Base
      * @return string $response  Response data, minus HTTP headers.
      * @access private
      */
-    function &_sendHTTPS(&$msg, $options)
+    function _sendHTTPS($msg, $options)
     {
         /* NOTE This function uses the CURL functions
          *  Your php must be compiled with CURL
