@@ -48,7 +48,8 @@
 * List all dependencies in the package definition (Bug 4882).
 * Allow to customize success and fault HTTP headers in SOAP_Server (Request 4118).
 * Fix parsing of date/time strings without timezone information (Bug 4523).
-* Fix reference notices with PHP 4.4 and PHP 5 (Bugs 4870, 6371).</notes>
+* Fix reference notices with PHP 4.4 and PHP 5 (Bugs 4870, 6371).
+* Catch all errors from wrapped function calls in SOAP_Server (Bug 4922). </notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php"/>
