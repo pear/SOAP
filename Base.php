@@ -1133,7 +1133,7 @@ class SOAP_Base extends SOAP_Base_Object
                         // http://www.w3.org/TR/SOAP-attachments
                         $attachments[$p->headers['content-location']] = $p->body;
                     } else {
-                        $cid = 'cid:' . substr($p->headers['content-id'], 1, -2);
+                        $cid = 'cid:' . substr($p->headers['content-id'], 1, -1);
                         $attachments[$cid] = $p->body;
                     }
                 }
