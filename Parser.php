@@ -461,42 +461,43 @@ class SOAP_Parser extends SOAP_Base
     }
 
     /**
-     * getResponse
+     * Returns an array of responses.
      *
-     * returns an array of responses
-     * after parsing a soap message, use this to get the response
+     * After parsing a SOAP message, use this to get the response.
      *
-     * @return   array
+     * @return array
      * @access public
      */
     function &getResponse()
     {
         if (isset($this->root_struct[0]) &&
             $this->root_struct[0]) {
-            return $this->buildResponse($this->root_struct[0]);
+            $response =& $this->buildResponse($this->root_struct[0]);
+        } else {
+            $response =& $this->_raiseSoapFault("couldn't build response");
         }
-        return $this->_raiseSoapFault("couldn't build response");
+        return $response;
     }
 
     /**
-     * getHeaders
+     * Returns an array of header responses.
      *
-     * returns an array of header responses
-     * after parsing a soap message, use this to get the response
+     * After parsing a SOAP message, use this to get the response.
      *
-     * @return   array
+     * @return array
      * @access public
      */
     function &getHeaders()
     {
         if (isset($this->header_struct[0]) &&
             $this->header_struct[0]) {
-            return $this->buildResponse($this->header_struct[0]);
+            $response = &$this->buildResponse($this->header_struct[0]);
+        } else {
+            // We don't fault if there are no headers; that can be handled by
+            // the application if necessary.
+            $response = null;
         }
-
-        // We don't fault if there are no headers that can be handled
-        // by the app if necessary.
-        return null;
+        return $response;
     }
 
     /**

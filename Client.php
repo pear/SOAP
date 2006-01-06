@@ -321,13 +321,13 @@ class SOAP_Client extends SOAP_Client_Overload
         // Send the message.
         $transport_options = array_merge_recursive($this->__proxy_params,
                                                    $this->__options);
-        $this->xml =& $this->_soap_transport->send($soap_data, $transport_options);
+        $this->xml = $this->_soap_transport->send($soap_data, $transport_options);
 
         // Save the wire information for debugging.
         if ($this->__options['trace'] > 0) {
             $this->__last_request =& $this->_soap_transport->outgoing_payload;
             $this->__last_response =& $this->_soap_transport->incoming_payload;
-            $this->wire =& $this->__get_wire();
+            $this->wire = $this->__get_wire();
         }
         if ($this->_soap_transport->fault) {
             $fault =& $this->_raiseSoapFault($this->xml);
@@ -565,10 +565,10 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->docparams = true;
             $mqname =& new QName($method, $namespace);
             $methodValue =& new SOAP_Value($mqname->fqn(), 'Struct', $params);
-            $soap_msg =& $this->_makeEnvelope($methodValue,
-                                              $this->headersOut,
-                                              $this->_encoding,
-                                              $this->__options);
+            $soap_msg = $this->_makeEnvelope($methodValue,
+                                             $this->headersOut,
+                                             $this->_encoding,
+                                             $this->__options);
         } else {
             if (!$params) {
                 $mqname =& new QName($method, $namespace);
@@ -596,10 +596,10 @@ class SOAP_Client extends SOAP_Client_Overload
                                               $params);
                 }
             }
-            $soap_msg =& $this->_makeEnvelope($params,
-                                              $this->headersOut,
-                                              $this->_encoding,
-                                              $this->__options);
+            $soap_msg = $this->_makeEnvelope($params,
+                                             $this->headersOut,
+                                             $this->_encoding,
+                                             $this->__options);
         }
         unset($this->headersOut);
 
