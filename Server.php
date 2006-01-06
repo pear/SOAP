@@ -393,6 +393,10 @@ class SOAP_Server extends SOAP_Base
                         $header_data = array($this->_decode($header_val));
                         /* If there are parameters to pass. */
                         $hr =& $this->callMethod($header_method, $header_data);
+                        if (PEAR::isError($hr)) {
+                            $this->_raiseSoapDefault($hr);
+                            return null;
+                        }
                         $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
                     }
                 }
@@ -414,11 +418,13 @@ class SOAP_Server extends SOAP_Base
 
             $this->_portName = $this->_wsdl->getPortName($this->methodname);
             if (PEAR::isError($this->_portName)) {
-                return $this->_raiseSoapFault($this->_portName);
+                $this->_raiseSoapFault($this->_portName);
+                return null;
             }
             $opData = $this->_wsdl->getOperationData($this->_portName, $this->methodname);
             if (PEAR::isError($opData)) {
-                return $this->_raiseSoapFault($opData);
+                $this->_raiseSoapFault($opData);
+                return null;
             }
             $this->__options['style'] = $opData['style'];
             $this->__options['use'] = $opData['output']['use'];
@@ -451,9 +457,14 @@ class SOAP_Server extends SOAP_Base
          * differentiate between no params passed, and an error decoding. */
         $request_data = $this->__decodeRequest($request_val);
         if (PEAR::isError($request_data)) {
-            return $this->_raiseSoapFault($request_data);
+            $this->_raiseSoapFault($request_data);
+            return null;
         }
         $method_response =& $this->callMethod($this->call_methodname, $request_data);
+        if (PEAR::isError($method_response)) {
+            $this->_raiseSoapFault($method_response);
+            return null;
+        }
 
         if ($this->__options['parameters'] ||
             !$method_response ||
