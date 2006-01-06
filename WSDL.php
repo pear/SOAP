@@ -615,13 +615,14 @@ class SOAP_WSDL extends SOAP_Base
             }
 
             $class .= "    function &$opname_php($args)\n    {\n$comments$wrappers" .
-                "        return \$this->call('$opname',\n" .
+                "        $result = \$this->call('$opname',\n" .
                 "                           \$v = $argarray,\n" .
                 "                           array('namespace' => '$namespace',\n" .
                 "                                 'soapaction' => '$soapaction',\n" .
                 "                                 'style' => '$opstyle',\n" .
                 "                                 'use' => '$use'" .
                 ($this->trace?",\n                                 'trace' => 1" : '') . "));\n" .
+                "        return $result;\n" .
                 "    }\n";
         }
 
@@ -664,8 +665,9 @@ class SOAP_WSDL extends SOAP_Base
             require_once 'SOAP/Client.php';
             eval($proxy);
         }
+        $proxy =& new $classname;
 
-        return new $classname;
+        return $proxy;
     }
 
     function &_getComplexTypeForElement($name, $namespace)

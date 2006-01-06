@@ -297,7 +297,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
         $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
-            return $this->_raiseSoapFault($soap_data);
+            $fault =& $this->_raiseSoapFault($soap_data);
+            return $fault;
         }
 
         // __generate() may have changed the endpoint if the WSDL has more
@@ -311,7 +312,8 @@ class SOAP_Client extends SOAP_Client_Overload
             if (PEAR::isError($this->_soap_transport)) {
                 $fault =& $this->_soap_transport;
                 $this->_soap_transport = null;
-                return $this->_raiseSoapFault($fault);
+                $fault =& $this->_raiseSoapFault($fault);
+                return $fault;
             }
         }
         $this->_soap_transport->encoding = $this->_encoding;
@@ -328,7 +330,8 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->wire =& $this->__get_wire();
         }
         if ($this->_soap_transport->fault) {
-            return $this->_raiseSoapFault($this->xml);
+            $fault =& $this->_raiseSoapFault($this->xml);
+            return $fault;
         }
 
         $this->__attachments =& $this->_soap_transport->attachments;
@@ -339,7 +342,9 @@ class SOAP_Client extends SOAP_Client_Overload
             return $this->xml;
         }
 
-        return $this->__parse($this->xml, $this->__result_encoding, $this->__attachments);
+        $result = &$this->__parse($this->xml, $this->__result_encoding, $this->__attachments);
+
+        return $result;
     }
 
     /**
@@ -407,12 +412,14 @@ class SOAP_Client extends SOAP_Client_Overload
 
     function &__getlastrequest()
     {
-        return $this->__last_request;
+        $request =& $this->__last_request;
+        return $request;
     }
 
     function &__getlastresponse()
     {
-        return $this->__last_response;
+        $response =& $this->__last_response;
+        return $response;
     }
 
     function __use($use)
@@ -466,20 +473,23 @@ class SOAP_Client extends SOAP_Client_Overload
                 $this->_portName = $this->_wsdl->getPortName($method);
             }
             if (PEAR::isError($this->_portName)) {
-                return $this->_raiseSoapFault($this->_portName);
+                $fault =& $this->_raiseSoapFault($this->_portName);
+                return $fault;
             }
 
             // Get endpoint.
             $this->_endpoint = $this->_wsdl->getEndpoint($this->_portName);
             if (PEAR::isError($this->_endpoint)) {
-                return $this->_raiseSoapFault($this->_endpoint);
+                $fault =& $this->_raiseSoapFault($this->_endpoint);
+                return $fault;
             }
 
             // Get operation data.
             $opData = $this->_wsdl->getOperationData($this->_portName, $method);
 
             if (PEAR::isError($opData)) {
-                return $this->_raiseSoapFault($opData);
+                $fault =& $this->_raiseSoapFault($opData);
+                return $fault;
             }
             $namespace = $opData['namespace'];
             $this->__options['style'] = $opData['style'];
@@ -508,7 +518,8 @@ class SOAP_Client extends SOAP_Client_Overload
                         } else {
                             // We now force an associative array for
                             // parameters if using WSDL.
-                            return $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
+                            $fault =& $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
+                            return $fault;
                         }
                         if (gettype($nparams[$name]) != 'object' ||
                             !is_a($nparams[$name], 'SOAP_Value')) {
@@ -593,7 +604,8 @@ class SOAP_Client extends SOAP_Client_Overload
         unset($this->headersOut);
 
         if (PEAR::isError($soap_msg)) {
-            return $this->_raiseSoapFault($soap_msg);
+            $fault =& $this->_raiseSoapFault($soap_msg);
+            return $fault;
         }
 
         // Handle MIME or DIME encoding.
@@ -612,7 +624,8 @@ class SOAP_Client extends SOAP_Client_Overload
                 $this->__options['headers']['Content-Type'] = 'application/dime';
             }
             if (PEAR::isError($soap_msg)) {
-                return $this->_raiseSoapFault($soap_msg);
+                $fault =& $this->_raiseSoapFault($soap_msg);
+                return $fault;
             }
         }
 
@@ -638,7 +651,8 @@ class SOAP_Client extends SOAP_Client_Overload
         // Parse the response.
         $response =& new SOAP_Parser($response, $encoding, $attachments);
         if ($response->fault) {
-            return $this->_raiseSoapFault($response->fault);
+            $fault =& $this->_raiseSoapFault($response->fault);
+            return $fault;
         }
 
         // Return array of parameters.
@@ -648,20 +662,24 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->headersIn =& $this->__decodeResponse($headers, false);
         }
 
-        return $this->__decodeResponse($return);
+        $decoded = &$this->__decodeResponse($return);
+        return $decoded;
     }
 
     function &__decodeResponse(&$response, $shift = true)
     {
         if (!$response) {
-            return null;
+            $decoded = null;
+            return $decoded;
         }
 
         // Check for valid response.
         if (PEAR::isError($response)) {
-            return $this->_raiseSoapFault($response);
+            $fault =& $this->_raiseSoapFault($response);
+            return $fault;
         } elseif (!is_a($response, 'soap_value')) {
-            return $this->_raiseSoapFault("Didn't get SOAP_Value object back from client");
+            $fault =& $this->_raiseSoapFault("Didn't get SOAP_Value object back from client");
+            return $fault;
         }
 
         // Decode to native php datatype.
@@ -669,7 +687,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
         // Fault?
         if (PEAR::isError($returnArray)) {
-            return $this->_raiseSoapFault($returnArray);
+            $fault =& $this->_raiseSoapFault($returnArray);
+            return $fault;
         }
 
         if (is_object($returnArray) &&
@@ -686,11 +705,13 @@ class SOAP_Client extends SOAP_Client_Overload
                     if (stristr($k, 'detail')) $faultdetail = $v;
                     if (stristr($k, 'faultactor')) $faultactor = $v;
                 }
-                return $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+                $fault =& $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+                return $fault;
             }
             // Return array of return values.
             if ($shift && count($returnArray) == 1) {
-                return array_shift($returnArray);
+                $decoded = array_shift($returnArray);
+                return $decoded;
             }
             return $returnArray;
         }

@@ -106,7 +106,7 @@ class SOAP_Value
      *
      * @return string  XML representation of $this.
      */
-    function &serialize(&$serializer)
+    function serialize(&$serializer)
     {
         return $serializer->_serializeValue($this->value,
                                             $this->name,
@@ -221,7 +221,7 @@ class SOAP_Attachment extends SOAP_Value
      *
      * @return string  The file data or a PEAR_Error.
      */
-    function &_file2str($file_name)
+    function _file2str($file_name)
     {
         if (!is_readable($file_name)) {
             return PEAR::raiseError('File is not readable: ' . $file_name);

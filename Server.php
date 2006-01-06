@@ -476,21 +476,25 @@ class SOAP_Server extends SOAP_Base
     function &__decodeRequest($request, $shift = false)
     {
         if (!$request) {
-            return null;
+            $decoded = null;
+            return $decoded;
         }
 
         /* Check for valid response. */
         if (PEAR::isError($request)) {
-            return $this->_raiseSoapFault($request);
+            $fault = &$this->_raiseSoapFault($request);
+            return $fault;
         } else if (!is_a($request, 'SOAP_Value')) {
-            return $this->_raiseSoapFault('Invalid data in server::__decodeRequest');
+            $fault = &$this->_raiseSoapFault('Invalid data in server::__decodeRequest');
+            return $fault;
         }
 
         /* Decode to native php datatype. */
         $requestArray = $this->_decode($request);
         /* Fault? */
         if (PEAR::isError($requestArray)) {
-            return $this->_raiseSoapFault($requestArray);
+            $fault = &$this->_raiseSoapFault($requestArray);
+            return $fault;
         }
         if (is_object($requestArray) &&
             get_class($requestArray) == 'stdClass') {
@@ -516,11 +520,13 @@ class SOAP_Server extends SOAP_Base
                         $faultactor = $v;
                     }
                 }
-                return $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+                $fault = &$this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+                return $fault;
             }
             /* Return array of return values. */
             if ($shift && count($requestArray) == 1) {
-                return array_shift($requestArray);
+                $decoded = array_shift($requestArray);
+                return $decoded;
             }
             return $requestArray;
         }

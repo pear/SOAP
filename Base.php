@@ -843,7 +843,7 @@ class SOAP_Base extends SOAP_Base_Object
         return count($names)>1;
     }
 
-    function &_un_htmlentities($string)
+    function _un_htmlentities($string)
     {
         $trans_tbl = get_html_translation_table(HTML_ENTITIES);
         $trans_tbl = array_flip($trans_tbl);
@@ -988,9 +988,9 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return string
      */
-    function &_makeEnvelope(&$method, &$headers,
-                            $encoding = SOAP_DEFAULT_ENCODING,
-                            $options = array())
+    function _makeEnvelope(&$method, &$headers,
+                           $encoding = SOAP_DEFAULT_ENCODING,
+                           $options = array())
     {
         $smsg = $header_xml = $ns_string = '';
 
@@ -1009,10 +1009,10 @@ class SOAP_Base extends SOAP_Base_Object
                     $smsg .= $method[$i]->serialize($this);
                 }
             } else {
-                $smsg =& $method->serialize($this);
+                $smsg = $method->serialize($this);
             }
         } else {
-            $smsg =& $method;
+            $smsg = $method;
         }
         $body = "<SOAP-ENV:Body>\r\n" . $smsg . "\r\n</SOAP-ENV:Body>\r\n";
 
@@ -1036,7 +1036,7 @@ class SOAP_Base extends SOAP_Base_Object
         return $xml;
     }
 
-    function &_makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
+    function _makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         global $SOAP_options;
 
@@ -1067,7 +1067,7 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     // TODO: this needs to be used from the Transport system.
-    function &_makeDIMEMessage(&$xml)
+    function _makeDIMEMessage($xml)
     {
         global $SOAP_options;
 
@@ -1079,7 +1079,7 @@ class SOAP_Base extends SOAP_Base_Object
         // See http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // Now we have to DIME encode the message
         $dime =& new Net_DIME_Message();
-        $msg =& $dime->encodeData($xml, SOAP_ENVELOP, null, NET_DIME_TYPE_URI);
+        $msg = $dime->encodeData($xml, SOAP_ENVELOP, null, NET_DIME_TYPE_URI);
 
         // Add the attachments.
         $c = count($this->__attachments);
