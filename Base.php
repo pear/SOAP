@@ -575,7 +575,7 @@ class SOAP_Base extends SOAP_Base_Object
             }
             $xmlout_arrayType .= "[$ar_size]\"";
         } elseif ($this->_isSoapValue($value)) {
-            $xmlout_value =& $value->serialize($this);
+            $xmlout_value = $value->serialize($this);
         } elseif ($type == 'string') {
             $xmlout_value = htmlspecialchars($value);
         } elseif ($type == 'rawstring') {
