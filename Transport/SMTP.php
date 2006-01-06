@@ -70,24 +70,24 @@ class SOAP_Transport_SMTP extends SOAP_Base
     }
 
     /**
-    * send and receive soap data
-    *
-    * @param string &$msg       outgoing post data
-    * @param string $action      SOAP Action header data
-    * @param int $timeout  socket timeout, default 0 or off
-    *
-    * @return string &$response   response data, minus http headers
-    * @access public
-    */
-    function send(&$msg,  /*array*/ $options = NULL)
+     * Sends and receives SOAP data.
+     *
+     * @param string $msg       Outgoing POST data.
+     * @param string $action    SOAP Action header data.
+     * @param integer $timeout  Socket timeout, defaults to 0 or off.
+     *
+     * @return string  Response data, minus HTTP headers.
+     * @access public
+     */
+    function send($msg, $options = array())
     {
         $this->incoming_payload = '';
-        $this->outgoing_payload = &$msg;
+        $this->outgoing_payload = $msg;
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
-        if (!$options || !array_key_exists('from',$options)) {
-            return $this->_raiseSoapFault("No FROM address to send message with");
+        if (!$options || !isset($options['from'])) {
+            return $this->_raiseSoapFault('No From: address to send message with');
         }
 
         if (isset($options['host'])) $this->host = $options['host'];
@@ -100,47 +100,46 @@ class SOAP_Transport_SMTP extends SOAP_Base
         $headers['From'] = $options['from'];
         $headers['X-Mailer'] = $this->_userAgent;
         $headers['MIME-Version'] = '1.0';
-        $headers['Message-ID'] = md5(time()).'.soap@'.$this->host;
+        $headers['Message-ID'] = md5(time()) . '.soap@' . $this->host;
         $headers['To'] = $this->urlparts['path'];
-        if (array_key_exists('soapaction', $options)) {
+        if (isset($options['soapaction'])) {
             $headers['Soapaction'] = "\"{$options['soapaction']}\"";
         }
 
         if (isset($options['headers']))
             $headers = array_merge($headers, $options['headers']);
 
-        // if the content type is already set, we assume that Mime encoding
-        // is already done
+        // If the content type is already set, we assume that MIME encoding is
+        // already done.
         if (isset($headers['Content-Type'])) {
             $out = $msg;
         } else {
-            // do a simple inline Mime encoding
+            // Do a simple inline MIME encoding.
             $headers['Content-Disposition'] = 'inline';
             $headers['Content-Type'] = "text/xml; charset=\"$this->encoding\"";
-            if (array_key_exists('transfer-encoding', $options)) {
-                if (strcasecmp($options['transfer-encoding'],'quoted-printable')==0) {
+            if (isset($options['transfer-encoding'])) {
+                if (strcasecmp($options['transfer-encoding'], 'quoted-printable') == 0) {
                     $headers['Content-Transfer-Encoding'] = $options['transfer-encoding'];
-                    $out = &$msg;
-                } else if (strcasecmp($options['transfer-encoding'],'base64')==0) {
+                    $out = $msg;
+                } elseif (strcasecmp($options['transfer-encoding'],'base64') == 0) {
                     $headers['Content-Transfer-Encoding'] = 'base64';
-                    $out = chunk_split(base64_encode($msg),76,"\n");
+                    $out = chunk_split(base64_encode($msg), 76, "\n");
                 } else {
                     return $this->_raiseSoapFault("Invalid Transfer Encoding: {$options['transfer-encoding']}");
                 }
             } else {
-                // default to base64
+                // Default to base64.
                 $headers['Content-Transfer-Encoding'] = 'base64';
                 $out = chunk_split(base64_encode($msg));
             }
         }
 
-        $headers['Subject'] = array_key_exists('subject', $options) ? $options['subject'] : 'SOAP Message';
+        $headers['Subject'] = isset($options['subject']) ? $options['subject'] : 'SOAP Message';
 
         foreach ($headers as $key => $value) {
             $header_text .= "$key: $value\n";
         }
-        $this->outgoing_payload = $header_text."\r\n".$this->outgoing_payload;
-        # we want to return a proper XML message
+        $this->outgoing_payload = $header_text . "\r\n" . $this->outgoing_payload;
 
         $mailer_params = array(
             'host' => $this->host,
@@ -151,64 +150,60 @@ class SOAP_Transport_SMTP extends SOAP_Base
         );
         $mailer =& new Mail_smtp($mailer_params);
         $result = $mailer->send($this->urlparts['path'], $headers, $out);
-        #$result = mail($this->urlparts['path'], $headers['Subject'], $out, $header_text);
-
         if (!PEAR::isError($result)) {
-            $val =& new SOAP_Value('Message-ID','string',$headers['Message-ID']);
+            $val =& new SOAP_Value('Message-ID', 'string', $headers['Message-ID']);
         } else {
-            $sval[] =& new SOAP_Value('faultcode','QName','SOAP-ENV:Client');
-            $sval[] =& new SOAP_Value('faultstring','string',"couldn't send SMTP message to {$this->urlparts['path']}");
-            $val =& new SOAP_Value('Fault','Struct',$sval);
+            $sval[] =& new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:Client');
+            $sval[] =& new SOAP_Value('faultstring', 'string', "couldn't send SMTP message to {$this->urlparts['path']}");
+            $val =& new SOAP_Value('Fault', 'Struct', $sval);
         }
 
         $mqname =& new QName($method, $namespace);
         $methodValue =& new SOAP_Value('Response', 'Struct', array($val));
 
-        $this->incoming_payload =& $this->_makeEnvelope($methodValue, $this->headers, $this->encoding);
+        $this->incoming_payload = $this->_makeEnvelope($methodValue,
+                                                       $this->headers,
+                                                       $this->encoding);
 
         return $this->incoming_payload;
     }
 
     /**
-    * set data for http authentication
-    * creates Authorization header
-    *
-    * @param string $username   username
-    * @param string $password   response data, minus http headers
-    *
-    * @return none
-    * @access public
-    */
+     * Sets data for HTTP authentication, creates Authorization header.
+     *
+     * @param string $username  Username.
+     * @param string $password  Response data, minus HTTP headers.
+     *
+     * @access public
+     */
     function setCredentials($username, $password)
     {
         $this->username = $username;
         $this->password = $password;
     }
 
-    // private members
-
     /**
-    * validate url data passed to constructor
-    *
-    * @return boolean
-    * @access private
-    */
+     * Validates url data passed to constructor.
+     *
+     * @return boolean
+     * @access private
+     */
     function _validateUrl()
     {
-        if ( ! is_array($this->urlparts) ) {
+        if (!is_array($this->urlparts)) {
             $this->_raiseSoapFault("Unable to parse URL $url");
-            return FALSE;
+            return false;
         }
         if (!isset($this->urlparts['scheme']) ||
             strcasecmp($this->urlparts['scheme'], 'mailto') != 0) {
                 $this->_raiseSoapFault("Unable to parse URL $url");
-                return FALSE;
+                return false;
         }
         if (!isset($this->urlparts['path'])) {
             $this->_raiseSoapFault("Unable to parse URL $url");
-            return FALSE;
+            return false;
         }
-        return TRUE;
+        return true;
     }
 
 }
