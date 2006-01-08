@@ -526,7 +526,7 @@ class SOAP_Base extends SOAP_Base_Object
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
                         $array_type_ns = $array_val->type_namespace;
-                        $xmlout_value .= $this->_serializeValue($array_val, $array_val->name, $array_type, $array_type_ns);
+                        $xmlout_value .= $array_val->serialize($this);
                     } else {
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
