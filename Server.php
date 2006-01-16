@@ -580,7 +580,7 @@ class SOAP_Server extends SOAP_Base
         if ($sig = $map['in']) {
             $this->input_value = count($sig);
             $this->return_type = false;
-            if (is_array($returndata)) {
+            if (is_array($map['out'])) {
                 $this->return_type = count($map['out']) > 1
                     ? $map['out']
                     : array_shift($map['out']);
