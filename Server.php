@@ -282,7 +282,8 @@ class SOAP_Server extends SOAP_Base
     function &callMethod($methodname, &$args)
     {
         if ($this->callHandler) {
-            return @call_user_func_array($this->callHandler, array($methodname, $args));
+            $ret = @call_user_func_array($this->callHandler, array($methodname, $args));
+            return $ret;
         }
 
         set_error_handler(array($this, '_errorHandler'));
@@ -325,7 +326,7 @@ class SOAP_Server extends SOAP_Base
                     if (is_numeric($key)) {
                         $key = 'item';
                     }
-                    if (is_a($method_response[$i],'soap_value')) {
+                    if (is_a($method_response[$i], 'SOAP_Value')) {
                         $return_val[] = $method_response[$i++];
                     } else {
                         $qn =& new QName($key, $namespace);
@@ -578,7 +579,12 @@ class SOAP_Server extends SOAP_Base
         /* If there are input parameters required. */
         if ($sig = $map['in']) {
             $this->input_value = count($sig);
-            $this->return_type = is_array($map['out']) ? $map['out'] : false;
+            $this->return_type = false;
+            if (is_array($returndata)) {
+                $this->return_type = count($map['out']) > 1
+                    ? $map['out']
+                    : array_shift($map['out']);
+            }
             if (is_array($params)) {
                 /* Validate the number of parameters. */
                 if (count($params) == count($sig)) {
