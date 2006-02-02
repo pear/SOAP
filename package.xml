@@ -42,7 +42,7 @@
   <release>
     <state>beta</state>
     <version>0.9.3</version>
-    <date>2006-01-99</date>
+    <date>2006-02-02</date>
     <notes>* Fix generated proxy code (rsky0711 at gmail dot com, Bug 6505).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
