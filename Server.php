@@ -310,8 +310,15 @@ class SOAP_Server extends SOAP_Base
     }
 
     /**
-     * Creates SOAP_Value object with return values from method.
+     * Creates SOAP_Value objects with return values from method.
      * Uses method signature to determine type.
+     *
+     * @param mixed $method_response  The result(s).
+     * @param array|string $type      The type(s) of the return value(s).
+     * @param string $return_name     The name of the return value.
+     * @param string $namespace       The namespace of the return value.
+     *
+     * @return array  List of SOAP_Value objects.
      */
     function buildResult(&$method_response, &$return_type,
                          $return_name = 'return', $namespace = '')
@@ -327,7 +334,7 @@ class SOAP_Server extends SOAP_Base
                         $key = 'item';
                     }
                     if (is_a($method_response[$i], 'SOAP_Value')) {
-                        $return_val[] = $method_response[$i++];
+                        $return_val[] =& $method_response[$i++];
                     } else {
                         $qn =& new QName($key, $namespace);
                         $return_val[] =& new SOAP_Value($qn->fqn(), $type, $method_response[$i++]);
@@ -343,8 +350,7 @@ class SOAP_Server extends SOAP_Base
                     $return_type = $values[0];
                 }
                 $qn =& new QName($return_name, $namespace);
-                $return_val = array();
-                $return_val[] =& new SOAP_Value($qn->fqn(), $return_type, $method_response);
+                $return_val = array(new SOAP_Value($qn->fqn(), $return_type, $method_response));
             }
         }
         return $return_val;
@@ -398,7 +404,8 @@ class SOAP_Server extends SOAP_Base
                             $this->_raiseSoapDefault($hr);
                             return null;
                         }
-                        $header_results[] = array_shift($this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace));
+                        $results = $this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace);
+                        $header_results[] = $results[0];
                     }
                 }
             }
