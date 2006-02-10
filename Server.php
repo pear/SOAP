@@ -256,10 +256,10 @@ class SOAP_Server extends SOAP_Base
         }
 
         if ($this->fault) {
-            $hdrs = '$hdrs_type ' . $this->__options['http_status_fault'] . "\r\n";
+            $hdrs = $hdrs_type . ' ' . $this->__options['http_status_fault'] . "\r\n";
             $response = $this->fault->message();
         } else {
-            $hdrs = '$hdrs_type ' . $this->__options['http_status_success'] . "\r\n";
+            $hdrs = $hdrs_type . ' ' . $this->__options['http_status_success'] . "\r\n";
         }
         header($hdrs);
 
