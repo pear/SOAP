@@ -1,7 +1,7 @@
 <?php
 
 require_once 'SOAP/Base.php';
-require_once 'SOAP/test/test.utility.php';
+require_once 'test.utility.php';
 
 $prefix = 'QNames';
 

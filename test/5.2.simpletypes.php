@@ -1,8 +1,8 @@
 <?php
 
-require_once("SOAP/Base.php");
-require_once("SOAP/test/test.utility.php");
-require_once("SOAP/Fault.php");
+require_once 'SOAP/Base.php';
+require_once 'test.utility.php';
+require_once 'SOAP/Fault.php';
 $soap_base = new SOAP_Base();
 
 $prefix = "5.2 Simple Types";

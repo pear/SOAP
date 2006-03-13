@@ -1,5 +1,5 @@
 <?php
-require_once("SOAP/test/test.utility.php");
+require_once 'test.utility.php';
 $prefix = "5.2.1 Multi-Reference";
 
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
