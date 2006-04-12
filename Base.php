@@ -114,16 +114,6 @@ define('SCHEMA_REF',               'http://schemas.xmlsoap.org/ws/2002/04/refere
 
 define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
-if (!function_exists('is_a')) {
-    function is_a(&$object, $class_name)
-    {
-        if (strtolower(get_class($object)) == $class_name) {
-            return true;
-        }
-        return is_subclass_of($object, $class_name);
-    }
-}
-
 class SOAP_Base_Object extends PEAR
 {
     /**
@@ -897,7 +887,7 @@ class SOAP_Base extends SOAP_Base_Object
                             $return->{$item->name} =& $this->_decode($item);
                         } elseif (isset($return->{$item->name}) &&
                                   is_array($return->{$item->name})) {
-                            $return->{$item->name}[] =& $this->_decode($item);
+                            $return->{$item->name}[] = $this->_decode($item);
                         } elseif (is_array($return)) {
                             $return[] =& $this->_decode($item);
                         } else {
@@ -934,13 +924,13 @@ class SOAP_Base extends SOAP_Base_Object
                         $item->type = $soapval->arrayType;
                     }
                     if (!$isstruct) {
-                        $return[] =& $this->_decode($item);
+                        $return[] = $this->_decode($item);
                     } elseif (isset($return[$item->name])) {
                         $isstruct = false;
                         $d =& $this->_decode($item);
                         $return = array($return[$item->name], $d);
                     } else {
-                        $return[$item->name] =& $this->_decode($item);
+                        $return[$item->name] = $this->_decode($item);
                     }
                 }
             }
