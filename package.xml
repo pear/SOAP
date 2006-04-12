@@ -42,7 +42,7 @@
   <release>
     <state>beta</state>
     <version>0.9.4</version>
-    <date>2006-99-99</date>
+    <date>2006-04-12</date>
     <notes>* Fix response header sent from SOAP server. (mvonarx at tiscali dot ch, Bug 6744).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
