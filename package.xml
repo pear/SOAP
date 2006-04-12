@@ -97,7 +97,7 @@
       </dir>
     </filelist>
     <deps>
-      <dep type="php" rel="ge" version="4.1"/>
+      <dep type="php" rel="ge" version="4.2"/>
       <dep type="pkg" rel="has">PEAR</dep>
       <dep type="pkg" rel="has">HTTP_Request</dep>
       <dep type="pkg" rel="has" optional="yes">Mail</dep>
