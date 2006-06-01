@@ -14,7 +14,8 @@
  * @category   Web Services
  * @package    SOAP
  * @author     Shane Caraveo <Shane@Caraveo.com>
- * @copyright  2003-2005 The PHP Group
+ * @author     Jan Schneider <jan@horde.org>
+ * @copyright  2003-2006 The PHP Group
  * @license    http://www.php.net/license/2_02.txt  PHP License 2.02
  * @link       http://pear.php.net/package/SOAP
  */
@@ -29,7 +30,7 @@
 /**
  * Needed Classes
  */
-require_once 'SOAP/Base.php';
+require_once 'SOAP/Transport.php';
 
 /**
  *  HTTP Transport for SOAP
@@ -37,10 +38,10 @@ require_once 'SOAP/Base.php';
  * @access public
  * @package SOAP
  * @author Shane Caraveo <shane@php.net>
+ * @author Jan Schneider <jan@horde.org>
  */
-class SOAP_Transport_HTTP extends SOAP_Base
+class SOAP_Transport_HTTP extends SOAP_Transport
 {
-
     /**
      * Basic Auth string.
      *
@@ -61,49 +62,6 @@ class SOAP_Transport_HTTP extends SOAP_Base
      * @var integer
      */
     var $timeout = 4;
-
-    /**
-     * Array containing urlparts - parse_url().
-     *
-     * @var mixed
-     */
-    var $urlparts = null;
-
-    /**
-     * Connection endpoint - URL.
-     *
-     * @var string
-     */
-    var $url = '';
-
-    /**
-     * Incoming payload.
-     *
-     * @var string
-     */
-    var $incoming_payload = '';
-
-    /**
-     * HTTP-Request User-Agent.
-     *
-     * @var string
-     */
-    var $_userAgent = SOAP_LIBRARY_NAME;
-
-    /**
-     * HTTP encoding.
-     *
-     * @var string
-     */
-    var $encoding = SOAP_DEFAULT_ENCODING;
-
-    /**
-     * HTTP-Response Content-Type encoding.
-     * We assume UTF-8 if no encoding is set.
-     *
-     * @var string
-     */
-    var $result_encoding = 'UTF-8';
 
     /**
      * HTTP-Response Content-Type.
@@ -133,13 +91,14 @@ class SOAP_Transport_HTTP extends SOAP_Base
     /**
      * Sends and receives SOAP data.
      *
-     * @param string  Outgoing POST data.
+     * @access public
+     *
+     * @param string  Outgoing SOAP data.
      * @param array   Options.
      *
      * @return string|SOAP_Fault
-     * @access public
      */
-    function send($msg, $options = null)
+    function send($msg, $options = array())
     {
         if (!$this->_validateUrl()) {
             return $this->fault;
@@ -388,14 +347,14 @@ class SOAP_Transport_HTTP extends SOAP_Base
 
             if ($this->result_content_type == 'application/dime') {
                 // XXX quick hack insertion of DIME
-                if (PEAR::isError($this->_decodeDIMEMessage($this->response,$this->headers,$this->attachments))) {
+                if (PEAR::isError($this->_decodeDIMEMessage($this->response, $this->headers, $this->attachments))) {
                     // _decodeDIMEMessage already raised $this->fault
                     return false;
                 }
                 $this->result_content_type = $this->headers['content-type'];
-            } elseif (stristr($this->result_content_type,'multipart/related')) {
+            } elseif (stristr($this->result_content_type, 'multipart/related')) {
                 $this->response = $this->incoming_payload;
-                if (PEAR::isError($this->_decodeMimeMessage($this->response,$this->headers,$this->attachments))) {
+                if (PEAR::isError($this->_decodeMimeMessage($this->response, $this->headers, $this->attachments))) {
                     // _decodeMimeMessage already raised $this->fault
                     return false;
                 }
