@@ -1338,6 +1338,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             $ns = $qname->ns ? $this->wsdl->namespaces[$qname->ns] : SCHEMA_WSDL;
             switch ($ns) {
             case SCHEMA_SOAP:
+            case SCHEMA_SOAP12:
                 // this deals with wsdl section 3 soap binding
                 switch ($qname->name) {
                 case 'binding':
