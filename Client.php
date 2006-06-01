@@ -36,7 +36,7 @@ require_once 'SOAP/Parser.php';
 // these two are BC/FC handlers for call in PHP4/5
 
 if (!class_exists('SOAP_Client_Overload')) {
-    if (substr(phpversion(), 0, 1) == 5) {
+    if (substr(zend_version(), 0, 1) > 1) {
         class SOAP_Client_Overload extends SOAP_Base {
             function __call($method, $args)
             {
@@ -68,6 +68,10 @@ if (!class_exists('SOAP_Client_Overload')) {
  *   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
  *   echo $soapclient->call( string methodname [ , array parameters] );
  * </code>
+ * or, if using PHP 5+ or the overload extension:<code>
+ *   $soapclient = new SOAP_Client( string path [ , boolean wsdl] );
+ *   echo $soapclient->methodname( [ array parameters] );
+ * </code>
  *
  * Originally based on SOAPx4 by Dietrich Ayala
  * http://dietrich.ganx4.com/soapx4
@@ -92,76 +96,93 @@ class SOAP_Client extends SOAP_Client_Overload
      *   https://www.example.com/soap/server.php
      *   mailto:soap@example.com
      *
-     * @see  SOAP_Client()
-     * @var $_endpoint string
+     * @see SOAP_Client()
+     * @var string
      */
     var $_endpoint = '';
 
     /**
      * The SOAP PORT name that is used by the client.
      *
-     * @var $_portName string
+     * @var string
      */
     var $_portName = '';
 
     /**
      * Endpoint type e.g. 'wdsl'.
      *
-     * @var $__endpointType string
+     * @var string
      */
     var $__endpointType = '';
 
     /**
      * The received xml.
      *
-     * @var $xml string
+     * @var string
      */
     var $xml;
 
     /**
      * The outgoing and incoming data stream for debugging.
      *
-     * @var $wire string
+     * @var string
      */
     var $wire;
+
+    /**
+     * The outgoing data stream for debugging.
+     *
+     * @var string
+     */
     var $__last_request = null;
+
+    /**
+     * The incoming data stream for debugging.
+     *
+     * @var string
+     */
     var $__last_response = null;
 
     /**
      * Options.
      *
-     * @var $__options array
+     * @var array
      */
-    var $__options = array('trace'=>0);
+    var $__options = array('trace' => 0);
 
     /**
      * The character encoding used for XML parser, etc.
      *
-     * @var $_encoding string
+     * @var string
      */
     var $_encoding = SOAP_DEFAULT_ENCODING;
 
     /**
      * The array of SOAP_Headers that we are sending.
      *
-     * @var $headersOut array
+     * @var array
      */
     var $headersOut = null;
 
     /**
      * The headers we recieved back in the response.
      *
-     * @var $headersIn array
+     * @var array
      */
     var $headersIn = null;
 
     /**
      * Options for the HTTP_Request class (see HTTP/Request.php).
      *
-     * @var $__proxy_params array
+     * @var array
      */
     var $__proxy_params = array();
 
+    /**
+     * The SOAP_Transport instance.
+     *
+     * @var SOAP_Transport
+     */
     var $_soap_transport = null;
 
     /**
@@ -391,7 +412,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @param string $method        The method to call.
      * @param array $params         The method parameters.
-     * @param string $return_value  Will get the method's return value
+     * @param mixed $return_value   Will get the method's return value
      *                              assigned.
      *
      * @return boolean  Always true.
@@ -399,7 +420,7 @@ class SOAP_Client extends SOAP_Client_Overload
     function _call($method, $params, &$return_value)
     {
         // Overloading lowercases the method name, we need to look into the
-        // wsdl and try to find the correct method name to get the correct
+        // WSDL and try to find the correct method name to get the correct
         // case for the call.
         if ($this->_wsdl) {
             $this->_wsdl->matchMethod($method);
