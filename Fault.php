@@ -28,10 +28,10 @@ require_once 'PEAR.php';
 /**
  * PEAR::Error wrapper used to match SOAP Faults to PEAR Errors
  *
- * SOAP_Fault transmissions normally contain a complete backtrace of the error.
- * Revealing these details in a public web services is a bad idea because it
- * can be used by attackers.  Backtrace information can be kept out of
- * SOAP_Fault responses by putting the following code in your script after
+ * SOAP_Fault transmissions normally contain a complete backtrace of the
+ * error.  Revealing these details in a public web services is a bad idea
+ * because it can be used by attackers.  Backtrace information can be kept out
+ * of SOAP_Fault responses by putting the following code in your script after
  * your "require_once 'SOAP/Server.php';" line:
  *
  * <code>
@@ -46,93 +46,90 @@ require_once 'PEAR.php';
  */
 class SOAP_Fault extends PEAR_Error
 {
-    
     /**
-     * Constructor
-     * 
-     * @param    string  message string for fault
-     * @param    mixed   the faultcode
-     * @param    mixed   see PEAR::ERROR 
-     * @param    mixed   see PEAR::ERROR 
-     * @param    array   the userinfo array is used to pass in the
-     *                   SOAP actor and detail for the fault
+     * Constructor.
+     *
+     * @param string $faultstring  Message string for fault.
+     * @param mixed $faultcode     The faultcode.
+     * @param mixed $faultactor
+     * @param mixed $detail        @see PEAR_Error
+     * @param array $mode          @see PEAR_Error
+     * @param array $options       @see PEAR_Error
      */
-    function SOAP_Fault($faultstring = 'unknown error', $faultcode = 'Client', $faultactor=NULL, $detail=NULL, $mode = null, $options = null)
+    function SOAP_Fault($faultstring = 'unknown error', $faultcode = 'Client',
+                        $faultactor = null, $detail = null, $mode = null,
+                        $options = null)
     {
         parent::PEAR_Error($faultstring, $faultcode, $mode, $options, $detail);
-        if ($faultactor) $this->error_message_prefix = $faultactor;
+        if ($faultactor) {
+            $this->error_message_prefix = $faultactor;
+        }
     }
-    
+
     /**
      * returns a SOAP_Message class that can be sent as a server response
      *
-     * @return SOAP_Message 
-     * @access public
+     * @return SOAP_Message
      */
     function message()
     {
-        $msg =& new SOAP_Base();
+        $msg = new SOAP_Base();
         $params = array();
-        $params[] =& new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:'.$this->code);
-        $params[] =& new SOAP_Value('faultstring', 'string', $this->message);
-        $params[] =& new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix);
+        $params[] = new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:' . $this->code);
+        $params[] = new SOAP_Value('faultstring', 'string', $this->message);
+        $params[] = new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix);
         if (isset($this->backtrace)) {
-            $params[] =& new SOAP_Value('detail', 'string', $this->backtrace);
+            $params[] = new SOAP_Value('detail', 'string', $this->backtrace);
         } else {
-            $params[] =& new SOAP_Value('detail', 'string', $this->userinfo);
+            $params[] = new SOAP_Value('detail', 'string', $this->userinfo);
         }
-        
-        $methodValue =& new SOAP_Value('{'.SOAP_ENVELOP.'}Fault', 'Struct', $params);
-        $headers = NULL;
+
+        $methodValue = new SOAP_Value('{' . SOAP_ENVELOP . '}Fault', 'Struct', $params);
+        $headers = null;
         return $msg->_makeEnvelope($methodValue, $headers);
     }
-    
+
     /**
-     * returns a simple native php array containing the fault data
+     * Returns a simple native PHP array containing the fault data.
      *
-     * @return array 
-     * @access public
+     * @return array
      */
     function getFault()
     {
-        global $SOAP_OBJECT_STRUCT;
-        if ($SOAP_OBJECT_STRUCT) {
-            $fault =& new stdClass();
+        if ($GLOBALS['SOAP_OBJECT_STRUCT']) {
+            $fault = new stdClass();
             $fault->faultcode = $this->code;
             $fault->faultstring = $this->message;
             $fault->faultactor = $this->error_message_prefix;
             $fault->detail = $this->userinfo;
             return $fault;
         }
+
         return array(
-                'faultcode' => $this->code,
-                'faultstring' => $this->message,
-                'faultactor' => $this->error_message_prefix,
-                'detail' => $this->userinfo
-            );
+            'faultcode' => $this->code,
+            'faultstring' => $this->message,
+            'faultactor' => $this->error_message_prefix,
+            'detail' => $this->userinfo);
     }
-    
+
     /**
-     * returns the SOAP actor for the fault
+     * Returns the SOAP actor for the fault.
      *
-     * @return string 
-     * @access public
+     * @return string
      */
     function getActor()
     {
         return $this->error_message_prefix;
     }
-    
+
     /**
-     * returns the fault detail
+     * Returns the fault detail.
      *
-     * @return string 
-     * @access public
+     * @return string
      */
     function getDetail()
     {
         return $this->userinfo;
     }
-    
+
 }
-?>
