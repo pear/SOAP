@@ -149,9 +149,16 @@ class SOAP_Server extends SOAP_Base
 
 
     /**
-     * Parses request and posts response.
+     * Parses the request and posts or returns the response.
+     *
+     * @param string $data      The SOAP request data.
+     * @param string $endpoint  The service endpoint. Determined automatically
+     *                          if left empty.
+     * @param boolean $test
+     * @param boolean $return   Whether to return the SOAP response data
+     *                          instead of sending it to the client.
      */
-    function service($data, $endpoint = '', $test = false)
+    function service($data, $endpoint = '', $test = false, $return = false)
     {
         $response = null;
         $attachments = array();
@@ -231,6 +238,13 @@ class SOAP_Server extends SOAP_Base
             } else {
                 $response = $soap_msg;
             }
+        }
+
+        if ($return) {
+            if ($this->fault) {
+                $response = $this->fault->message();
+            }
+            return $response;
         }
 
         $this->_sendResponse($response);
