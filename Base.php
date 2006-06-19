@@ -191,7 +191,7 @@ class SOAP_Base_Object extends PEAR
                               $mode = null, $options = null, $skipmsg = false)
     {
         // Pass through previous faults.
-        $is_instance = isset($this);
+        $is_instance = isset($this) && is_a($this, 'SOAP_Base_Object');
         if (is_object($str)) {
             $fault =& $str;
         } else {
