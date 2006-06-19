@@ -534,6 +534,10 @@ class SOAP_WSDL extends SOAP_Base
             return null;
         }
 
+        // Regular expressions for invalid PHP labels. See
+        // http://www.php.net/manual/en/language.variables.php.
+        $invalid = array('/^[^a-zA-Z_\x7f-\xff]/', '/[^a-zA-Z0-9_\x7f-\xff]/');
+
         // XXX currentPort is BAD
         $clienturl = $port['address']['location'];
         if (!$classname) {
@@ -542,7 +546,7 @@ class SOAP_WSDL extends SOAP_Base
             } else {
                 $classname = 'WebService_' . $this->service;
             }
-            $classname = preg_replace('/[ .\-\(\)]+/', '_', $classname);
+            $classname = preg_replace($invalid, '_', $classname);
         }
 
         if (!$this->_validateString($classname)) {
@@ -611,6 +615,7 @@ class SOAP_WSDL extends SOAP_Base
             foreach ($operation['input'] as $argname => $argtype) {
                 if ($argname == 'message') {
                     foreach ($this->messages[$argtype] as $_argname => $_argtype) {
+                        $_argname = preg_replace($invalid, '_', $_argname);
                         if ($opstyle == 'document' && $use == 'literal' &&
                             $_argtype['name'] == 'parameters') {
                             // The type or element refered to is used for
@@ -626,6 +631,7 @@ class SOAP_WSDL extends SOAP_Base
                             }
                             if (isset($el['elements'])) {
                                 foreach ($el['elements'] as $elname => $elattrs) {
+                                    $elname = preg_replace($invalid, '_', $elname);
                                     // Is the element a complex type?
                                     if (isset($this->complexTypes[$elattrs['namespace']][$elname])) {
                                         $comments .= $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
@@ -658,7 +664,7 @@ class SOAP_WSDL extends SOAP_Base
             // legal. This could potentially cause collisions, but let's try
             // to make everything callable and see how many problems that
             // causes.
-            $opname_php = preg_replace('/[ .\-\(\)]+/', '_', $opname);
+            $opname_php = preg_replace($invalid, '_', $opname);
             if (!$this->_validateString($opname_php)) {
                 return null;
             }
@@ -720,7 +726,7 @@ class SOAP_WSDL extends SOAP_Base
             $classname = $name . '_' . $classname;
         }
 
-        $classname = preg_replace('/[ .\-\(\)]+/', '_', $classname);
+        $classname = preg_replace(array('/^[^a-zA-Z_\x7f-\xff]/', '/[^a-zA-Z0-9_\x7f-\xff]/'), '_', $classname);
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port, $classname);
             require_once 'SOAP/Client.php';
