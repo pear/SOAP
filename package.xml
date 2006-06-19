@@ -43,7 +43,8 @@
     <state>beta</state>
     <version>0.9.5</version>
     <date>2006-99-99</date>
-    <notes>* Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
+    <notes>* Allow to enable and disable WSDL caching and to set the cache directory in the client constructor.
+* Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">

@@ -190,14 +190,16 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @access public
      *
-     * @param string $endpoint     An URL.
-     * @param boolean $wsdl        Whether the endpoint is a WSDL file.
-     * @param string $portName
-     * @param array $proxy_params  Options for the HTTP_Request class (see
-     *                             HTTP/Request.php)
+     * @param string $endpoint       An URL.
+     * @param boolean $wsdl          Whether the endpoint is a WSDL file.
+     * @param string $portName       The service's port name to use.
+     * @param array $proxy_params    Options for the HTTP_Request class
+     *                               @see HTTP_Request
+     * @param boolean|string $cache  Use WSDL caching? The cache directory if
+     *                               a string.
      */
     function SOAP_Client($endpoint, $wsdl = false, $portName = false,
-                         $proxy_params = array())
+                         $proxy_params = array(), $cache = false)
     {
         parent::SOAP_Base('Client');
 
@@ -216,7 +218,8 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->__endpointType = 'wsdl';
             // instantiate wsdl class
             $this->_wsdl =& new SOAP_WSDL($this->_endpoint,
-                                          $this->__proxy_params);
+                                          $this->__proxy_params,
+                                          $cache);
             if ($this->_wsdl->fault) {
                 $this->_raiseSoapFault($this->_wsdl->fault);
             }
@@ -346,8 +349,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
         // Save the wire information for debugging.
         if ($this->__options['trace'] > 0) {
-            $this->__last_request =& $this->_soap_transport->outgoing_payload;
-            $this->__last_response =& $this->_soap_transport->incoming_payload;
+            $this->__last_request = $this->_soap_transport->outgoing_payload;
+            $this->__last_response = $this->_soap_transport->incoming_payload;
             $this->wire = $this->__get_wire();
         }
         if ($this->_soap_transport->fault) {
