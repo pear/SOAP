@@ -100,6 +100,8 @@ class SOAP_Transport_HTTP extends SOAP_Transport
      */
     function send($msg, $options = array())
     {
+        $this->fault = null;
+
         if (!$this->_validateUrl()) {
             return $this->fault;
         }
