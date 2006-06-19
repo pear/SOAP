@@ -776,38 +776,37 @@ class SOAP_WSDL extends SOAP_Base
             // XXX TODO:
             // look up the name in the wsdl and validate the type.
             foreach ($this->complexTypes as $ns => $types) {
-                if (array_key_exists($type, $types)) {
-                    if (array_key_exists('type', $types[$type])) {
-                        list($arraytype_ns, $arraytype, $array_depth) = isset($types[$type]['arrayType'])?
-                            $this->_getDeepestArrayType($types[$type]['namespace'], $types[$type]['arrayType'])
+                if (isset($types[$type])) {
+                    if (isset($types[$type]['type'])) {
+                        list($arraytype_ns, $arraytype, $array_depth) = isset($types[$type]['arrayType'])
+                            ? $this->_getDeepestArrayType($types[$type]['namespace'], $types[$type]['arrayType'])
                             : array($this->namespaces[$types[$type]['namespace']], null, 0);
                         return array($types[$type]['type'], $arraytype, $arraytype_ns, $array_depth);
                     }
-                    if (array_key_exists('arrayType', $types[$type])) {
+                    if (isset($types[$type]['arrayType'])) {
                         list($arraytype_ns, $arraytype, $array_depth) =
                             $this->_getDeepestArrayType($types[$type]['namespace'], $types[$type]['arrayType']);
                         return array('Array', $arraytype, $arraytype_ns, $array_depth);
                     }
-                    if (array_key_exists('elements', $types[$type]) &&
-                        array_key_exists($name, $types[$type]['elements'])) {
+                    if (!empty($types[$type]['elements'][$name])) {
                         $type = $types[$type]['elements']['type'];
                         return array($type, null, $this->namespaces[$types[$type]['namespace']], null);
                     }
+                    break;
                 }
             }
         }
         if ($type && $type_namespace) {
             $arrayType = null;
             // XXX TODO:
-            // this code currently handles only one way of encoding array types in wsdl
-            // need to do a generalized function to figure out complex types
+            // this code currently handles only one way of encoding array
+            // types in wsdl need to do a generalized function to figure out
+            // complex types
             $p = $this->ns[$type_namespace];
-            if ($p &&
-                array_key_exists($p, $this->complexTypes) &&
-                array_key_exists($type, $this->complexTypes[$p])) {
+            if ($p && !empty($this->complexTypes[$p][$type])) {
                 if ($arrayType = $this->complexTypes[$p][$type]['arrayType']) {
                     $type = 'Array';
-                } elseif ($this->complexTypes[$p][$type]['order']=='sequence' &&
+                } elseif ($this->complexTypes[$p][$type]['order'] == 'sequence' &&
                           array_key_exists('elements', $this->complexTypes[$p][$type])) {
                     reset($this->complexTypes[$p][$type]['elements']);
                     // assume an array
@@ -1928,32 +1927,27 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
     }
 
     /**
-     * Parser - takes a single object to add to tree
-     * (non-destructive).
+     * Parser - takes a single object to add to tree (non-destructive).
      *
-     * @param  $object Reference to the object to parse
-     * @param  $service_name Name of the WSDL <service>
-    * @access private
+     * @access private
+     *
+     * @param object $object           Reference to the object to parse.
+     * @param string $schemaNamespace
+     * @param string $service_name     Name of the WSDL <service>.
      */
     function _parse(&$object, $schemaNamespace, $service_name)
     {
         // Create namespace prefix for the schema
-        // XXX not very elegant :-(
-
-        list($schPrefix, $foo) = $this->_getTypeNs('{' . $schemaNamespace.'}');
-        unset($foo);
+        list($schPrefix,) = $this->_getTypeNs('{' . $schemaNamespace . '}');
 
         // Parse all the types defined by the object in whatever
         // schema language we are using (currently __typedef arrays)
         // *** <wsdl:types> ***
-
         foreach ($object->__typedef as $typeName => $typeValue) {
             // Get/create namespace definition
-
             list($nsPrefix, $typeName) = $this->_getTypeNs($typeName);
 
             // Create type definition
-
             $this->wsdl->complexTypes[$schPrefix][$typeName] = array('name' => $typeName);
             $thisType =& $this->wsdl->complexTypes[$schPrefix][$typeName];
 
@@ -1961,12 +1955,10 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
             // flavors:
             // Array = array(array("item" => "value"))
             // Struct = array("item1" => "value1", "item2" => "value2", ...)
-
             if (is_array($typeValue)) {
                 if (is_array(current($typeValue)) && count($typeValue) == 1
                     && count(current($typeValue)) == 1) {
                     // It's an array
-
                     $thisType['type'] = 'Array';
                     $nsType = current(current($typeValue));
                     list($nsPrefix, $typeName) = $this->_getTypeNs($nsType);
@@ -1974,7 +1966,6 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                     $thisType['arrayType'] = $typeName . '[]';
                 } elseif (!is_array(current($typeValue))) {
                     // It's a struct
-
                     $thisType['type'] = 'Struct';
                     $thisType['order'] = 'all';
                     $thisType['namespace'] = $nsPrefix;
@@ -1998,12 +1989,10 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
 
         // Create an empty element array with the target namespace
         // prefix, to match the results of WSDL parsing.
-
         $this->wsdl->elements[$schPrefix] = array();
 
         // Populate tree with message information
         // *** <wsdl:message> ***
-
         foreach ($object->__dispatch_map as $operationName => $messages) {
             foreach ($messages as $messageType => $messageParts) {
                 unset($thisMessage);
@@ -2046,7 +2035,6 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         // XXX Current implementation only supports one portType that
         // encompasses all of the operations available.
         // *** <wsdl:portType> ***
-
         if (!isset($this->wsdl->portTypes[$service_name . 'Port'])) {
             $this->wsdl->portTypes[$service_name . 'Port'] = array();
         }
