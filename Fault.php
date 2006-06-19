@@ -18,16 +18,26 @@
  * @author     Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
  * @author     Chuck Hagenbuch <chuck@horde.org>   Maintenance
  * @author     Jan Schneider <jan@horde.org>       Maintenance
- * @copyright  2003-2005 The PHP Group
+ * @copyright  2003-2006 The PHP Group
  * @license    http://www.php.net/license/2_02.txt  PHP License 2.02
  * @link       http://pear.php.net/package/SOAP
  */
 
-require_once('PEAR.php');
+require_once 'PEAR.php';
 
 /**
- * SOAP_Fault
  * PEAR::Error wrapper used to match SOAP Faults to PEAR Errors
+ *
+ * SOAP_Fault transmissions normally contain a complete backtrace of the error.
+ * Revealing these details in a public web services is a bad idea because it
+ * can be used by attackers.  Backtrace information can be kept out of
+ * SOAP_Fault responses by putting the following code in your script after
+ * your "require_once 'SOAP/Server.php';" line:
+ *
+ * <code>
+ * $skiptrace =& PEAR::getStaticProperty('PEAR_Error', 'skiptrace');
+ * $skiptrace = true;
+ * </code>
  *
  * @package  SOAP
  * @access   public
@@ -54,8 +64,6 @@ class SOAP_Fault extends PEAR_Error
     }
     
     /**
-     * message
-     *
      * returns a SOAP_Message class that can be sent as a server response
      *
      * @return SOAP_Message 
@@ -80,8 +88,6 @@ class SOAP_Fault extends PEAR_Error
     }
     
     /**
-     * getFault
-     *
      * returns a simple native php array containing the fault data
      *
      * @return array 
@@ -107,8 +113,6 @@ class SOAP_Fault extends PEAR_Error
     }
     
     /**
-     * getActor
-     *
      * returns the SOAP actor for the fault
      *
      * @return string 
@@ -120,8 +124,6 @@ class SOAP_Fault extends PEAR_Error
     }
     
     /**
-     * getDetail
-     *
      * returns the fault detail
      *
      * @return string 
