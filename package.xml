@@ -49,7 +49,10 @@
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
-        <file role="php" name="Base.php"/>
+        <file role="php" name="Base.php">
+          <replace from="@version@" to="version" type="package-info"/>
+          <!--<replace from="@state@" to="release-state" type="package-info"/>-->
+        </file>
         <file role="php" name="Client.php"/>
         <file role="php" name="Disco.php"/>
         <file role="php" name="Fault.php"/>

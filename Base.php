@@ -89,8 +89,8 @@ if (!defined('NAN')) {
     define('NAN', 0.0);
 }
 
-define('SOAP_LIBRARY_VERSION', '0.8.0RC4');
-define('SOAP_LIBRARY_NAME',    'PEAR-SOAP 0.8.0RC4-devel');
+define('SOAP_LIBRARY_VERSION', '@version@');
+define('SOAP_LIBRARY_NAME',    'PEAR-SOAP @version@-beta');
 
 // Set schema version.
 define('SOAP_XML_SCHEMA_VERSION',  'http://www.w3.org/2001/XMLSchema');
