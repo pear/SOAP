@@ -2156,11 +2156,12 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         // Populate tree with service information
         // XXX Current implementation supports one service which groups
         // all of the ports together, one port per binding
-        // XXX What about https?
         // *** <wsdl:service> ***
 
         $this->wsdl->services[$service_name . 'Service'] = array('ports' => array());
         $thisService =& $this->wsdl->services[$service_name . 'Service']['ports'];
+        $https = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on')) ||
+            getenv('SSL_PROTOCOL_VERSION');
 
         foreach ($this->wsdl->bindings as $bindingName => $bindingData) {
             $thisService[$bindingData['type']] = array(
@@ -2168,7 +2169,8 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                     'binding' => $bindingName,
                     'namespace' => $this->tnsPrefix,
                     'address' => array('location' =>
-                        'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'] .
+                        ($https ? 'https://' : 'http://') .
+                        $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'] .
                         (isset($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')),
                     'type' => 'soap');
         }
