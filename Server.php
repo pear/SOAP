@@ -415,7 +415,7 @@ class SOAP_Server extends SOAP_Base
                         /* If there are parameters to pass. */
                         $hr =& $this->callMethod($header_method, $header_data);
                         if (PEAR::isError($hr)) {
-                            $this->_raiseSoapDefault($hr);
+                            $this->_raiseSoapFault($hr);
                             return null;
                         }
                         $results = $this->buildResult($hr, $this->return_type, $header_method, $header_val->namespace);
