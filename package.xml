@@ -104,12 +104,12 @@
       </dir>
     </filelist>
     <deps>
-      <dep type="php" rel="ge" version="4.2"/>
+      <dep type="php" rel="ge" version="4.3"/>
       <dep type="pkg" rel="has">PEAR</dep>
       <dep type="pkg" rel="has">HTTP_Request</dep>
       <dep type="pkg" rel="has" optional="yes">Mail</dep>
       <dep type="pkg" rel="has" optional="yes">Mail_Mime</dep>
       <dep type="pkg" rel="has" optional="yes">Net_DIME</dep>
     </deps>
-    </release>
+  </release>
 </package>
