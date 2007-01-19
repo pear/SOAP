@@ -2205,7 +2205,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
      */
     function _getTypeNs($type)
     {
-        preg_match_all("\{(.*)\}'sm", $type, $m);
+        preg_match_all('/\{(.*)\}/sm', $type, $m);
         if (!empty($m[1][0])) {
             if (!isset($this->wsdl->ns[$m[1][0]])) {
                 $ns_pref = 'ns' . count($this->wsdl->namespaces);
@@ -2213,7 +2213,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
                 $this->wsdl->namespaces[$ns_pref] = $m[1][0];
             }
             $typens = $this->wsdl->ns[$m[1][0]];
-            $type = strereg_replace($m[0][0], '', $type);
+            $type = str_replace($m[0][0], '', $type);
         } else {
             $typens = 'xsd';
         }
