@@ -47,7 +47,8 @@
 * Add parameter to SOAP_Server's service() method, to return the SOAP response data instead of sending it to the client (Request 7206).
 * Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).
-* Fix curl warning if sending over HTTPS and using safe_mode or open_basedir (mailing001@xego.it, Bug #9415).</notes>
+* Fix curl warning in the client if sending over HTTPS and using safe_mode or open_basedir (mailing001@xego.it, Bug #9415).
+* Don't return SOAP faults with the server on silenced errors in the proxied code (pear@tmp.dau-sicher.de, Bug #9155).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php">

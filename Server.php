@@ -120,9 +120,9 @@ class SOAP_Server extends SOAP_Base
     {
         /* The error handler should ignore '0' errors, eg. hidden by @ - see
          * the set_error_handler manual page. (thanks to Alan Knowles). */
-        if (!$errno || $errno == E_NOTICE ||
+        if (!$errno || !error_reporting() || $errno == E_NOTICE ||
             (defined('E_STRICT') && $errno == constant('E_STRICT'))) {
-            return;
+            return false;
         }
 
         $this->fault =& new SOAP_Fault($errmsg, 'Server', 'PHP', "Errno: $errno\nFilename: $filename\nLineno: $linenum\n");
@@ -305,16 +305,16 @@ class SOAP_Server extends SOAP_Base
         if ($args) {
             /* Call method with parameters. */
             if (isset($this->soapobject) && is_object($this->soapobject)) {
-                $ret = @call_user_func_array(array(&$this->soapobject, $methodname), $args);
+                $ret = call_user_func_array(array(&$this->soapobject, $methodname), $args);
             } else {
-                $ret = @call_user_func_array($methodname, $args);
+                $ret = call_user_func_array($methodname, $args);
             }
         } else {
             /* Call method withour parameters. */
             if (is_object($this->soapobject)) {
-                $ret = @call_user_func(array(&$this->soapobject, $methodname));
+                $ret = call_user_func(array(&$this->soapobject, $methodname));
             } else {
-                $ret = @call_user_func($methodname);
+                $ret = call_user_func($methodname);
             }
         }
 
