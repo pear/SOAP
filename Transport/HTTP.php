@@ -550,11 +550,13 @@ class SOAP_Transport_HTTP extends SOAP_Transport
         curl_setopt($ch, CURLOPT_URL,              $this->url);
         curl_setopt($ch, CURLOPT_POST,             1);
         curl_setopt($ch, CURLOPT_FAILONERROR,      0);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION,   1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,   1);
         curl_setopt($ch, CURLOPT_HEADER,           1);
         if (defined('CURLOPT_HTTP_VERSION')) {
             curl_setopt($ch, CURLOPT_HTTP_VERSION, 1);
+        }
+        if (!ini_get('safe_mode') && !ini_get('open_basedir')) {
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION,   1);
         }
 
         if (isset($options['curl'])) {
