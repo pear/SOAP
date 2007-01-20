@@ -1010,11 +1010,7 @@ class SOAP_WSDL_Cache extends SOAP_Base
                 if (!file_exists($wsdl_fname)) {
                     return $this->_raiseSoapFault("Unable to read local WSDL $wsdl_fname", $wsdl_fname);
                 }
-                if (function_exists('file_get_contents')) {
-                    $file_data = file_get_contents($wsdl_fname);
-                } else {
-                    $file_data = implode('',file($wsdl_fname));
-                }
+                $file_data = file_get_contents($wsdl_fname);
             } else {
                 $uri = explode('?', $wsdl_fname);
                 $rq =& new HTTP_Request($uri[0], $proxy_params);
