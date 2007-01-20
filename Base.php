@@ -808,23 +808,20 @@ class SOAP_Base extends SOAP_Base_Object
     {
         // I really dislike having to loop through this in PHP code, really
         // large arrays will be slow.  We need a C function to do this.
-        $names = array();
         $it = 0;
         foreach ($a as $k => $v) {
             // Checking the type is faster than regexp.
-            $t = gettype($k);
-            if ($t != 'integer') {
+            if (is_int($t) || $this->_isSoapValue($v)) {
                 return true;
-            } elseif ($this->_isSoapValue($v)) {
-                $names[$v->name] = 1;
             }
             // If someone has a large hash they should really be defining the
             // type.
             if ($it++ > 10) {
+			 $this->_raiseSoapFault('Large associative array passed where a SOAP_Value was expected');
                 return false;
             }
         }
-        return count($names)>1;
+        return false;
     }
 
     function _un_htmlentities($string)
