@@ -790,12 +790,17 @@ class SOAP_WSDL extends SOAP_Base
 
     function getComplexTypeChildType($ns, $name, $child_ns, $child_name)
     {
-        // is the type an element?
+        // Is the type an element?
         $t = $this->_getComplexTypeForElement($name, $ns);
         if ($t) {
-            // no, get it from complex types directly
+            // No, get it from complex types directly.
             if (isset($t['elements'][$child_name]['type']))
                 return $t['elements'][$child_name]['type'];
+        } elseif (isset($this->ns[$ns]) &&
+                  isset($this->elements[$this->ns[$ns]][$name]['complex']) &&
+                  $this->elements[$this->ns[$ns]][$name]['complex']) {
+            // Type is not an element but complex.
+            return $this->elements[$this->ns[$ns]][$name]['elements'][$child_name]['type'];
         }
         return null;
     }
