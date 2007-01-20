@@ -285,7 +285,8 @@ class SOAP_Base extends SOAP_Base_Object
             'integer' => 'integer',
             'nonPositiveInteger' => 'integer',
             'negativeInteger' => 'integer',
-            'long' => 'integer',
+            // longs (64bit ints) are not supported cross-platform.
+            'long' => 'string',
             'int' => 'integer',
             'short' => 'integer',
             'byte' => 'string',
