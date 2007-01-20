@@ -154,8 +154,8 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
                 $this->addMethodsFromMap($object->__dispatch_map, $namespace, get_class($object));
             }
         }
-        if (isset($server->dispatch_map)) {
-            $this->addMethodsFromMap($server->dispatch_map, $namespace);
+        if (isset($this->soap_server->dispatch_map)) {
+            $this->addMethodsFromMap($this->soap_server->dispatch_map, $namespace);
         }
 
         // generate wsdl
