@@ -67,11 +67,11 @@ class SOAP_Fault extends PEAR_Error
     }
 
     /**
-     * returns a SOAP_Message class that can be sent as a server response
+     * Returns a SOAP XML message that can be sent as a server response.
      *
-     * @return SOAP_Message
+     * @return string
      */
-    function message()
+    function message($encoding = SOAP_DEFAULT_ENCODING)
     {
         $msg = new SOAP_Base();
         $params = array();
@@ -86,7 +86,7 @@ class SOAP_Fault extends PEAR_Error
 
         $methodValue = new SOAP_Value('{' . SOAP_ENVELOP . '}Fault', 'Struct', $params);
         $headers = null;
-        return $msg->makeEnvelope($methodValue, $headers);
+        return $msg->makeEnvelope($methodValue, $headers, $encoding);
     }
 
     /**

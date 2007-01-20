@@ -49,7 +49,8 @@
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).
 * Fix curl warning in the client if sending over HTTPS and using safe_mode or open_basedir (mailing001@xego.it, Bug #9415).
 * Don't return SOAP faults with the server on silenced errors in the proxied code (pear@tmp.dau-sicher.de, Bug #9155).
-* Fix WSDL generation of methods that have been added to the server with addMap() (marek.nos@centrum.cz, Bug #8551).</notes>
+* Fix WSDL generation of methods that have been added to the server with addMap() (marek.nos@centrum.cz, Bug #8551).
+* Set the correct encoding when returning SOAP faults from the server (marcos.pont@gmail.com, Request #8401).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php">
