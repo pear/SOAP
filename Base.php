@@ -963,18 +963,16 @@ class SOAP_Base extends SOAP_Base_Object
     /**
      * Creates the SOAP envelope with the SOAP envelop data.
      *
-     * @access private
-     *
-     * @param
+     * @param mixed $method
      * @param array $headers
      * @param string $encoding
      * @param array $options
      *
      * @return string
      */
-    function _makeEnvelope(&$method, &$headers,
-                           $encoding = SOAP_DEFAULT_ENCODING,
-                           $options = array())
+    function makeEnvelope(&$method, &$headers,
+                          $encoding = SOAP_DEFAULT_ENCODING,
+                          $options = array())
     {
         $smsg = $header_xml = $ns_string = '';
 

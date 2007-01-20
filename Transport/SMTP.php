@@ -159,9 +159,9 @@ class SOAP_Transport_SMTP extends SOAP_Transport
         $mqname =& new QName($method, $namespace);
         $methodValue =& new SOAP_Value('Response', 'Struct', array($val));
 
-        $this->incoming_payload = $this->_makeEnvelope($methodValue,
-                                                       $this->headers,
-                                                       $this->encoding);
+        $this->incoming_payload = $this->makeEnvelope($methodValue,
+                                                      $this->headers,
+                                                      $this->encoding);
 
         return $this->incoming_payload;
     }

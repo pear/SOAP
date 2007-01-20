@@ -503,7 +503,7 @@ class SOAP_Server extends SOAP_Base
         } else {
             $methodValue =& $method_response;
         }
-        return $this->_makeEnvelope($methodValue, $header_results, $this->response_encoding);
+        return $this->makeEnvelope($methodValue, $header_results, $this->response_encoding);
     }
 
     function &__decodeRequest($request, $shift = false)

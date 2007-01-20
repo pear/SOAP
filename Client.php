@@ -589,10 +589,10 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->docparams = true;
             $mqname =& new QName($method, $namespace);
             $methodValue =& new SOAP_Value($mqname->fqn(), 'Struct', $params);
-            $soap_msg = $this->_makeEnvelope($methodValue,
-                                             $this->headersOut,
-                                             $this->_encoding,
-                                             $this->__options);
+            $soap_msg = $this->makeEnvelope($methodValue,
+                                            $this->headersOut,
+                                            $this->_encoding,
+                                            $this->__options);
         } else {
             if (!$params) {
                 $mqname =& new QName($method, $namespace);
@@ -620,10 +620,10 @@ class SOAP_Client extends SOAP_Client_Overload
                                               $params);
                 }
             }
-            $soap_msg = $this->_makeEnvelope($params,
-                                             $this->headersOut,
-                                             $this->_encoding,
-                                             $this->__options);
+            $soap_msg = $this->makeEnvelope($params,
+                                            $this->headersOut,
+                                            $this->_encoding,
+                                            $this->__options);
         }
         unset($this->headersOut);
 
