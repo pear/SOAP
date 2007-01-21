@@ -748,7 +748,7 @@ class SOAP_Server extends SOAP_Base
      */
     function addToMap($methodname, $in, $out, $namespace = null, $alias = null)
     {
-        if (!function_exists($methodname)) {
+        if (!$this->callHandler && !function_exists($methodname)) {
             $this->_raiseSoapFault('Error mapping function', '', '', 'Server');
             return false;
         }

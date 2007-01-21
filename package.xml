@@ -55,7 +55,8 @@
 * Fix decoding of children of complex types that are structs (markus@emedia-solutions-wolf.de, Bug #7224).
 * Fix decoding of values of type long (simunek@vol.cz, Bug #6042).
 * Send cookies if using HTTPS transport (Bug #6684).
-* Fix leaking of message input or output in generated WSDL if using dispatch methods without input or output (Bug #6462).</notes>
+* Fix leaking of message input or output in generated WSDL if using dispatch methods without input or output (Bug #6462).
+* Don't check for existing methods in addToMap() if using a call handler in the server (Bug #5684).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php">
