@@ -358,16 +358,15 @@ class SOAP_Client extends SOAP_Client_Overload
             return $fault;
         }
 
-        $this->__attachments =& $this->_soap_transport->attachments;
-        $this->__result_encoding = $this->_soap_transport->result_encoding;
-
         if (isset($this->__options['result']) &&
             $this->__options['result'] != 'parse') {
             return $this->xml;
         }
 
-        $result = &$this->__parse($this->xml, $this->__result_encoding, $this->__attachments);
+        $this->__result_encoding = $this->_soap_transport->result_encoding;
 
+        $result = &$this->__parse($this->xml, $this->__result_encoding,
+                                  $this->_soap_transport->attachments);
         return $result;
     }
 
@@ -465,8 +464,8 @@ class SOAP_Client extends SOAP_Client_Overload
                          $soapAction = false)
     {
         $this->fault = null;
-        $this->__options['input']='parse';
-        $this->__options['result']='parse';
+        $this->__options['input'] = 'parse'; 
+        $this->__options['result'] = 'parse';
         $this->__options['parameters'] = false;
 
         if ($params && gettype($params) != 'array') {
