@@ -227,11 +227,13 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
         }
 
         foreach ($map as $method_name => $method_types) {
+            $input_message = $output_message = null;
             if (array_key_exists('namespace', $method_types)) {
                 $method_namespace = $method_types['namespace'];
             } else {
                 $method_namespace = $namespace;
             }
+
             // INPUT
             if (isset($method_types['in']) && is_array($method_types['in'])) {
                 $input_message =& $this->_wsdl['definitions']['message'][];
@@ -261,12 +263,16 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             $operation['attr']['name'] = $method_name;
 
             // INPUT
-            $operation['input']['attr']['message'] = 'tns:'
-                            . $input_message['attr']['name'];
+            if ($input_message) {
+                $operation['input']['attr']['message'] = 'tns:'
+                    . $input_message['attr']['name'];
+            }
 
             // OUTPUT
-            $operation['output']['attr']['message'] = 'tns:'
-                            . $output_message['attr']['name'];
+            if ($output_message) {
+                $operation['output']['attr']['message'] = 'tns:'
+                    . $output_message['attr']['name'];
+            }
 
             // BINDING
             $binding =& $this->_wsdl['definitions']['binding']['operation'][];
@@ -275,16 +281,20 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             $binding['soap:operation']['attr']['soapAction'] = $action;
 
             // INPUT
-            $binding['input']['attr'] = '';
-            $binding['input']['soap:body']['attr']['use'] = 'encoded';
-            $binding['input']['soap:body']['attr']['namespace'] = $method_namespace;
-            $binding['input']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
+            if ($input_message) {
+                $binding['input']['attr'] = '';
+                $binding['input']['soap:body']['attr']['use'] = 'encoded';
+                $binding['input']['soap:body']['attr']['namespace'] = $method_namespace;
+                $binding['input']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
+            }
 
             // OUTPUT
-            $binding['output']['attr'] = '';
-            $binding['output']['soap:body']['attr']['use'] = 'encoded';
-            $binding['output']['soap:body']['attr']['namespace'] = $method_namespace;
-            $binding['output']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
+            if ($output_message) {
+                $binding['output']['attr'] = '';
+                $binding['output']['soap:body']['attr']['use'] = 'encoded';
+                $binding['output']['soap:body']['attr']['namespace'] = $method_namespace;
+                $binding['output']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
+            }
         }
     }
 
