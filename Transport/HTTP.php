@@ -148,13 +148,45 @@ class SOAP_Transport_HTTP extends SOAP_Transport
      * Generates the correct headers for the cookies.
      *
      * @access private
+     *
+     * @param array $options  Cookie options. If 'nocookies' is set and true
+     *                        the cookies from the last response are added
+     *                        automatically. 'cookies' is name-value-hash with
+     *                        a list of cookies to add.
+     *
+     * @return string  The cookie header value.
      */
-    function _genCookieHeader()
+    function _generateCookieHeader($options)
     {
-        foreach ($this->cookies as $name=>$value) {
-            $cookies = (isset($cookies) ? $cookies. '; ' : '') .
-                        urlencode($name) . '=' . urlencode($value);
+        $this->cookies = array();
+
+        if (empty($options['nocookies']) &&
+            isset($this->result_cookies)) {
+            // Add the cookies we got from the last request.
+            foreach ($this->result_cookies as $cookie) {
+                if ($cookie['domain'] == $this->urlparts['host']) {
+                    $this->cookies[$cookie['name']] = $cookie['value'];
+                }
+            }
         }
+
+        // Add cookies the user wants to set.
+        if (isset($options['cookies'])) {
+            foreach ($options['cookies'] as $cookie) {
+                if ($cookie['domain'] == $this->urlparts['host']) {
+                    $this->cookies[$cookie['name']] = $cookie['value'];
+                }
+            }
+        }
+
+        $cookies = '';
+        foreach ($this->cookies as $name => $value) {
+            if (!empty($cookies)) {
+                $cookies .= '; ';
+            }
+            $cookies .= urlencode($name) . '=' . urlencode($value);
+        }
+
         return $cookies;
     }
 
@@ -372,12 +404,14 @@ class SOAP_Transport_HTTP extends SOAP_Transport
     }
 
     /**
-     * Creates HTTP request, including headers, for outgoing request.
+     * Creates an HTTP request, including headers, for th eoutgoing request.
+     *
+     * @access private
      *
      * @param string $msg     Outgoing SOAP package.
      * @param array $options  Options.
+     *
      * @return string  Outgoing payload.
-     * @access private
      */
     function _getRequest($msg, $options)
     {
@@ -416,26 +450,11 @@ class SOAP_Transport_HTTP extends SOAP_Transport
             $this->headers = array_merge($this->headers, $options['headers']);
         }
 
-        $this->cookies = array();
-        if (!isset($options['nocookies']) || !$options['nocookies']) {
-            // Add the cookies we got from the last request.
-            if (isset($this->result_cookies)) {
-                foreach ($this->result_cookies as $cookie) {
-                    if ($cookie['domain'] == $this->urlparts['host'])
-                        $this->cookies[$cookie['name']] = $cookie['value'];
-                }
-            }
+        $cookies = $this->_generateCookieHeader($options);
+        if ($cookies) {
+            $this->headers['Cookie'] = $cookies;
         }
-        // Add cookies the user wants to set.
-        if (isset($options['cookies'])) {
-            foreach ($options['cookies'] as $cookie) {
-                if ($cookie['domain'] == $this->urlparts['host'])
-                    $this->cookies[$cookie['name']] = $cookie['value'];
-            }
-        }
-        if (count($this->cookies)) {
-            $this->headers['Cookie'] = $this->_genCookieHeader();
-        }
+
         $headers = '';
         foreach ($this->headers as $k => $v) {
             $headers .= "$k: $v\r\n";
@@ -447,12 +466,14 @@ class SOAP_Transport_HTTP extends SOAP_Transport
     }
 
     /**
-     * Sends outgoing request, and read/parse response.
+     * Sends the outgoing HTTP request and reads and parses the response.
+     *
+     * @access private
      *
      * @param string $msg     Outgoing SOAP package.
-     * @param string $action  SOAP Action.
-     * @return string  Response data, minus HTTP headers.
-     * @access private
+     * @param array $options  Options.
+     *
+     * @return string  Response data without HTTP headers.
      */
     function _sendHTTP($msg, $options)
     {
@@ -502,18 +523,18 @@ class SOAP_Transport_HTTP extends SOAP_Transport
     }
 
     /**
-     * Sends outgoing request, and read/parse response, via HTTPS.
+     * Sends the outgoing HTTPS request and reads and parses the response.
+     *
+     * @access private
      *
      * @param string $msg     Outgoing SOAP package.
-     * @param string $action  SOAP Action.
-     * @return string $response  Response data, minus HTTP headers.
-     * @access private
+     * @param array $options  Options.
+     *
+     * @return string  Response data without HTTP headers.
      */
     function _sendHTTPS($msg, $options)
     {
-        /* NOTE This function uses the CURL functions
-         *  Your php must be compiled with CURL
-         */
+        /* Check if the required curl extension is installed. */
         if (!extension_loaded('curl')) {
             return $this->_raiseSoapFault('CURL Extension is required for HTTPS');
         }
@@ -521,42 +542,48 @@ class SOAP_Transport_HTTP extends SOAP_Transport
         $ch = curl_init();
 
         if (isset($options['proxy_host'])) {
-            // $options['http_proxy'] == 'hostname:port'
-            $host = $options['proxy_host'];
             $port = isset($options['proxy_port']) ? $options['proxy_port'] : 8080;
-            curl_setopt($ch, CURLOPT_PROXY, $host . ":" . $port);
+            curl_setopt($ch, CURLOPT_PROXY,
+                        $options['proxy_host'] . ':' . $port);
         }
-
         if (isset($options['proxy_user'])) {
-            // $options['http_proxy_userpw'] == 'username:password'
-            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options['proxy_user'] . ':' . $options['proxy_pass']);
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD,
+                        $options['proxy_user'] . ':' . $options['proxy_pass']);
         }
 
         if (isset($options['user'])) {
-            curl_setopt($ch, CURLOPT_USERPWD, $options['user'] . ':' . $options['pass']);
+            curl_setopt($ch, CURLOPT_USERPWD,
+                        $options['user'] . ':' . $options['pass']);
         }
 
         if (!isset($options['soapaction'])) {
             $options['soapaction'] = '';
         }
-        curl_setopt($ch, CURLOPT_HTTPHEADER ,    array('Content-Type: text/xml;charset=' . $this->encoding, 'SOAPAction: "'.$options['soapaction'].'"'));
-        curl_setopt($ch, CURLOPT_USERAGENT ,     $this->_userAgent);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,
+                    array('Content-Type: text/xml;charset=' . $this->encoding,
+                          'SOAPAction: "' . $options['soapaction'] . '"'));
+        curl_setopt($ch, CURLOPT_USERAGENT,
+                    $this->_userAgent);
 
         if ($this->timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout); //times out after 4s
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
         }
 
-        curl_setopt($ch, CURLOPT_POSTFIELDS,       $msg);
-        curl_setopt($ch, CURLOPT_URL,              $this->url);
-        curl_setopt($ch, CURLOPT_POST,             1);
-        curl_setopt($ch, CURLOPT_FAILONERROR,      0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,   1);
-        curl_setopt($ch, CURLOPT_HEADER,           1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $msg);
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_FAILONERROR, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 1);
         if (defined('CURLOPT_HTTP_VERSION')) {
             curl_setopt($ch, CURLOPT_HTTP_VERSION, 1);
         }
         if (!ini_get('safe_mode') && !ini_get('open_basedir')) {
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION,   1);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        }
+        $cookies = $this->_generateCookieHeader($options);
+        if ($cookies) {
+            curl_setopt($ch, CURLOPT_COOKIE, $cookies);
         }
 
         if (isset($options['curl'])) {

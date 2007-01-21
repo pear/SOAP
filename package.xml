@@ -53,7 +53,8 @@
 * Set the correct encoding when returning SOAP faults from the server (Marcos Pont, Request #8401).
 * Don't fail silently when serializing hashes with more than 11 elements (Joel Barker, Bugs #4746, #8377).
 * Fix decoding of children of complex types that are structs (markus@emedia-solutions-wolf.de, Bug #7224).
-* Fix decoding of values of type long (simunek@vol.cz, Bug #6042).</notes>
+* Fix decoding of values of type long (simunek@vol.cz, Bug #6042).
+* Send cookies if using HTTPS transport (Bug #6684).</notes>
     <filelist>
       <dir name="/" baseinstalldir="SOAP">
         <file role="php" name="Base.php">
