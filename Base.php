@@ -327,8 +327,18 @@ class SOAP_Base extends SOAP_Base_Object
      */
     var $_defaultObjectClassname = 'stdClass';
 
-    // Load namespace URIs into an array of URI => prefix.
+    /**
+     * Hash with used namespaces.
+     *
+     * @array
+     */
     var $_namespaces;
+
+    /**
+     * The default namespace.
+     *
+     * @string
+     */
     var $_namespace;
 
     var $_xmlEntities = array('&' => '&amp;',
@@ -365,6 +375,16 @@ class SOAP_Base extends SOAP_Base_Object
     {
         parent::SOAP_Base_Object($faultcode);
         $this->_resetNamespaces();
+    }
+
+    /**
+     * Sets the default namespace.
+     *
+     * @param string $namespace  The default namespace.
+     */
+    function setDefaultNamespace($namespace)
+    {
+        $this->_namespace = $namespace;
     }
 
     function _resetNamespaces()
