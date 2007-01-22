@@ -113,7 +113,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @var string
      */
-    var $__endpointType = '';
+    var $_endpointType = '';
 
     /**
      * The received xml.
@@ -134,14 +134,14 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @var string
      */
-    var $__last_request = null;
+    var $_last_request = null;
 
     /**
      * The incoming data stream for debugging.
      *
      * @var string
      */
-    var $__last_response = null;
+    var $_last_response = null;
 
     /**
      * Options.
@@ -176,7 +176,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @var array
      */
-    var $__proxy_params = array();
+    var $_proxy_params = array();
 
     /**
      * The SOAP_Transport instance.
@@ -205,7 +205,7 @@ class SOAP_Client extends SOAP_Client_Overload
 
         $this->_endpoint = $endpoint;
         $this->_portName = $portName;
-        $this->__proxy_params = $proxy_params;
+        $this->_proxy_params = $proxy_params;
 
         // This hack should perhaps be removed as it might cause unexpected
         // behaviour.
@@ -215,10 +215,10 @@ class SOAP_Client extends SOAP_Client_Overload
 
         // make values
         if ($wsdl) {
-            $this->__endpointType = 'wsdl';
+            $this->_endpointType = 'wsdl';
             // instantiate wsdl class
             $this->_wsdl =& new SOAP_WSDL($this->_endpoint,
-                                          $this->__proxy_params,
+                                          $this->_proxy_params,
                                           $cache);
             if ($this->_wsdl->fault) {
                 $this->_raiseSoapFault($this->_wsdl->fault);
@@ -230,8 +230,8 @@ class SOAP_Client extends SOAP_Client_Overload
     {
         $this->xml = null;
         $this->wire = null;
-        $this->__last_request = null;
-        $this->__last_response = null;
+        $this->_last_request = null;
+        $this->_last_response = null;
         $this->headersIn = null;
         $this->headersOut = null;
     }
@@ -314,8 +314,8 @@ class SOAP_Client extends SOAP_Client_Overload
     function &call($method, &$params, $namespace = false, $soapAction = false)
     {
         $this->headersIn = null;
-        $this->__last_request = null;
-        $this->__last_response = null;
+        $this->_last_request = null;
+        $this->_last_response = null;
         $this->wire = null;
         $this->xml = null;
 
@@ -343,14 +343,14 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_soap_transport->encoding = $this->_encoding;
 
         // Send the message.
-        $transport_options = array_merge_recursive($this->__proxy_params,
+        $transport_options = array_merge_recursive($this->_proxy_params,
                                                    $this->__options);
         $this->xml = $this->_soap_transport->send($soap_data, $transport_options);
 
         // Save the wire information for debugging.
         if ($this->__options['trace']) {
-            $this->__last_request = $this->_soap_transport->outgoing_payload;
-            $this->__last_response = $this->_soap_transport->incoming_payload;
+            $this->_last_request = $this->_soap_transport->outgoing_payload;
+            $this->_last_response = $this->_soap_transport->incoming_payload;
             $this->wire = $this->getWire();
         }
         if ($this->_soap_transport->fault) {
@@ -449,7 +449,7 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function getLastRequest()
     {
-        return $this->__last_request;
+        return $this->_last_request;
     }
 
     /**
@@ -468,7 +468,7 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function getLastResponse()
     {
-        return $this->__last_response;
+        return $this->_last_response;
     }
 
     /**
@@ -555,7 +555,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->__options['namespace'] = $namespace;
         }
 
-        if ($this->__endpointType == 'wsdl') {
+        if ($this->_endpointType == 'wsdl') {
             $this->_setSchemaVersion($this->_wsdl->xsd);
 
             // Get port name.
@@ -845,11 +845,11 @@ class SOAP_Client extends SOAP_Client_Overload
     function getWire()
     {
         if ($this->__options['trace'] &&
-            ($this->__last_request || $this->__last_response)) {
+            ($this->_last_request || $this->_last_response)) {
             return "OUTGOING:\n\n" .
-                $this->__last_request .
+                $this->_last_request .
                 "\n\nINCOMING\n\n" .
-                preg_replace("/></",">\r\n<", $this->__last_response);
+                preg_replace("/></",">\r\n<", $this->_last_response);
         }
 
         return null;
