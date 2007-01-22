@@ -119,6 +119,36 @@ class SOAP_WSDL extends SOAP_Base
     var $wsdlParserClass = 'SOAP_WSDL_Parser';
 
     /**
+     * Reserved PHP keywords.
+     *
+     * @link http://www.php.net/manual/en/reserved.php
+     *
+     * @var array
+     */
+    var $_reserved = array('abstract', 'and', 'array', 'as', 'break', 'case',
+                           'catch', 'cfunction', 'class', 'clone', 'const',
+                           'continue', 'declare', 'default', 'die', 'do',
+                           'echo', 'else', 'elseif', 'empty', 'enddeclare',
+                           'endfor', 'endforeach', 'endif', 'endswitch',
+                           'endwhile', 'eval', 'exception', 'exit', 'extends',
+                           'final', 'for', 'foreach', 'function', 'global',
+                           'if', 'implements', 'include', 'include_once',
+                           'interface', 'isset', 'list', 'new', 'old_function',
+                           'or', 'php_user_filter', 'print', 'private',
+                           'protected', 'public', 'require', 'require_once',
+                           'return', 'static', 'switch', 'this', 'throw',
+                           'try', 'unset', 'use', 'var', 'while', 'xor');
+
+    /**
+     * Regular expressions for invalid PHP labels.
+     *
+     * @link http://www.php.net/manual/en/language.variables.php.
+     *
+     * @var string
+     */
+    var $_invalid = array('/^[^a-zA-Z_\x7f-\xff]/', '/[^a-zA-Z0-9_\x7f-\xff]/');
+
+    /**
      * SOAP_WSDL constructor.
      *
      * @param string $wsdl_uri          URL to WSDL file.
@@ -560,10 +590,6 @@ class SOAP_WSDL extends SOAP_Base
             return null;
         }
 
-        // Regular expressions for invalid PHP labels. See
-        // http://www.php.net/manual/en/language.variables.php.
-        $invalid = array('/^[^a-zA-Z_\x7f-\xff]/', '/[^a-zA-Z0-9_\x7f-\xff]/');
-
         // XXX currentPort is BAD
         $clienturl = $port['address']['location'];
         if (!$classname) {
@@ -572,7 +598,7 @@ class SOAP_WSDL extends SOAP_Base
             } else {
                 $classname = 'WebService_' . $this->service;
             }
-            $classname = preg_replace($invalid, '_', $classname);
+            $classname = $this->_sanitize($classname);
         }
 
         if (!$this->_validateString($classname)) {
@@ -641,7 +667,7 @@ class SOAP_WSDL extends SOAP_Base
             foreach ($operation['input'] as $argname => $argtype) {
                 if ($argname == 'message') {
                     foreach ($this->messages[$argtype] as $_argname => $_argtype) {
-                        $_argname = preg_replace($invalid, '_', $_argname);
+                        $_argname = $this->_sanitize($_argname);
                         if ($opstyle == 'document' && $use == 'literal' &&
                             $_argtype['name'] == 'parameters') {
                             // The type or element refered to is used for
@@ -657,7 +683,7 @@ class SOAP_WSDL extends SOAP_Base
                             }
                             if (isset($el['elements'])) {
                                 foreach ($el['elements'] as $elname => $elattrs) {
-                                    $elname = preg_replace($invalid, '_', $elname);
+                                    $elname = $this->_sanitize($elname);
                                     // Is the element a complex type?
                                     if (isset($this->complexTypes[$elattrs['namespace']][$elname])) {
                                         $comments .= $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
@@ -690,7 +716,7 @@ class SOAP_WSDL extends SOAP_Base
             // legal. This could potentially cause collisions, but let's try
             // to make everything callable and see how many problems that
             // causes.
-            $opname_php = preg_replace($invalid, '_', $opname);
+            $opname_php = $this->_sanitize($opname);
             if (!$this->_validateString($opname_php)) {
                 return null;
             }
@@ -752,7 +778,7 @@ class SOAP_WSDL extends SOAP_Base
             $classname = $name . '_' . $classname;
         }
 
-        $classname = preg_replace(array('/^[^a-zA-Z_\x7f-\xff]/', '/[^a-zA-Z0-9_\x7f-\xff]/'), '_', $classname);
+        $classname = $this->_sanitize($classname);
         if (!class_exists($classname)) {
             $proxy = $this->generateProxyCode($port, $classname);
             require_once 'SOAP/Client.php';
@@ -761,6 +787,24 @@ class SOAP_WSDL extends SOAP_Base
         $proxy =& new $classname;
 
         return $proxy;
+    }
+
+    /**
+     * Sanitizes a SOAP value, method or class name so that it can be used as
+     * a valid PHP identifier. Invalid characters are converted into
+     * underscores and reserved words are prefixed with an underscore.
+     *
+     * @param string $name  The identifier to sanitize.
+     *
+     * @return string  The sanitized identifier.
+     */
+    function _sanitize($name)
+    {
+        $name = preg_replace($this->_invalid, '_', $name);
+        if (in_array($name, $this->_reserved)) {
+            $name = '_' . $name;
+        }
+        return $name;
     }
 
     function &_getComplexTypeForElement($name, $namespace)
