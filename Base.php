@@ -212,12 +212,12 @@ class SOAP_Base_Object extends PEAR
         return $fault;
     }
 
-    function __isfault()
+    function _isfault()
     {
         return $this->fault != null;
     }
 
-    function &__getfault()
+    function &_getfault()
     {
         return $this->fault;
     }

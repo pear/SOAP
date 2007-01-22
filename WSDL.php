@@ -246,8 +246,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function getEndpoint($portName)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         return (isset($this->services[$this->service]['ports'][$portName]['address']['location']))
@@ -276,8 +276,8 @@ class SOAP_WSDL extends SOAP_Base
      */
     function getPortName($operation, $service = null)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         if (!$service) {
@@ -302,8 +302,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function getOperationData($portName, $operation)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         if (!isset($this->services[$this->service]['ports'][$portName]['binding']) ||
@@ -375,8 +375,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function matchMethod(&$operation)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         // Overloading lowercases function names :(
@@ -441,8 +441,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function getSoapAction($portName, $operation)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         if (!empty($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['soapAction'])) {
@@ -454,8 +454,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function getNamespace($portName, $operation)
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         if (!empty($this->bindings[$this->services[$this->service]['ports'][$portName]['binding']]['operations'][$operation]['input']['namespace'])) {
@@ -581,8 +581,8 @@ class SOAP_WSDL extends SOAP_Base
      */
     function generateProxyCode($port = '', $classname = '')
     {
-        if ($this->__isfault()) {
-            return $this->__getfault();
+        if ($this->_isfault()) {
+            return $this->_getfault();
         }
 
         $multiport = count($this->services[$this->service]['ports']) > 1;
@@ -761,8 +761,8 @@ class SOAP_WSDL extends SOAP_Base
 
     function &getProxy($port = '', $name = '')
     {
-        if ($this->__isfault()) {
-            $fault =& $this->__getfault();
+        if ($this->_isfault()) {
+            $fault =& $this->_getfault();
             return $fault;
         }
 
