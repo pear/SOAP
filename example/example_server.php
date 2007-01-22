@@ -124,7 +124,6 @@ class SOAP_Example_Server {
     function echoStruct($inputStruct)
     {
         return $inputStruct->__to_soap('outputStruct');
-	#return new SOAP_Value('outputStruct','{http://soapinterop.org/xsd}SOAPStruct',$inputStruct);
     }
     
     /**
