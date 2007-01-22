@@ -35,7 +35,7 @@ $options = array('namespace' => 'urn:SOAP_Example_Server',
 $ret = $soapclient->call('echoStringSimple',
                          $params = array('inputStringSimple' => 'this is a test string'),
                          $options);
-// print $soapclient->__get_wire();
+// print $soapclient->getWire();
 print_r($ret);
 echo "<br>\n";
 
@@ -48,7 +48,7 @@ echo "<br>\n";
 $ret = $soapclient->call('divide',
                          $params = array('dividend' => 22, 'divisor' => 7),
                          $options);
-// print $soapclient->__get_wire();
+// print $soapclient->getWire();
 if (PEAR::isError($ret)) {
     echo 'Error: ' . $ret->getMessage() . "<br>\n";
 } else {
@@ -82,7 +82,7 @@ $soapclient->setTypeTranslation('{http://soapinterop.org/xsd}SOAPStruct',
 $ret = $soapclient->call('echoStruct',
                          $p = array('inputStruct' => $struct->__to_soap()),
                          $options);
-// print $soapclient->__get_wire();
+// print $soapclient->getWire();
 print_r($ret);
 
 /**

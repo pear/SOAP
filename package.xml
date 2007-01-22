@@ -49,6 +49,7 @@
 * Add setDefaultNamespace() (Request #5622).
 * Make sure that generated proxy code doesn't use method or class names that are reserved words in PHP (Bug 3048).
 * Deprecate SOAP_Base's __set_type_translation() method in favour of setTypeTranslation().
+* Deprecate SOAP_Client's __use(), __style(), __trace(), __parse(), __getlastrequest(), __getlastresponse(), and __get_wire() methods in favour of setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
 * Deprecate SOAP_WSDL's set_service() method in favour of setService().
 * Remove deprecated parse() method from SOAP_WSDL.
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).

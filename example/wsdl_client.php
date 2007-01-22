@@ -29,14 +29,14 @@ $wsdl = new SOAP_WSDL("http://localhost/SOAP/example/server.php?wsdl");
 $soapclient = $wsdl->getProxy();
 
 $ret = $soapclient->echoStringSimple("this is a test string");
-#print $soapclient->__get_wire();
+//print $soapclient->getWire();
 print_r($ret);echo "<br>\n";
 
 $ret = $soapclient->echoString("this is a test string");
 print_r($ret);echo "<br>\n";
 
 $ret = $soapclient->divide(22,7);
-# print $soapclient->__get_wire();
+// print $soapclient->getWire();
 if (PEAR::isError($ret))
     print("Error: " . $ret->getMessage() . "<br>\n");
 else
@@ -64,7 +64,7 @@ $soapclient->_auto_translation = true;
 $soapclient->setTypeTranslation('{http://soapinterop.org/xsd}SOAPStruct',
                                 'SOAPStruct');
 $ret = $soapclient->echoStruct($struct->__to_soap());
-//print $soapclient->__get_wire();
+//print $soapclient->getWire();
 print_r($ret);
 
 /**

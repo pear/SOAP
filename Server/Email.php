@@ -120,7 +120,7 @@ class SOAP_Server_Email extends SOAP_Server {
 
         $client =& new SOAP_Client(null);
 
-        return $client->__parse($data, $this->xml_encoding, $this->attachments);
+        return $client->parseResponse($data, $this->xml_encoding, $this->attachments);
     }
 
     function service(&$data, $endpoint = '', $send_response = true,

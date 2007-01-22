@@ -148,7 +148,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @var array
      */
-    var $__options = array('trace' => 0);
+    var $__options = array('trace' => false);
 
     /**
      * The character encoding used for XML parser, etc.
@@ -319,13 +319,13 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->wire = null;
         $this->xml = null;
 
-        $soap_data =& $this->__generate($method, $params, $namespace, $soapAction);
+        $soap_data =& $this->_generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
             $fault =& $this->_raiseSoapFault($soap_data);
             return $fault;
         }
 
-        // __generate() may have changed the endpoint if the WSDL has more
+        // _generate() may have changed the endpoint if the WSDL has more
         // than one service, so we need to see if we need to generate a new
         // transport to hook to a different URI.  Since the transport protocol
         // can also change, we need to get an entirely new object.  This could
@@ -348,10 +348,10 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->xml = $this->_soap_transport->send($soap_data, $transport_options);
 
         // Save the wire information for debugging.
-        if ($this->__options['trace'] > 0) {
+        if ($this->__options['trace']) {
             $this->__last_request = $this->_soap_transport->outgoing_payload;
             $this->__last_response = $this->_soap_transport->incoming_payload;
-            $this->wire = $this->__get_wire();
+            $this->wire = $this->getWire();
         }
         if ($this->_soap_transport->fault) {
             $fault =& $this->_raiseSoapFault($this->xml);
@@ -365,8 +365,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
         $this->__result_encoding = $this->_soap_transport->result_encoding;
 
-        $result = &$this->__parse($this->xml, $this->__result_encoding,
-                                  $this->_soap_transport->attachments);
+        $result = &$this->parseResponse($this->xml, $this->__result_encoding,
+                                        $this->_soap_transport->attachments);
         return $result;
     }
 
@@ -433,35 +433,102 @@ class SOAP_Client extends SOAP_Client_Overload
         return true;
     }
 
+    /**
+     * @deprecated Use getLastRequest().
+     */
     function &__getlastrequest()
     {
-        $request =& $this->__last_request;
+        $request = $this->getLastRequest();
         return $request;
     }
 
+    /**
+     * Returns the XML content of the last SOAP request.
+     *
+     * @return string  The last request.
+     */
+    function getLastRequest()
+    {
+        return $this->__last_request;
+    }
+
+    /**
+     * @deprecated Use getLastResponse().
+     */
     function &__getlastresponse()
     {
-        $response =& $this->__last_response;
+        $response =& $this->getLastResponse;
         return $response;
     }
 
+    /**
+     * Returns the XML content of the last SOAP response.
+     *
+     * @return string  The last response.
+     */
+    function getLastResponse()
+    {
+        return $this->__last_response;
+    }
+
+    /**
+     * @deprecated Use setUse().
+     */
     function __use($use)
+    {
+        $this->setUse($use);
+    }
+
+    /**
+     * Sets the SOAP encoding.
+     *
+     * @param string $use  Either 'literal' or 'encoded' (section 5).
+     */
+    function setUse($use)
     {
         $this->__options['use'] = $use;
     }
 
+    /**
+     * @deprecated Use setStyle().
+     */
     function __style($style)
+    {
+        $this->setStyle($style);
+    }
+
+    /**
+     * Sets the SOAP encoding style.
+     *
+     * @param string $style  Either 'document' or 'rpc'.
+     */
+    function setStyle($style)
     {
         $this->__options['style'] = $style;
     }
 
+    /**
+     * @deprecated Use setTrace().
+     */
     function __trace($level)
     {
-        $this->__options['trace'] = $level;
+        $this->setTrace($level);
     }
 
-    function &__generate($method, &$params, $namespace = false,
-                         $soapAction = false)
+    /**
+     * Sets whether to trace the traffic on the transport level.
+     *
+     * @see getWire()
+     *
+     * @param boolean $trace
+     */
+    function setTrace($trace)
+    {
+        $this->__options['trace'] = $trace;
+    }
+
+    function &_generate($method, &$params, $namespace = false,
+                        $soapAction = false)
     {
         $this->fault = null;
         $this->__options['input'] = 'parse'; 
@@ -669,7 +736,24 @@ class SOAP_Client extends SOAP_Client_Overload
         return $soap_data;
     }
 
+    /**
+     * @deprecated Use parseResponse().
+     */
     function &__parse(&$response, $encoding, &$attachments)
+    {
+        return $this->parseResponse($response, $encoding, $attachments);
+    }
+
+    /**
+     * Parses a SOAP response.
+     *
+     * @see SOAP_Parser::
+     *
+     * @param string $response    XML content of SOAP response.
+     * @param string $encoding    Character set encoding, defaults to 'UTF-8'.
+     * @param array $attachments  List of attachments.
+     */
+    function &parseResponse(&$response, $encoding, &$attachments)
     {
         // Parse the response.
         $response =& new SOAP_Parser($response, $encoding, $attachments);
@@ -682,14 +766,14 @@ class SOAP_Client extends SOAP_Client_Overload
         $return =& $response->getResponse();
         $headers =& $response->getHeaders();
         if ($headers) {
-            $this->headersIn =& $this->__decodeResponse($headers, false);
+            $this->headersIn =& $this->_decodeResponse($headers, false);
         }
 
-        $decoded = &$this->__decodeResponse($return);
+        $decoded = &$this->_decodeResponse($return);
         return $decoded;
     }
 
-    function &__decodeResponse(&$response, $shift = true)
+    function &_decodeResponse(&$response, $shift = true)
     {
         if (!$response) {
             $decoded = null;
@@ -741,9 +825,26 @@ class SOAP_Client extends SOAP_Client_Overload
         return $returnArray;
     }
 
+    /**
+     * @deprecated Use getWire().
+     */
     function __get_wire()
     {
-        if ($this->__options['trace'] > 0 &&
+        return $this->getWire();
+    }
+
+    /**
+     * Returns the outgoing and incoming traffic on the transport level.
+     *
+     * Tracing has to be enabled.
+     *
+     * @see setTrace()
+     *
+     * @return string  The complete traffic between the client and the server.
+     */
+    function getWire()
+    {
+        if ($this->__options['trace'] &&
             ($this->__last_request || $this->__last_response)) {
             return "OUTGOING:\n\n" .
                 $this->__last_request .

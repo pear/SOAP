@@ -21,24 +21,22 @@
 
 require_once('SOAP/Client.php');
 
-# client
+// client
 $soapclient = new SOAP_Client("tcp://127.0.0.1:82");
 
-# namespace
+// namespace
 $options = array('namespace' => 'urn:SOAP_Example_Server', 'trace' => true);
 
-# one
+// one
 $params = array("string" => "this is string 1");
 $ret1 = $soapclient->call("echoString", $params, $options);
-# echo "WIRE: \n".$soapclient->__get_wire();
+// echo "WIRE: \n".$soapclient->getWire();
 print_r($ret1);
 echo "<br />\n";
 
-# two
+// two
 $params = array("string" => "this is string 2");
 $ret2 = $soapclient->call("echoString", $params, $options);
-# echo "WIRE: \n".$soapclient->__get_wire();
+// echo "WIRE: \n".$soapclient->getWire();
 print_r($ret2);
 echo "<br />\n";
-
-?>
