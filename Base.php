@@ -1057,8 +1057,7 @@ class SOAP_Base extends SOAP_Base_Object
         $msg->addSubPart($xml, $params);
 
         // Add the attachements
-        $c = count($this->__attachments);
-        for ($i = 0; $i < $c; $i++) {
+        for ($i = 0, $c = count($this->__attachments); $i < $c; ++$i) {
             $attachment =& $this->__attachments[$i];
             $msg->addSubPart($attachment['body'], $attachment);
         }
