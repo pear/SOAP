@@ -227,7 +227,6 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
         }
 
         foreach ($map as $method_name => $method_types) {
-            $input_message = $output_message = null;
             if (array_key_exists('namespace', $method_types)) {
                 $method_namespace = $method_types['namespace'];
             } else {
@@ -235,9 +234,8 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             }
 
             // INPUT
+            $input_message = array('attr' => array('name' => $method_name . 'Request'))
             if (isset($method_types['in']) && is_array($method_types['in'])) {
-                $input_message = array();
-                $input_message['attr']['name'] = $method_name . 'Request';
                 foreach ($method_types['in'] as $name => $type) {
                     list($typens, $type) = $this->_getTypeNs($type);
                     $part = array();
@@ -245,13 +243,12 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
                     $part['attr']['type'] = $typens . ':' . $type;
                     $input_message['part'][] = $part;
                 }
-                $this->_wsdl['definitions']['message'][] = $input_message;
             }
+            $this->_wsdl['definitions']['message'][] = $input_message;
 
             // OUTPUT
+            $output_message = array('attr' => array('name' => $method_name . 'Response'))
             if (isset($method_types['out']) && is_array($method_types['out'])) {
-                $output_message = array();
-                $output_message['attr']['name'] = $method_name . 'Response';
                 foreach ($method_types['out'] as $name => $type) {
                     list($typens, $type) = $this->_getTypeNs($type);
                     $part = array();
@@ -259,22 +256,16 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
                     $part['attr']['type'] = $typens . ':' . $type;
                     $output_message['part'][] = $part;
                 }
-                $this->_wsdl['definitions']['message'][] = $output_message;
             }
+            $this->_wsdl['definitions']['message'][] = $output_message;
 
             // PORTTYPES
             $operation = array();
             $operation['attr']['name'] = $method_name;
             // INPUT
-            if ($input_message) {
-                $operation['input']['attr']['message'] = 'tns:'
-                    . $input_message['attr']['name'];
-            }
+            $operation['input']['attr']['message'] = 'tns:' . $input_message['attr']['name'];
             // OUTPUT
-            if ($output_message) {
-                $operation['output']['attr']['message'] = 'tns:'
-                    . $output_message['attr']['name'];
-            }
+            $operation['output']['attr']['message'] = 'tns:' . $output_message['attr']['name'];
             $this->_wsdl['definitions']['portType']['operation'][] = $operation;
 
             // BINDING
@@ -283,19 +274,15 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             $action = $method_namespace . '#' . ($classname ? $classname . '#' : '') . $method_name;
             $binding['soap:operation']['attr']['soapAction'] = $action;
             // INPUT
-            if ($input_message) {
-                $binding['input']['attr'] = '';
-                $binding['input']['soap:body']['attr']['use'] = 'encoded';
-                $binding['input']['soap:body']['attr']['namespace'] = $method_namespace;
-                $binding['input']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
-            }
+            $binding['input']['attr'] = '';
+            $binding['input']['soap:body']['attr']['use'] = 'encoded';
+            $binding['input']['soap:body']['attr']['namespace'] = $method_namespace;
+            $binding['input']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
             // OUTPUT
-            if ($output_message) {
-                $binding['output']['attr'] = '';
-                $binding['output']['soap:body']['attr']['use'] = 'encoded';
-                $binding['output']['soap:body']['attr']['namespace'] = $method_namespace;
-                $binding['output']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
-            }
+            $binding['output']['attr'] = '';
+            $binding['output']['soap:body']['attr']['use'] = 'encoded';
+            $binding['output']['soap:body']['attr']['namespace'] = $method_namespace;
+            $binding['output']['soap:body']['attr']['encodingStyle'] = SOAP_SCHEMA_ENCODING;
             $this->_wsdl['definitions']['binding']['operation'][] = $binding;
         }
     }
