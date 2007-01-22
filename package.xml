@@ -41,8 +41,8 @@
   <license>PHP License</license>
   <release>
     <state>beta</state>
-    <version>0.9.5</version>
-    <date>2007-01-20</date>
+    <version>0.10.0</version>
+    <date>2007-01-22</date>
     <notes>* Allow to enable and disable WSDL caching and to set the cache directory in the client constructor.
 * Add parameter to SOAP_Server's service() method, to return the SOAP response data instead of sending it to the client (Request 7206).
 * Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
