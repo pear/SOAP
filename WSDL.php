@@ -739,7 +739,7 @@ class SOAP_WSDL extends SOAP_Base
                 "                                    'soapaction' => '$soapaction',\n" .
                 "                                    'style' => '$opstyle',\n" .
                 "                                    'use' => '$use'" .
-                ($this->trace ? ",\n                                    'trace' => 1" : '') . "));\n" .
+                ($this->trace ? ",\n                                    'trace' => true" : '') . "));\n" .
                 "        return \$result;\n" .
                 "    }\n";
         }

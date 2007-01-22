@@ -30,7 +30,7 @@ require 'SOAP/Client.php';
 $soapclient = new SOAP_Client('http://localhost/SOAP/example/server.php');
 // This namespace is the same as declared in server.php.
 $options = array('namespace' => 'urn:SOAP_Example_Server',
-                 'trace' => 1);
+                 'trace' => true);
 
 $ret = $soapclient->call('echoStringSimple',
                          $params = array('inputStringSimple' => 'this is a test string'),

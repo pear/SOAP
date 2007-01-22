@@ -25,7 +25,7 @@ require_once('SOAP/Client.php');
 $soapclient = new SOAP_Client("tcp://127.0.0.1:82");
 
 # namespace
-$options = array('namespace' => 'urn:SOAP_Example_Server', 'trace' => 1);
+$options = array('namespace' => 'urn:SOAP_Example_Server', 'trace' => true);
 
 # one
 $params = array("string" => "this is string 1");
