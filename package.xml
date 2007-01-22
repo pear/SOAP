@@ -1,132 +1,168 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.0">
-<package version="1.0">
-  <name>SOAP</name>
-  <summary>SOAP Client/Server for PHP</summary>
-  <description>
-    Implementation of SOAP protocol and services
-  </description>
-  <maintainers>
-    <maintainer>
-      <user>chagenbu</user>
-      <role>lead</role>
-      <name>Chuck Hagenbuch</name>
-      <email>chuck@horde.org</email>
-    </maintainer>
-    <maintainer>
-      <user>yunosh</user>
-      <role>lead</role>
-      <name>Jan Schneider</name>
-      <email>jan@horde.org</email>
-    </maintainer>
-    <maintainer>
-      <user>shane</user>
-      <name>Shane Caraveo</name>
-      <email>shane@php.net</email>
-      <role>lead</role>
-    </maintainer>
-    <maintainer>
-      <user>abaker</user>
-      <name>Al Baker</name>
-      <email>abaker@php.net</email>
-      <role>lead</role>
-    </maintainer>
-    <maintainer>
-      <user>arnaud</user>
-      <name>Arnaud Limbourg</name>
-      <email>arnaud@php.net</email>
-      <role>lead</role>
-    </maintainer>
-  </maintainers>
-  <license>PHP License</license>
-  <release>
-    <state>beta</state>
-    <version>0.10.0</version>
-    <date>2007-01-22</date>
-    <notes>* Allow to enable and disable WSDL caching and to set the cache directory in the client constructor.
-* Add parameter to SOAP_Server's service() method, to return the SOAP response data instead of sending it to the client (Request 7206).
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.4.11" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+http://pear.php.net/dtd/tasks-1.0.xsd
+http://pear.php.net/dtd/package-2.0
+http://pear.php.net/dtd/package-2.0.xsd">
+ <name>SOAP</name>
+ <channel>pear.php.net</channel>
+ <summary>SOAP Client/Server for PHP</summary>
+ <description>Implementation of SOAP protocol and services
+ </description>
+ <lead>
+  <name>Jan Schneider</name>
+  <user>yunosh</user>
+  <email>jan@horde.org</email>
+  <active>yes</active>
+ </lead>
+ <lead>
+  <name>Chuck Hagenbuch</name>
+  <user>chagenbu</user>
+  <email>chuck@horde.org</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Shane Caraveo</name>
+  <user>shane</user>
+  <email>shane@php.net</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Al Baker</name>
+  <user>abaker</user>
+  <email>abaker@php.net</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Arnaud Limbourg</name>
+  <user>arnaud</user>
+  <email>arnaud@php.net</email>
+  <active>no</active>
+ </lead>
+ <date>2007-01-22</date>
+ <time>16:03:00</time>
+ <version>
+  <release>0.10.0</release>
+  <api>0.10.0</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.php.net/license">PHP License</license>
+ <notes>* Allow to enable and disable WSDL caching and to set the cache directory in the client constructor.
+* Add parameter to SOAP_Server&apos;s service() method, to return the SOAP response data instead of sending it to the client (Request 7206).
 * Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
 * Add setDefaultNamespace() (Request #5622).
-* Make sure that generated proxy code doesn't use method or class names that are reserved words in PHP (Bug 3048).
-* Deprecate SOAP_Base's __set_type_translation() method in favour of setTypeTranslation().
-* Deprecate SOAP_Client's __use(), __style(), __trace(), __parse(), __getlastrequest(), __getlastresponse(), and __get_wire() methods in favour of setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
-* Deprecate SOAP_WSDL's set_service() method in favour of setService().
+* Make sure that generated proxy code doesn&apos;t use method or class names that are reserved words in PHP (Bug 3048).
+* Deprecate SOAP_Base&apos;s __set_type_translation() method in favour of setTypeTranslation().
+* Deprecate SOAP_Client&apos;s __use(), __style(), __trace(), __parse(), __getlastrequest(), __getlastresponse(), and __get_wire() methods in favour of setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
+* Deprecate SOAP_WSDL&apos;s set_service() method in favour of setService().
 * Remove deprecated parse() method from SOAP_WSDL.
 * More code cleanup.
 * Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).
 * Fix curl warning in the client if sending over HTTPS and using safe_mode or open_basedir (mailing001@xego.it, Bug #9415).
-* Don't return SOAP faults with the server on silenced errors in the proxied code (pear@tmp.dau-sicher.de, Bug #9155).
+* Don&apos;t return SOAP faults with the server on silenced errors in the proxied code (pear@tmp.dau-sicher.de, Bug #9155).
 * Fix WSDL generation of methods that have been added to the server with addMap() (marek.nos@centrum.cz, Bug #8551).
 * Set the correct encoding when returning SOAP faults from the server (Marcos Pont, Request #8401).
-* Don't fail silently when serializing hashes with more than 11 elements (Joel Barker, Bugs #4746, #8377).
+* Don&apos;t fail silently when serializing hashes with more than 11 elements (Joel Barker, Bugs #4746, #8377).
 * Fix decoding of children of complex types that are structs (markus@emedia-solutions-wolf.de, Bug #7224).
 * Fix decoding of values of type long (simunek@vol.cz, Bug #6042).
 * Send cookies if using HTTPS transport (Bug #6684).
 * Fix leaking of message input or output in generated WSDL if using dispatch methods without input or output (Bug #6462).
-* Don't check for existing methods in addToMap() if using a call handler in the server (Bug #5684).
-* Fix leaking of attachments from the last response into the next request of the client (Bug #5004).</notes>
-    <filelist>
-      <dir name="/" baseinstalldir="SOAP">
-        <file role="php" name="Base.php">
-          <replace from="@version@" to="version" type="package-info"/>
-          <!--<replace from="@state@" to="release-state" type="package-info"/>-->
-        </file>
-        <file role="php" name="Client.php"/>
-        <file role="php" name="Disco.php"/>
-        <file role="php" name="Fault.php"/>
-        <file role="php" name="Parser.php"/>
-        <file role="php" name="Server.php"/>
-        <file role="php" name="Transport.php"/>
-        <file role="php" name="Value.php"/>
-        <file role="php" name="WSDL.php"/>
-        <dir name="example" role="doc">
-          <file role="doc" name="attachment.php"/>
-          <file role="doc" name="client.php"/>
-          <file role="doc" name="com_client.php"/>
-          <file role="doc" name="disco_server.php"/>
-          <file role="doc" name="email_client.php"/>
-          <file role="doc" name="email_gateway.php"/>
-          <file role="doc" name="email_pop_gateway.php"/>
-          <file role="doc" name="email_pop_server.php"/>
-          <file role="doc" name="email_server.php"/>
-          <file role="doc" name="example_server.php"/>
-          <file role="doc" name="example_types.php"/>
-          <file role="doc" name="server.php"/>
-          <file role="doc" name="server2.php"/>
-          <file role="doc" name="smtp.php"/>
-          <file role="doc" name="stockquote.php"/>
-          <file role="doc" name="tcp_client.php"/>
-          <file role="doc" name="tcp_daemon.pl"/>
-          <file role="doc" name="tcp_server.php"/>
-          <file role="doc" name="wsdl_client.php"/>
-        </dir>
-        <dir name="tools">
-          <file role="php" name="genproxy.php"/>
-        </dir>
-        <dir name="Transport">
-          <file role="php" name="HTTP.php"/>
-          <file role="php" name="SMTP.php"/>
-          <file role="php" name="TCP.php"/>
-        </dir>
-        <dir name="Server">
-          <file role="php" name="Email.php"/>
-          <file role="php" name="Email_Gateway.php"/>
-          <file role="php" name="TCP.php"/>
-        </dir>
-        <dir name="Type">
-          <file role="php" name="dateTime.php"/>
-          <file role="php" name="duration.php"/>
-          <file role="php" name="hexBinary.php"/>
-        </dir>
-      </dir>
-    </filelist>
-    <deps>
-      <dep type="php" rel="ge" version="4.3"/>
-      <dep type="pkg" rel="has">PEAR</dep>
-      <dep type="pkg" rel="has">HTTP_Request</dep>
-      <dep type="pkg" rel="has" optional="yes">Mail</dep>
-      <dep type="pkg" rel="has" optional="yes">Mail_Mime</dep>
-      <dep type="pkg" rel="has" optional="yes">Net_DIME</dep>
-    </deps>
-  </release>
+* Don&apos;t check for existing methods in addToMap() if using a call handler in the server (Bug #5684).
+* Fix leaking of attachments from the last response into the next request of the client (Bug #5004).
+ </notes>
+ <contents>
+  <dir baseinstalldir="SOAP" name="/">
+   <dir name="example">
+    <file name="attachment.php" role="doc" />
+    <file name="client.php" role="doc" />
+    <file name="com_client.php" role="doc" />
+    <file name="disco_server.php" role="doc" />
+    <file name="email_client.php" role="doc" />
+    <file name="email_gateway.php" role="doc" />
+    <file name="email_pop_gateway.php" role="doc" />
+    <file name="email_pop_server.php" role="doc" />
+    <file name="email_server.php" role="doc" />
+    <file name="example_server.php" role="doc" />
+    <file name="example_types.php" role="doc" />
+    <file name="server.php" role="doc" />
+    <file name="server2.php" role="doc" />
+    <file name="smtp.php" role="doc" />
+    <file name="stockquote.php" role="doc" />
+    <file name="tcp_client.php" role="doc" />
+    <file name="tcp_daemon.pl" role="doc" />
+    <file name="tcp_server.php" role="doc" />
+    <file name="wsdl_client.php" role="doc" />
+   </dir> <!-- /example -->
+   <dir name="Server">
+    <file name="Email.php" role="php" />
+    <file name="Email_Gateway.php" role="php" />
+    <file name="TCP.php" role="php" />
+   </dir> <!-- /Server -->
+   <dir name="tools">
+    <file name="genproxy.php" role="php" />
+   </dir> <!-- /tools -->
+   <dir name="Transport">
+    <file name="HTTP.php" role="php" />
+    <file name="SMTP.php" role="php" />
+    <file name="TCP.php" role="php" />
+   </dir> <!-- /Transport -->
+   <dir name="Type">
+    <file name="dateTime.php" role="php" />
+    <file name="duration.php" role="php" />
+    <file name="hexBinary.php" role="php" />
+   </dir> <!-- /Type -->
+   <file name="Base.php" role="php">
+    <tasks:replace from="@version@" to="version" type="package-info" />
+   </file>
+   <file name="Client.php" role="php" />
+   <file name="Disco.php" role="php" />
+   <file name="Fault.php" role="php" />
+   <file name="Parser.php" role="php" />
+   <file name="Server.php" role="php" />
+   <file name="Transport.php" role="php" />
+   <file name="Value.php" role="php" />
+   <file name="WSDL.php" role="php" />
+  </dir> <!-- / -->
+ </contents>
+ <compatible>
+  <name>Services_Weather</name>
+  <channel>pear.php.net</channel>
+  <min>1.4.0</min>
+  <max>1.4.0</max>
+ </compatible>
+ <dependencies>
+  <required>
+   <php>
+    <min>4.3</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0b1</min>
+   </pearinstaller>
+   <package>
+    <name>PEAR</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>HTTP_Request</name>
+    <channel>pear.php.net</channel>
+   </package>
+  </required>
+  <optional>
+   <package>
+    <name>Mail</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>Mail_Mime</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>Net_DIME</name>
+    <channel>pear.php.net</channel>
+   </package>
+  </optional>
+ </dependencies>
+ <phprelease />
 </package>
