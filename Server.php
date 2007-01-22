@@ -78,11 +78,17 @@ class SOAP_Server extends SOAP_Base
 
     var $service = ''; //soapaction header
     var $method_namespace = null;
-    var $__options = array('use' => 'encoded',
-                           'style' => 'rpc',
-                           'parameters' => 0,
-                           'http_status_success' => '200 OK',
-                           'http_status_fault' => '500 SOAP Fault');
+
+    /**
+     * Options.
+     *
+     * @var array
+     */
+    var $_options = array('use' => 'encoded',
+                          'style' => 'rpc',
+                          'parameters' => 0,
+                          'http_status_success' => '200 OK',
+                          'http_status_fault' => '500 SOAP Fault');
 
     function SOAP_Server($options = null)
     {
@@ -91,18 +97,18 @@ class SOAP_Server extends SOAP_Base
 
         if (is_array($options)) {
             if (isset($options['use'])) {
-                $this->__options['use'] = $options['use'];
+                $this->_options['use'] = $options['use'];
             }
             if (isset($options['style'])) {
-                $this->__options['style'] = $options['style'];
+                $this->_options['style'] = $options['style'];
             }
             if (isset($options['parameters'])) {
-                $this->__options['parameters'] = $options['parameters'];
+                $this->_options['parameters'] = $options['parameters'];
             }
         }
         // assume we encode with section 5
         $this->_section5 = true;
-        if ($this->__options['use']=='literal') {
+        if ($this->_options['use']=='literal') {
             $this->_section5 = false;
         }
     }
@@ -270,10 +276,10 @@ class SOAP_Server extends SOAP_Base
         }
 
         if ($this->fault) {
-            $hdrs = $hdrs_type . ' ' . $this->__options['http_status_fault'] . "\r\n";
+            $hdrs = $hdrs_type . ' ' . $this->_options['http_status_fault'] . "\r\n";
             $response = $this->fault->message($this->response_encoding);
         } else {
-            $hdrs = $hdrs_type . ' ' . $this->__options['http_status_success'] . "\r\n";
+            $hdrs = $hdrs_type . ' ' . $this->_options['http_status_success'] . "\r\n";
         }
         header($hdrs);
 
@@ -448,9 +454,9 @@ class SOAP_Server extends SOAP_Base
                 $this->_raiseSoapFault($opData);
                 return null;
             }
-            $this->__options['style'] = $opData['style'];
-            $this->__options['use'] = $opData['output']['use'];
-            $this->__options['parameters'] = $opData['parameters'];
+            $this->_options['style'] = $opData['style'];
+            $this->_options['use'] = $opData['output']['use'];
+            $this->_options['parameters'] = $opData['parameters'];
         }
 
         /* Does method exist? */
@@ -488,9 +494,9 @@ class SOAP_Server extends SOAP_Base
             return null;
         }
 
-        if ($this->__options['parameters'] ||
+        if ($this->_options['parameters'] ||
             !$method_response ||
-            $this->__options['style']=='rpc') {
+            $this->_options['style']=='rpc') {
             /* Get the method result. */
             if (is_null($method_response)) {
                 $return_val = null;
@@ -532,7 +538,7 @@ class SOAP_Server extends SOAP_Base
         if (is_object($requestArray) &&
             get_class($requestArray) == 'stdClass') {
             $requestArray = get_object_vars($requestArray);
-        } elseif ($this->__options['style'] == 'document') {
+        } elseif ($this->_options['style'] == 'document') {
             $requestArray = array($requestArray);
         }
         if (is_array($requestArray)) {

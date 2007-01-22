@@ -148,7 +148,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @var array
      */
-    var $__options = array('trace' => false);
+    var $_options = array('trace' => false);
 
     /**
      * The character encoding used for XML parser, etc.
@@ -344,11 +344,11 @@ class SOAP_Client extends SOAP_Client_Overload
 
         // Send the message.
         $transport_options = array_merge_recursive($this->_proxy_params,
-                                                   $this->__options);
+                                                   $this->_options);
         $this->xml = $this->_soap_transport->send($soap_data, $transport_options);
 
         // Save the wire information for debugging.
-        if ($this->__options['trace']) {
+        if ($this->_options['trace']) {
             $this->_last_request = $this->_soap_transport->outgoing_payload;
             $this->_last_response = $this->_soap_transport->incoming_payload;
             $this->wire = $this->getWire();
@@ -358,8 +358,8 @@ class SOAP_Client extends SOAP_Client_Overload
             return $fault;
         }
 
-        if (isset($this->__options['result']) &&
-            $this->__options['result'] != 'parse') {
+        if (isset($this->_options['result']) &&
+            $this->_options['result'] != 'parse') {
             return $this->xml;
         }
 
@@ -391,12 +391,12 @@ class SOAP_Client extends SOAP_Client_Overload
     function setOpt($category, $option, $value = null)
     {
         if (!is_null($value)) {
-            if (!isset($this->__options[$category])) {
-                $this->__options[$category] = array();
+            if (!isset($this->_options[$category])) {
+                $this->_options[$category] = array();
             }
-            $this->__options[$category][$option] = $value;
+            $this->_options[$category][$option] = $value;
         } else {
-            $this->__options[$category] = $option;
+            $this->_options[$category] = $option;
         }
     }
 
@@ -486,7 +486,7 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function setUse($use)
     {
-        $this->__options['use'] = $use;
+        $this->_options['use'] = $use;
     }
 
     /**
@@ -504,7 +504,7 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function setStyle($style)
     {
-        $this->__options['style'] = $style;
+        $this->_options['style'] = $style;
     }
 
     /**
@@ -524,16 +524,16 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function setTrace($trace)
     {
-        $this->__options['trace'] = $trace;
+        $this->_options['trace'] = $trace;
     }
 
     function &_generate($method, &$params, $namespace = false,
                         $soapAction = false)
     {
         $this->fault = null;
-        $this->__options['input'] = 'parse'; 
-        $this->__options['result'] = 'parse';
-        $this->__options['parameters'] = false;
+        $this->_options['input'] = 'parse'; 
+        $this->_options['result'] = 'parse';
+        $this->_options['parameters'] = false;
 
         if ($params && gettype($params) != 'array') {
             $params = array($params);
@@ -541,18 +541,18 @@ class SOAP_Client extends SOAP_Client_Overload
 
         if (gettype($namespace) == 'array') {
             foreach ($namespace as $optname => $opt) {
-                $this->__options[strtolower($optname)] = $opt;
+                $this->_options[strtolower($optname)] = $opt;
             }
-            if (isset($this->__options['namespace'])) {
-                $namespace = $this->__options['namespace'];
+            if (isset($this->_options['namespace'])) {
+                $namespace = $this->_options['namespace'];
             } else {
                 $namespace = false;
             }
         } else {
             // We'll place $soapAction into our array for usage in the
             // transport.
-            $this->__options['soapaction'] = $soapAction;
-            $this->__options['namespace'] = $namespace;
+            $this->_options['soapaction'] = $soapAction;
+            $this->_options['namespace'] = $namespace;
         }
 
         if ($this->_endpointType == 'wsdl') {
@@ -582,13 +582,13 @@ class SOAP_Client extends SOAP_Client_Overload
                 return $fault;
             }
             $namespace = $opData['namespace'];
-            $this->__options['style'] = $opData['style'];
-            $this->__options['use'] = $opData['input']['use'];
-            $this->__options['soapaction'] = $opData['soapAction'];
+            $this->_options['style'] = $opData['style'];
+            $this->_options['use'] = $opData['input']['use'];
+            $this->_options['soapaction'] = $opData['soapAction'];
 
             // Set input parameters.
-            if ($this->__options['input'] == 'parse') {
-                $this->__options['parameters'] = $opData['parameters'];
+            if ($this->_options['input'] == 'parse') {
+                $this->_options['parameters'] = $opData['parameters'];
                 $nparams = array();
                 if (isset($opData['input']['parts']) &&
                     count($opData['input']['parts'])) {
@@ -646,25 +646,25 @@ class SOAP_Client extends SOAP_Client_Overload
         }
 
         // Serialize the message.
-        $this->_section5 = (!isset($this->__options['use']) ||
-                            $this->__options['use'] != 'literal');
+        $this->_section5 = (!isset($this->_options['use']) ||
+                            $this->_options['use'] != 'literal');
 
-        if (!isset($this->__options['style']) ||
-            $this->__options['style'] == 'rpc') {
-            $this->__options['style'] = 'rpc';
+        if (!isset($this->_options['style']) ||
+            $this->_options['style'] == 'rpc') {
+            $this->_options['style'] = 'rpc';
             $this->docparams = true;
             $mqname =& new QName($method, $namespace);
             $methodValue =& new SOAP_Value($mqname->fqn(), 'Struct', $params);
             $soap_msg = $this->makeEnvelope($methodValue,
                                             $this->headersOut,
                                             $this->_encoding,
-                                            $this->__options);
+                                            $this->_options);
         } else {
             if (!$params) {
                 $mqname =& new QName($method, $namespace);
                 $mynull = null;
                 $params =& new SOAP_Value($mqname->fqn(), 'Struct', $mynull);
-            } elseif ($this->__options['input'] == 'parse') {
+            } elseif ($this->_options['input'] == 'parse') {
                 if (is_array($params)) {
                     $nparams = array();
                     $keys = array_keys($params);
@@ -679,7 +679,7 @@ class SOAP_Client extends SOAP_Client_Overload
                     }
                     $params =& $nparams;
                 }
-                if ($this->__options['parameters']) {
+                if ($this->_options['parameters']) {
                     $mqname =& new QName($method, $namespace);
                     $params =& new SOAP_Value($mqname->fqn(),
                                               'Struct',
@@ -689,7 +689,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $soap_msg = $this->makeEnvelope($params,
                                             $this->headersOut,
                                             $this->_encoding,
-                                            $this->__options);
+                                            $this->_options);
         }
         unset($this->headersOut);
 
@@ -702,16 +702,16 @@ class SOAP_Client extends SOAP_Client_Overload
         // TODO: DIME encoding should move to the transport, do it here for
         // now and for ease of getting it done.
         if (count($this->__attachments)) {
-            if ((isset($this->__options['attachments']) &&
-                 $this->__options['attachments'] == 'Mime') ||
-                isset($this->__options['Mime'])) {
+            if ((isset($this->_options['attachments']) &&
+                 $this->_options['attachments'] == 'Mime') ||
+                isset($this->_options['Mime'])) {
                 $soap_msg =& $this->_makeMimeMessage($soap_msg,
                                                      $this->_encoding);
             } else {
                 // default is dime
                 $soap_msg =& $this->_makeDIMEMessage($soap_msg,
                                                      $this->_encoding);
-                $this->__options['headers']['Content-Type'] = 'application/dime';
+                $this->_options['headers']['Content-Type'] = 'application/dime';
             }
             if (PEAR::isError($soap_msg)) {
                 $fault =& $this->_raiseSoapFault($soap_msg);
@@ -723,10 +723,10 @@ class SOAP_Client extends SOAP_Client_Overload
         if (is_array($soap_msg)) {
             $soap_data =& $soap_msg['body'];
             if (count($soap_msg['headers'])) {
-                if (isset($this->__options['headers'])) {
-                    $this->__options['headers'] = array_merge($this->__options['headers'], $soap_msg['headers']);
+                if (isset($this->_options['headers'])) {
+                    $this->_options['headers'] = array_merge($this->_options['headers'], $soap_msg['headers']);
                 } else {
-                    $this->__options['headers'] = $soap_msg['headers'];
+                    $this->_options['headers'] = $soap_msg['headers'];
                 }
             }
         } else {
@@ -844,7 +844,7 @@ class SOAP_Client extends SOAP_Client_Overload
      */
     function getWire()
     {
-        if ($this->__options['trace'] &&
+        if ($this->_options['trace'] &&
             ($this->_last_request || $this->_last_response)) {
             return "OUTGOING:\n\n" .
                 $this->_last_request .
