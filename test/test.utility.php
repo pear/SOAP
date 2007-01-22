@@ -23,11 +23,11 @@ function number_compare($f1, $f2)
 
 function boolean_compare($f1, $f2)
 {
-    if (($f1 == 'true' || $f1 === true || $f1 != 0) &&
-        ($f2 == 'true' || $f2 === true || $f2 != 0)) return true;
-    if (($f1 == 'false' || $f1 === false || $f1 == 0) &&
-        ($f2 == 'false' || $f2 === false || $f2 == 0)) return true;
-    return false;
+    if (($f1 == 'true' || $f1 === TRUE || $f1 != 0) &&
+        ($f2 == 'true' || $f2 === TRUE || $f2 != 0)) return TRUE;
+    if (($f1 == 'false' || $f1 === FALSE || $f1 == 0) &&
+        ($f2 == 'false' || $f2 === FALSE || $f2 == 0)) return TRUE;
+    return FALSE;
 }
 
 function string_compare($e1, $e2)
@@ -41,7 +41,7 @@ function string_compare($e1, $e2)
     // handle dateTime comparison
     $e1_type = gettype($e1);
     $e2_type = gettype($e2);
-    $ok = false;
+    $ok = FALSE;
     if ($e1_type == "string") {
         $dt = new SOAP_Type_dateTime();
         $ok = $dt->compare($e1, $e2) == 0;
@@ -51,34 +51,22 @@ function string_compare($e1, $e2)
 
 function array_compare(&$ar1, &$ar2)
 {
-    if (gettype($ar1) != 'array' || gettype($ar2) != 'array') return false;
+    if (gettype($ar1) != 'array' || gettype($ar2) != 'array') return FALSE;
     // first a shallow diff
-    if (count($ar1) != count($ar2)) return false;
+    if (count($ar1) != count($ar2)) return FALSE;
     $diff = array_diff($ar1, $ar2);
-    if (count($diff) == 0) return true;
+    if (count($diff) == 0) return TRUE;
 
     // diff failed, do a full check of the array
     foreach ($ar1 as $k => $v) {
         //print "comparing $v == $ar2[$k]\n";
-        if (gettype($v) == 'array') {
-            if (!array_compare($v, $ar2[$k])) return false;
-        } elseif (is_object($v)) {
-            if (!object_compare($v, $ar2[$k])) return false;
+        if (gettype($v) == "array") {
+            if (!array_compare($v, $ar2[$k])) return FALSE;
         } else {
-            if (!string_compare($v, $ar2[$k])) return false;
+            if (!string_compare($v, $ar2[$k])) return FALSE;
         }
     }
-    return true;
-}
-
-function object_compare(&$o1, &$o2)
-{
-    if (!is_object($o1) || !is_object($o2) || gettype($o1) != gettype($o2)) {
-        return false;
-    }
-    $o1 = (array)$o1;
-    $o2 = (array)$o2;
-    return array_compare($o1, $o2);
+    return TRUE;
 }
 
 function parseMessage($msg)
