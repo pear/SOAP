@@ -54,22 +54,22 @@ require_once 'example_types.php';
 
 $struct = new SOAPStruct('test string',123,123.123);
 
-/* send an object, get an object back */
-/* tell client to translate to classes we provide if possible */
+/* Send an object, get an object back.
+ * Tell the client to translate to classes we provide if possible. */
 $soapclient->_auto_translation = true;
-/* or you can explicitly set the translation for
-   a specific class.  auto_translation works for all cases,
-   but opens ANY class in the script to be used as a data type,
-   and may not be desireable.  both can be used on client or
-   server */
-$soapclient->__set_type_translation('{http://soapinterop.org/xsd}SOAPStruct','SOAPStruct');
+/* Or you can explicitly set the translation for a specific class.
+ * auto_translation works for all cases, but opens ANY class in the script to
+ * be used as a data type, and may not be desireable.  both can be used on
+ * client or server. */
+$soapclient->setTypeTranslation('{http://soapinterop.org/xsd}SOAPStruct',
+                                'SOAPStruct');
 $ret = $soapclient->echoStruct($struct->__to_soap());
-#print $soapclient->__get_wire();
+//print $soapclient->__get_wire();
 print_r($ret);
 
 /**
- * PHP doesn't support multiple OUT parameters in function calls, so we
- * must do a little work to make it happen here.  This requires knowledge on the
+ * PHP doesn't support multiple OUT parameters in function calls, so we must
+ * do a little work to make it happen here.  This requires knowledge on the
  * developers part to figure out how they want to deal with it.
  */
 $ret = $soapclient->echoStructAsSimpleTypes($struct->__to_soap());

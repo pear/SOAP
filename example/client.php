@@ -77,8 +77,8 @@ $soapclient->_auto_translation = true;
  * class. auto_translation works for all cases, but opens ANY class in the
  * script to be used as a data type, and may not be desireable. Both can be
  * used on client or server. */
-$soapclient->__set_type_translation('{http://soapinterop.org/xsd}SOAPStruct',
-                                    'SOAPStruct');
+$soapclient->setTypeTranslation('{http://soapinterop.org/xsd}SOAPStruct',
+                                'SOAPStruct');
 $ret = $soapclient->call('echoStruct',
                          $p = array('inputStruct' => $struct->__to_soap()),
                          $options);
