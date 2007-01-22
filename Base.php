@@ -832,7 +832,7 @@ class SOAP_Base extends SOAP_Base_Object
         $it = 0;
         foreach ($a as $k => $v) {
             // Checking the type is faster than regexp.
-            if (is_int($t) || $this->_isSoapValue($v)) {
+            if (is_int($k) || $this->_isSoapValue($v)) {
                 return true;
             }
             // If someone has a large hash they should really be defining the
