@@ -1,7 +1,7 @@
 <?php
 
 require_once 'SOAP/Base.php';
-$GLOBALS['SOAP_OBJECT_STRUCT'] = FALSE;
+$GLOBALS['SOAP_OBJECT_STRUCT'] = false;
 
 require '5.2.simpletypes.php';
 require '5.2.1.simpletypes.string.php';

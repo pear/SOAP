@@ -185,19 +185,24 @@ class SOAP_WSDL extends SOAP_Base
         }
     }
 
+    /**
+     * @deprecated  Use setService().
+     */
     function set_service($service)
+    {
+        $this->setService($service);
+    }
+
+    /**
+     * Sets the service currently to be used.
+     *
+     * @param string $service  An (existing) service name.
+     */
+    function setService($service)
     {
         if (array_key_exists($service, $this->services)) {
             $this->service = $service;
         }
-    }
-
-    /**
-     * @deprecated use parseURL instead
-     */
-    function parse($wsdl_uri, $proxy = array())
-    {
-        $this->parseURL($wsdl_uri, $proxy);
     }
 
     /**

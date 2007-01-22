@@ -1,5 +1,5 @@
 <?php
-require_once 'test.utility.php';
+require_once dirname(__FILE__) . '/test.utility.php';
 require_once 'SOAP/Base.php';
 $soap_base = new SOAP_Base();
 $prefix = "5.2.1 String";

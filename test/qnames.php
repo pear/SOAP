@@ -1,7 +1,7 @@
 <?php
 
 require_once 'SOAP/Base.php';
-require_once 'test.utility.php';
+require_once dirname(__FILE__) . '/test.utility.php';
 
 $prefix = 'QNames';
 
