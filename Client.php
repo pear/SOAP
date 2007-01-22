@@ -701,7 +701,7 @@ class SOAP_Client extends SOAP_Client_Overload
         // Handle MIME or DIME encoding.
         // TODO: DIME encoding should move to the transport, do it here for
         // now and for ease of getting it done.
-        if (count($this->__attachments)) {
+        if (count($this->_attachments)) {
             if ((isset($this->_options['attachments']) &&
                  $this->_options['attachments'] == 'Mime') ||
                 isset($this->_options['Mime'])) {

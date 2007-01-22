@@ -349,7 +349,7 @@ class SOAP_Base extends SOAP_Base_Object
 
     var $_doconversion = false;
 
-    var $__attachments = array();
+    var $_attachments = array();
 
     var $_wsdl = null;
 
@@ -633,7 +633,7 @@ class SOAP_Base extends SOAP_Base_Object
         // Store the attachment for mime encoding.
         if (isset($options['attachment']) &&
             !PEAR::isError($options['attachment'])) {
-            $this->__attachments[] = $options['attachment'];
+            $this->_attachments[] = $options['attachment'];
         }
 
         if ($this->_section5) {
@@ -1057,8 +1057,8 @@ class SOAP_Base extends SOAP_Base_Object
         $msg->addSubPart($xml, $params);
 
         // Add the attachements
-        for ($i = 0, $c = count($this->__attachments); $i < $c; ++$i) {
-            $attachment =& $this->__attachments[$i];
+        for ($i = 0, $c = count($this->_attachments); $i < $c; ++$i) {
+            $attachment =& $this->_attachments[$i];
             $msg->addSubPart($attachment['body'], $attachment);
         }
 
@@ -1081,9 +1081,9 @@ class SOAP_Base extends SOAP_Base_Object
         $msg = $dime->encodeData($xml, SOAP_ENVELOP, null, NET_DIME_TYPE_URI);
 
         // Add the attachments.
-        $c = count($this->__attachments);
+        $c = count($this->_attachments);
         for ($i = 0; $i < $c; $i++) {
-            $attachment =& $this->__attachments[$i];
+            $attachment =& $this->_attachments[$i];
             $msg .= $dime->encodeData($attachment['body'],
                                       $attachment['content_type'],
                                       $attachment['cid'],

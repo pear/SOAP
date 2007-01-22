@@ -95,7 +95,7 @@ class SOAP_Server_Email_Gateway extends SOAP_Server_Email {
                 foreach ($soap_transport->transport->attachments as $cid => $body) {
                     $this->attachments[] = array('body' => $body, 'cid' => $cid, 'encoding' => 'base64');
                 }
-                if (count($this->__attachments)) {
+                if (count($this->_attachments)) {
                     if ($useEncoding == 'Mime') {
                         $soap_msg = $this->_makeMimeMessage($response);
                         $options['headers']['MIME-Version'] = '1.0';
