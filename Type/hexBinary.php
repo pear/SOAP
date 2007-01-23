@@ -35,8 +35,7 @@ class SOAP_Type_hexBinary {
     function is_hexbin($value)
     {
         // First see if there are any invalid chars.
-        $l = strlen($value);
-        if (!$l || strspn($value, '0123456789ABCDEFabcdef') != $l) {
+        if (!strlen($value) || preg_match('/[^A-Fa-f0-9]/', $value)) {
             return false;
         }
 
