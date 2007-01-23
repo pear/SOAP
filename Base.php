@@ -757,32 +757,28 @@ class SOAP_Base extends SOAP_Base_Object
         return $type;
     }
 
-    function _multiArrayType(&$value, &$type, &$size, &$xml)
+    function _multiArrayType($value, &$type, &$size, &$xml)
     {
-        $sz = count($value);
         if (is_array($value)) {
             // Seems we have a multi dimensional array, figure it out if we
             // do.
-            $c = count($value);
-            for ($i = 0; $i < $c; $i++) {
+            for ($i = 0, $c = count($value); $i < $c; ++$i) {
                 $this->_multiArrayType($value[$i], $type, $size, $xml);
             }
 
+            $sz = count($value);
             if ($size) {
-                $size = $sz. ',' . $size;
+                $size = $sz . ',' . $size;
             } else {
                 $size = $sz;
             }
-
             return 1;
+        } elseif (is_object($value)) {
+            $type = $value->type;
+            $xml .= $value->serialize($this);
         } else {
-            if (is_object($value)) {
-                $type = $value->type;
-                $xml .= $value->serialize($this);
-            } else {
-                $type = $this->_getType($value);
-                $xml .= $this->_serializeValue($value, 'item', $type);
-            }
+            $type = $this->_getType($value);
+            $xml .= $this->_serializeValue($value, 'item', $type);
         }
         $size = null;
 
@@ -796,14 +792,12 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return boolean  True if the specified value seems to be base64 encoded.
      */
-    function _isBase64(&$value)
+    function _isBase64($value)
     {
         $l = strlen($value);
-        if ($l) {
-            return $value[$l - 1] == '=' &&
-                preg_match('/[A-Za-z=\/\+]+/', $value);
-        }
-        return false;
+        return $l &&
+            !preg_match('|[^A-Za-z=/+]|', $value) &&
+            base64_decode($value) !== false;
     }
 
     /**
