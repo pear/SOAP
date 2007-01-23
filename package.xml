@@ -38,10 +38,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>arnaud@php.net</email>
   <active>no</active>
  </lead>
- <date>2007-01-22</date>
- <time>16:03:00</time>
+ <date>2007-01-23</date>
  <version>
-  <release>0.10.0</release>
+  <release>0.10.1</release>
   <api>0.10.0</api>
  </version>
  <stability>
@@ -49,29 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>* Allow to enable and disable WSDL caching and to set the cache directory in the client constructor.
-* Add parameter to SOAP_Server&apos;s service() method, to return the SOAP response data instead of sending it to the client (Request 7206).
-* Replace all invalid characters in label and variable name of the generated proxy code. (Bug 7493).
-* Add setDefaultNamespace() (Request #5622).
-* Make sure that generated proxy code doesn&apos;t use method or class names that are reserved words in PHP (Bug 3048).
-* Deprecate SOAP_Base&apos;s __set_type_translation() method in favour of setTypeTranslation().
-* Deprecate SOAP_Client&apos;s __use(), __style(), __trace(), __parse(), __getlastrequest(), __getlastresponse(), and __get_wire() methods in favour of setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
-* Deprecate SOAP_WSDL&apos;s set_service() method in favour of setService().
-* Remove deprecated parse() method from SOAP_WSDL.
-* More code cleanup.
-* Fix subsequent failures if one transmission with a Transport class instance failed (Bug 7469).
-* Fix curl warning in the client if sending over HTTPS and using safe_mode or open_basedir (mailing001@xego.it, Bug #9415).
-* Don&apos;t return SOAP faults with the server on silenced errors in the proxied code (pear@tmp.dau-sicher.de, Bug #9155).
-* Fix WSDL generation of methods that have been added to the server with addMap() (marek.nos@centrum.cz, Bug #8551).
-* Set the correct encoding when returning SOAP faults from the server (Marcos Pont, Request #8401).
-* Don&apos;t fail silently when serializing hashes with more than 11 elements (Joel Barker, Bugs #4746, #8377).
-* Fix decoding of children of complex types that are structs (markus@emedia-solutions-wolf.de, Bug #7224).
-* Fix decoding of values of type long (simunek@vol.cz, Bug #6042).
-* Send cookies if using HTTPS transport (Bug #6684).
-* Fix leaking of message input or output in generated WSDL if using dispatch methods without input or output (Bug #6462).
-* Don&apos;t check for existing methods in addToMap() if using a call handler in the server (Bug #5684).
-* Fix leaking of attachments from the last response into the next request of the client (Bug #5004).
- </notes>
+ <notes>* Fix parse error in Disco.php (Bug #9923).</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
    <dir name="example">

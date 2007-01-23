@@ -234,7 +234,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             }
 
             // INPUT
-            $input_message = array('attr' => array('name' => $method_name . 'Request'))
+            $input_message = array('attr' => array('name' => $method_name . 'Request'));
             if (isset($method_types['in']) && is_array($method_types['in'])) {
                 foreach ($method_types['in'] as $name => $type) {
                     list($typens, $type) = $this->_getTypeNs($type);
@@ -247,7 +247,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
             $this->_wsdl['definitions']['message'][] = $input_message;
 
             // OUTPUT
-            $output_message = array('attr' => array('name' => $method_name . 'Response'))
+            $output_message = array('attr' => array('name' => $method_name . 'Response'));
             if (isset($method_types['out']) && is_array($method_types['out'])) {
                 foreach ($method_types['out'] as $name => $type) {
                     list($typens, $type) = $this->_getTypeNs($type);
