@@ -40,7 +40,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </lead>
  <date>2007-01-23</date>
  <version>
-  <release>0.10.1</release>
+  <release>0.10.2</release>
   <api>0.10.0</api>
  </version>
  <stability>
@@ -48,7 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>* Fix parse error in Disco.php (Bug #9923).</notes>
+ <notes>* Remove unreliable automatic base64 detection (Bug #9840).</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
    <dir name="example">
