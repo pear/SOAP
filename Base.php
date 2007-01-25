@@ -24,22 +24,8 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+define('MAIL_MIMEPART_CRLF', "\r\n");
 require_once 'PEAR.php';
-
-// optional features
-$GLOBALS['SOAP_options'] = array();
-
-@include_once 'Mail/mimePart.php';
-@include_once 'Mail/mimeDecode.php';
-if (class_exists('Mail_mimePart')) {
-    $GLOBALS['SOAP_options']['Mime'] = 1;
-    define('MAIL_MIMEPART_CRLF', "\r\n");
-}
-
-@include_once 'Net/DIME.php';
-if (class_exists('Net_DIME_Message')) {
-    $GLOBALS['SOAP_options']['DIME'] = 1;
-}
 
 /**
  * Enable debugging information?
@@ -968,10 +954,8 @@ class SOAP_Base extends SOAP_Base_Object
 
     function _makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
-        global $SOAP_options;
-
-        if (!isset($SOAP_options['Mime'])) {
-            return $this->_raiseSoapFault('Mime is not installed');
+        if (!@include_once 'Mail/mimePart.php') {
+            return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
         }
 
         // Encode any attachments.
@@ -998,14 +982,12 @@ class SOAP_Base extends SOAP_Base_Object
     // TODO: this needs to be used from the Transport system.
     function _makeDIMEMessage($xml)
     {
-        global $SOAP_options;
-
-        if (!isset($SOAP_options['DIME'])) {
-            return $this->_raiseSoapFault('DIME is not installed');
+        if (!@include_once 'Net/DIME.php') {
+            return $this->_raiseSoapFault('DIME messages are unsupported, the Net_DIME package is not installed');
         }
 
-        // Encode any attachments.
-        // See http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
+        // Encode any attachments.  See
+        // http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // Now we have to DIME encode the message
         $dime =& new Net_DIME_Message();
         $msg = $dime->encodeData($xml, SOAP_ENVELOP, null, NET_DIME_TYPE_URI);
@@ -1026,11 +1008,8 @@ class SOAP_Base extends SOAP_Base_Object
 
     function _decodeMimeMessage(&$data, &$headers, &$attachments)
     {
-        global $SOAP_options;
-
-        if (!isset($SOAP_options['Mime'])) {
-            $this->_raiseSoapFault('Mime Unsupported, install PEAR::Mail::Mime', '', '', 'Server');
-            return;
+        if (!@include_once 'Mail/mimeDecode.php') {
+            return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
         }
 
         $params['include_bodies'] = true;
@@ -1076,11 +1055,8 @@ class SOAP_Base extends SOAP_Base_Object
 
     function _decodeDIMEMessage(&$data, &$headers, &$attachments)
     {
-        global $SOAP_options;
-
-        if (!isset($SOAP_options['DIME'])) {
-            $this->_raiseSoapFault('DIME Unsupported, install PEAR::Net::DIME', '', '', 'Server');
-            return;
+        if (!@include_once 'Net/DIME.php') {
+            return $this->_raiseSoapFault('DIME messages are unsupported, the Net_DIME package is not installed');
         }
 
         // This SHOULD be moved to the transport layer, e.g. PHP itself should
