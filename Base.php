@@ -27,14 +27,6 @@
 define('MAIL_MIMEPART_CRLF', "\r\n");
 require_once 'PEAR.php';
 
-/**
- * Enable debugging information?
- *
- * @global bool $GLOBALS['SOAP_DEBUG']
- * @name $SOAP_DEBUG
- */
-$GLOBALS['SOAP_DEBUG'] = false;
-
 if (!function_exists('version_compare') ||
     version_compare(phpversion(), '4.1', '<')) {
     die("requires PHP 4.1 or higher\n");
@@ -81,22 +73,6 @@ define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
 class SOAP_Base_Object extends PEAR
 {
-    /**
-     * Store debugging information in $_debug_data?
-     *
-     * @see $debug_data, SOAP_Base
-     * @var boolean $_debug_flag
-     */
-    var $_debug_flag = false;
-
-    /**
-     * String containing debugging information if $_debug_flag is true.
-     *
-     * @access public
-     * @see $debug_flag, SOAP_Base
-     * @var string $_debug_data
-     */
-    var $_debug_data = '';
 
     /**
      * Supported encodings, limited by XML extension.
@@ -122,14 +98,11 @@ class SOAP_Base_Object extends PEAR
     /**
      * Constructor.
      *
-     * @see $debug_data, _debug()
-     *
      * @param string $faultcode  Error code.
      */
     function SOAP_Base_Object($faultcode = 'Client')
     {
         $this->_myfaultcode = $faultcode;
-        $this->_debug_flag = $GLOBALS['SOAP_DEBUG'];
         parent::PEAR('SOAP_Fault');
     }
 
@@ -138,10 +111,6 @@ class SOAP_Base_Object extends PEAR
      *
      * Please refer to the SOAP definition for an impression of what a certain
      * parameter stands for.
-     *
-     * Use $debug_flag to store errors to the member variable $debug_data
-     *
-     * @see $debug_flag, $debug_data, SOAP_Fault
      *
      * @param string|object $str  Error message or object.
      * @param string $detail      Detailed error message.
@@ -184,19 +153,6 @@ class SOAP_Base_Object extends PEAR
     function &_getfault()
     {
         return $this->fault;
-    }
-
-    /**
-     * Adds a string to the debug data.
-     *
-     * @param string $string  Debugging message.
-     */
-    function _debug($string)
-    {
-        if ($this->_debug_flag) {
-            $this->_debug_data .= get_class($this) . ': ' .
-                str_replace('>', ">\r\n", $string) . "\n";
-        }
     }
 
 }
@@ -330,8 +286,6 @@ class SOAP_Base extends SOAP_Base_Object
 
     /**
      * Constructor.
-     *
-     * @see $debug_data, _debug()
      *
      * @param string $faultcode  Error code.
      */
