@@ -34,16 +34,6 @@
  */
 $GLOBALS['SOAP_OBJECT_STRUCT'] = true;
 
-/**
- * SOAP_RAW_CONVERT makes PEAR::SOAP attempt to determine what SOAP type a PHP
- * string COULD be.  This may result in slightly better interoperability when
- * you are not using WSDL, and are being lazy and not using SOAP_Value to
- * define types for your values.
- *
- * @global bool $GLOBALS['SOAP_RAW_CONVERT']
- */
-$GLOBALS['SOAP_RAW_CONVERT'] = false;
-
 require_once 'PEAR.php';
 require_once 'SOAP/Type/dateTime.php';
 require_once 'SOAP/Type/hexBinary.php';
@@ -670,7 +660,7 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function _getType(&$value)
     {
-        global $SOAP_OBJECT_STRUCT, $SOAP_RAW_CONVERT;
+        global $SOAP_OBJECT_STRUCT;
 
         $type = gettype($value);
         switch ($type) {
@@ -726,26 +716,6 @@ class SOAP_Base extends SOAP_Base_Object
             break;
 
         case 'string':
-            if ($SOAP_RAW_CONVERT) {
-                if (is_numeric($value)) {
-                    if (strstr($value, '.')) {
-                        $type = 'float';
-                    } else {
-                        $type = 'int';
-                    }
-                } else {
-                    if (SOAP_Type_hexBinary::is_hexbin($value)) {
-                        $type = 'hexBinary';
-                    } else {
-                        $dt =& new SOAP_Type_dateTime($value);
-                        if ($dt->toUnixtime() != -1) {
-                            $type = 'dateTime';
-                        }
-                    }
-                }
-            }
-            break;
-
         default:
             break;
         }

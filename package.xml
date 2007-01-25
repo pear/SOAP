@@ -41,14 +41,14 @@ http://pear.php.net/dtd/package-2.0.xsd">
  <date>2007-01-23</date>
  <version>
   <release>0.10.2</release>
-  <api>0.10.0</api>
+  <api>0.10.1</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>* Remove unreliable automatic base64 detection (Bug #9840).</notes>
+ <notes>* Remove SOAP_RAW_CONVERT setting.</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
    <dir name="example">
