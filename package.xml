@@ -48,7 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>* Remove SOAP_RAW_CONVERT setting.</notes>
+ <notes>* Remove SOAP_RAW_CONVERT and SOAP_OBJECT_STRUCT settings.</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
    <dir name="example">

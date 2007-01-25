@@ -24,16 +24,6 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
-/**
- * SOAP_OBJECT_STRUCT makes PEAR::SOAP use objects for SOAP structures rather
- * than arrays.  This has been done to provide a closer match to php-soap.  If
- * the old behaviour is needed, set to false.  The old behaviour is
- * deprecated.
- *
- * @global bool $GLOBALS['SOAP_OBJECT_STRUCT']
- */
-$GLOBALS['SOAP_OBJECT_STRUCT'] = true;
-
 require_once 'PEAR.php';
 require_once 'SOAP/Type/dateTime.php';
 require_once 'SOAP/Type/hexBinary.php';
@@ -660,8 +650,6 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function _getType(&$value)
     {
-        global $SOAP_OBJECT_STRUCT;
-
         $type = gettype($value);
         switch ($type) {
         case 'object':
@@ -799,12 +787,10 @@ class SOAP_Base extends SOAP_Base_Object
 
     function &_decode(&$soapval)
     {
-        global $SOAP_OBJECT_STRUCT;
-
         if (!$this->_isSoapValue($soapval)) {
             return $soapval;
         } elseif (is_array($soapval->value)) {
-            if ($SOAP_OBJECT_STRUCT && $soapval->type != 'Array') {
+            if ($soapval->type != 'Array') {
                 $classname = $this->_defaultObjectClassname;
                 if (isset($this->_type_translation[$soapval->tqn->fqn()])) {
                     // This will force an error in PHP if the class does not
@@ -830,7 +816,7 @@ class SOAP_Base extends SOAP_Base_Object
             }
 
             $counter = 1;
-            $isstruct = !$SOAP_OBJECT_STRUCT || !is_array($return);
+            $isstruct = !is_array($return);
             foreach ($soapval->value as $item) {
                 if (is_object($return)) {
                     if ($this->_wsdl) {
