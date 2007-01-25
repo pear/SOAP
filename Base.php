@@ -27,17 +27,6 @@
 define('MAIL_MIMEPART_CRLF', "\r\n");
 require_once 'PEAR.php';
 
-if (!function_exists('version_compare') ||
-    version_compare(phpversion(), '4.1', '<')) {
-    die("requires PHP 4.1 or higher\n");
-}
-if (version_compare(phpversion(), '4.1', '>=') &&
-    version_compare(phpversion(), '4.2', '<')) {
-    define('FLOAT', 'double');
-} else {
-    define('FLOAT', 'float');
-}
-
 if (!defined('INF')) {
     define('INF', 1.8e307);
 }
@@ -175,9 +164,9 @@ class SOAP_Base extends SOAP_Base_Object
         'http://www.w3.org/2001/XMLSchema' => array(
             'string' => 'string',
             'boolean' => 'boolean',
-            'float' => FLOAT,
-            'double' => FLOAT,
-            'decimal' => FLOAT,
+            'float' => 'float',
+            'double' => 'float',
+            'decimal' => 'float',
             'duration' => 'integer',
             'dateTime' => 'string',
             'time' => 'string',
@@ -225,8 +214,8 @@ class SOAP_Base extends SOAP_Base_Object
             'int' => 'integer',
             'boolean' => 'boolean',
             'string' => 'string',
-            'double' => FLOAT,
-            'float' => FLOAT,
+            'double' => 'float',
+            'float' => 'float',
             'dateTime' => 'string',
             'timeInstant' => 'string',
             'base64Binary' => 'string',
