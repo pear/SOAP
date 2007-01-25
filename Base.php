@@ -19,14 +19,12 @@
  * @author     Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
  * @author     Chuck Hagenbuch <chuck@horde.org>   Maintenance
  * @author     Jan Schneider <jan@horde.org>       Maintenance
- * @copyright  2003-2005 The PHP Group
+ * @copyright  2003-2007 The PHP Group
  * @license    http://www.php.net/license/2_02.txt  PHP License 2.02
  * @link       http://pear.php.net/package/SOAP
  */
 
 require_once 'PEAR.php';
-require_once 'SOAP/Type/dateTime.php';
-require_once 'SOAP/Type/hexBinary.php';
 
 // optional features
 $GLOBALS['SOAP_options'] = array();
