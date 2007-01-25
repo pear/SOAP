@@ -737,13 +737,9 @@ class SOAP_Base extends SOAP_Base_Object
                     if (SOAP_Type_hexBinary::is_hexbin($value)) {
                         $type = 'hexBinary';
                     } else {
-                        if ($this->_isBase64($value)) {
-                            $type = 'base64Binary';
-                        } else {
-                            $dt =& new SOAP_Type_dateTime($value);
-                            if ($dt->toUnixtime() != -1) {
-                                $type = 'dateTime';
-                            }
+                        $dt =& new SOAP_Type_dateTime($value);
+                        if ($dt->toUnixtime() != -1) {
+                            $type = 'dateTime';
                         }
                     }
                 }
@@ -783,21 +779,6 @@ class SOAP_Base extends SOAP_Base_Object
         $size = null;
 
         return 1;
-    }
-
-    /**
-     * Returns whether a string is base64 encoded data.
-     *
-     * @param string $value  The string to check.
-     *
-     * @return boolean  True if the specified value seems to be base64 encoded.
-     */
-    function _isBase64($value)
-    {
-        $l = strlen($value);
-        return $l &&
-            !preg_match('|[^A-Za-z=/+]|', $value) &&
-            base64_decode($value) !== false;
     }
 
     /**
