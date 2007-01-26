@@ -391,7 +391,9 @@ class SOAP_Base extends SOAP_Base_Object
             if (is_array($vars)) {
                 foreach (array_keys($vars) as $k) {
                     // Hide private vars.
-                    if ($k[0] == '_') continue;
+                    if ($k[0] == '_') {
+                        continue;
+                    }
                     if (is_object($vars[$k])) {
                         if (is_a($vars[$k], 'SOAP_Value')) {
                             $xmlout_value .= $vars[$k]->serialize($this);
@@ -693,13 +695,13 @@ class SOAP_Base extends SOAP_Base_Object
         $it = 0;
         foreach ($a as $k => $v) {
             // Checking the type is faster than regexp.
-            if (is_int($k) || $this->_isSoapValue($v)) {
+            if (!is_int($k)) {
                 return true;
             }
             // If someone has a large hash they should really be defining the
             // type.
             if ($it++ > 10) {
-			 $this->_raiseSoapFault('Large associative array passed where a SOAP_Value was expected');
+                $this->_raiseSoapFault('Large associative array passed where a SOAP_Value was expected');
                 return false;
             }
         }
