@@ -427,7 +427,7 @@ class SOAP_Base extends SOAP_Base_Object
 
             $array_type = $array_type_prefix = '';
             if ($numtypes != 1) {
-                $arrayTypeQName =& new QName($arrayType);
+                $arrayTypeQName = new QName($arrayType);
                 $arrayType = $arrayTypeQName->name;
                 $array_types = array();
                 $array_val = null;
@@ -532,8 +532,8 @@ class SOAP_Base extends SOAP_Base_Object
         $xml_attr = '';
         if (count($attributes)) {
             foreach ($attributes as $k => $v) {
-                $kqn =& new QName($k);
-                $vqn =& new QName($v);
+                $kqn = new QName($k);
+                $vqn = new QName($v);
                 $xml_attr .= ' ' . $kqn->fqn() . '="' . $vqn->fqn() . '"';
             }
         }
@@ -1049,7 +1049,7 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function setTypeTranslation($type, $class = null)
     {
-        $tq =& new QName($type);
+        $tq = new QName($type);
         if (!$class) {
             $class = $tq->name;
         }

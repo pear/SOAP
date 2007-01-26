@@ -209,16 +209,16 @@ class SOAP_Parser extends SOAP_Base
 
         // Add current node's value.
         if ($response) {
-            $nqn =& new Qname($this->message[$pos]['name'], $this->message[$pos]['namespace']);
-            $tqn =& new Qname($this->message[$pos]['type'], $this->message[$pos]['type_namespace']);
-            $response =& new SOAP_Value($nqn->fqn(), $tqn->fqn(), $response, $attrs);
+            $nqn = new QName($this->message[$pos]['name'], $this->message[$pos]['namespace']);
+            $tqn = new QName($this->message[$pos]['type'], $this->message[$pos]['type_namespace']);
+            $response = new SOAP_Value($nqn->fqn(), $tqn->fqn(), $response, $attrs);
             if (isset($this->message[$pos]['arrayType'])) {
                 $response->arrayType = $this->message[$pos]['arrayType'];
             }
         } else {
-            $nqn =& new Qname($this->message[$pos]['name'], $this->message[$pos]['namespace']);
-            $tqn =& new Qname($this->message[$pos]['type'], $this->message[$pos]['type_namespace']);
-            $response =& new SOAP_Value($nqn->fqn(), $tqn->fqn(), $this->message[$pos]['cdata'], $attrs);
+            $nqn = new QName($this->message[$pos]['name'], $this->message[$pos]['namespace']);
+            $tqn = new QName($this->message[$pos]['type'], $this->message[$pos]['type_namespace']);
+            $response = new SOAP_Value($nqn->fqn(), $tqn->fqn(), $this->message[$pos]['cdata'], $attrs);
         }
 
         // handle header attribute that we need
@@ -272,7 +272,7 @@ class SOAP_Parser extends SOAP_Base
         $this->depth_array[$this->depth] = $pos;
         // set self as current parent
         $this->parent = $pos;
-        $qname =& new QName($name);
+        $qname = new QName($name);
         // set status
         if (strcasecmp('envelope', $qname->name) == 0) {
             $this->status = 'envelope';
@@ -319,7 +319,7 @@ class SOAP_Parser extends SOAP_Base
         foreach ($attrs as $key => $value) {
             // If ns declarations, add to class level array of valid
             // namespaces.
-            $kqn =& new QName($key);
+            $kqn = new QName($key);
             if ($kqn->ns == 'xmlns') {
                 $prefix = $kqn->name;
 
@@ -340,14 +340,14 @@ class SOAP_Parser extends SOAP_Base
 
             // If it's a type declaration, set type.
             } elseif ($kqn->name == 'type') {
-                $vqn =& new QName($value);
+                $vqn = new QName($value);
                 $this->message[$pos]['type'] = $vqn->name;
                 $this->message[$pos]['type_namespace'] = $this->_getNamespaceForPrefix($vqn->ns);
                 // Should do something here with the namespace of
                 // specified type?
 
             } elseif ($kqn->name == 'arrayType') {
-                $vqn =& new QName($value);
+                $vqn = new QName($value);
                 $this->message[$pos]['type'] = 'Array';
                 if (isset($vqn->arraySize)) {
                     $this->message[$pos]['arraySize'] = $vqn->arraySize;
@@ -412,7 +412,7 @@ class SOAP_Parser extends SOAP_Base
 
         // Bring depth down a notch.
         $this->depth--;
-        $qname =& new QName($name);
+        $qname = new QName($name);
 
         // Get type if not explicitly declared in an xsi:type attribute.
         // XXX check on integrating wsdl validation here

@@ -356,8 +356,8 @@ class SOAP_Server extends SOAP_Base
                     if (is_a($method_response[$i], 'SOAP_Value')) {
                         $return_val[] =& $method_response[$i++];
                     } else {
-                        $qn =& new QName($key, $namespace);
-                        $return_val[] =& new SOAP_Value($qn->fqn(), $type, $method_response[$i++]);
+                        $qn = new QName($key, $namespace);
+                        $return_val[] = new SOAP_Value($qn->fqn(), $type, $method_response[$i++]);
                     }
                 }
             } else {
@@ -369,7 +369,7 @@ class SOAP_Server extends SOAP_Base
                     $values = array_values($return_type);
                     $return_type = $values[0];
                 }
-                $qn =& new QName($return_name, $namespace);
+                $qn = new QName($return_name, $namespace);
                 $return_val = array(new SOAP_Value($qn->fqn(), $return_type, $method_response));
             }
         }
@@ -504,8 +504,8 @@ class SOAP_Server extends SOAP_Base
                 $return_val = $this->buildResult($method_response, $this->return_type);
             }
 
-            $qn =& new QName($this->methodname . 'Response', $this->method_namespace);
-            $methodValue =& new SOAP_Value($qn->fqn(), 'Struct', $return_val);
+            $qn = new QName($this->methodname . 'Response', $this->method_namespace);
+            $methodValue = new SOAP_Value($qn->fqn(), 'Struct', $return_val);
         } else {
             $methodValue =& $method_response;
         }
