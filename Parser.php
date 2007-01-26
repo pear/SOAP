@@ -111,6 +111,41 @@ class SOAP_Parser extends SOAP_Base
         }
     }
 
+    /**
+     * Returns an array of responses.
+     *
+     * After parsing a SOAP message, use this to get the response.
+     *
+     * @return array
+     */
+    function getResponse()
+    {
+        if (isset($this->root_struct[0]) &&
+            $this->root_struct[0]) {
+            return $this->_buildResponse($this->root_struct[0]);
+        } else {
+            return $this->_raiseSoapFault('Cannot build response');
+        }
+    }
+
+    /**
+     * Returns an array of header responses.
+     *
+     * After parsing a SOAP message, use this to get the response.
+     *
+     * @return array
+     */
+    function getHeaders()
+    {
+        if (isset($this->header_struct[0]) &&
+            $this->header_struct[0]) {
+            return $this->_buildResponse($this->header_struct[0]);
+        } else {
+            // We don't fault if there are no headers; that can be handled by
+            // the application if necessary.
+            return null;
+        }
+    }
 
     /**
      * Recurses to build a multi dimensional array.
@@ -459,42 +494,6 @@ class SOAP_Parser extends SOAP_Base
             $this->message[$pos]['cdata'] .= $data;
         } else {
             $this->message[$pos]['cdata'] = $data;
-        }
-    }
-
-    /**
-     * Returns an array of responses.
-     *
-     * After parsing a SOAP message, use this to get the response.
-     *
-     * @return array
-     */
-    function getResponse()
-    {
-        if (isset($this->root_struct[0]) &&
-            $this->root_struct[0]) {
-            return $this->_buildResponse($this->root_struct[0]);
-        } else {
-            return $this->_raiseSoapFault('Cannot build response');
-        }
-    }
-
-    /**
-     * Returns an array of header responses.
-     *
-     * After parsing a SOAP message, use this to get the response.
-     *
-     * @return array
-     */
-    function getHeaders()
-    {
-        if (isset($this->header_struct[0]) &&
-            $this->header_struct[0]) {
-            return $this->_buildResponse($this->header_struct[0]);
-        } else {
-            // We don't fault if there are no headers; that can be handled by
-            // the application if necessary.
-            return null;
         }
     }
 
