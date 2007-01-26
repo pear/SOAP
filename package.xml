@@ -40,8 +40,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </lead>
  <date>2007-01-23</date>
  <version>
-  <release>0.10.2</release>
-  <api>0.10.1</api>
+  <release>0.11.0</release>
+  <api>0.11.0</api>
  </version>
  <stability>
   <release>beta</release>
@@ -49,6 +49,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>* Remove SOAP_RAW_CONVERT and SOAP_OBJECT_STRUCT settings.
+* Don't decode base64 encoded data automatically to be consistent with other encodings like hexBinary that aren't decoded either.
 * Fix serializing of arrays.</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">

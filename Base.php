@@ -832,12 +832,7 @@ class SOAP_Base extends SOAP_Base_Object
                     $this->_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
         }
 
-        if ($this->_isBase64Type($soapval->type)) {
-            $value = base64_decode($soapval->value);
-            return $value;
-        } else {
-            return $soapval->value;
-        }
+        return $soapval->value;
     }
 
     /**
