@@ -413,6 +413,7 @@ class SOAP_Base extends SOAP_Base_Object
             $orig_type = $type;
             $type = 'Array';
             $numtypes = 0;
+            $value = (array)$value;
             // XXX this will be slow on larger arrays.  Basically, it flattens
             // arrays to allow us to serialize multi-dimensional arrays.  We
             // only do this if arrayType is set, which will typically only
