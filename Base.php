@@ -896,17 +896,16 @@ class SOAP_Base extends SOAP_Base_Object
         return $xml;
     }
 
-    function _makeMimeMessage(&$xml, $encoding = SOAP_DEFAULT_ENCODING)
+    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         if (!@include_once 'Mail/mimePart.php') {
             return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
         }
 
-        // Encode any attachments.
-        // See http://www.w3.org/TR/SOAP-attachments
+        // Encode any attachments.  See http://www.w3.org/TR/SOAP-attachments
         // Now we have to mime encode the message.
         $params = array('content_type' => 'multipart/related; type=text/xml');
-        $msg =& new Mail_mimePart('', $params);
+        $msg = new Mail_mimePart('', $params);
 
         // Add the xml part.
         $params['content_type'] = 'text/xml';
@@ -916,8 +915,8 @@ class SOAP_Base extends SOAP_Base_Object
 
         // Add the attachements
         for ($i = 0, $c = count($this->_attachments); $i < $c; ++$i) {
-            $attachment =& $this->_attachments[$i];
-            $msg->addSubPart($attachment['body'], $attachment);
+            $msg->addSubPart($this->_attachments[$i]['body'],
+                             $this->_attachments[$i]);
         }
 
         return $msg->encode();
@@ -933,16 +932,15 @@ class SOAP_Base extends SOAP_Base_Object
         // Encode any attachments.  See
         // http://search.ietf.org/internet-drafts/draft-nielsen-dime-soap-00.txt
         // Now we have to DIME encode the message
-        $dime =& new Net_DIME_Message();
+        $dime = new Net_DIME_Message();
         $msg = $dime->encodeData($xml, SOAP_ENVELOP, null, NET_DIME_TYPE_URI);
 
         // Add the attachments.
         $c = count($this->_attachments);
         for ($i = 0; $i < $c; $i++) {
-            $attachment =& $this->_attachments[$i];
-            $msg .= $dime->encodeData($attachment['body'],
-                                      $attachment['content_type'],
-                                      $attachment['cid'],
+            $msg .= $dime->encodeData($this->_attachments[$i]['body'],
+                                      $this->_attachments[$i]['content_type'],
+                                      $this->_attachments[$i]['cid'],
                                       NET_DIME_TYPE_MEDIA);
         }
         $msg .= $dime->endMessage();

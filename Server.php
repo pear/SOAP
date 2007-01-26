@@ -131,7 +131,7 @@ class SOAP_Server extends SOAP_Base
             return false;
         }
 
-        $this->fault =& new SOAP_Fault($errmsg, 'Server', 'PHP', "Errno: $errno\nFilename: $filename\nLineno: $linenum\n");
+        $this->fault = new SOAP_Fault($errmsg, 'Server', 'PHP', "Errno: $errno\nFilename: $filename\nLineno: $linenum\n");
 
         $this->_sendResponse();
         exit;
@@ -790,7 +790,7 @@ class SOAP_Server extends SOAP_Base
     function bindWSDL($wsdl_url)
     {
         /* Instantiate WSDL class. */
-        $this->_wsdl =& new SOAP_WSDL($wsdl_url);
+        $this->_wsdl = new SOAP_WSDL($wsdl_url);
         if ($this->_wsdl->fault) {
             $this->_raiseSoapFault($this->_wsdl->fault);
         }
@@ -803,7 +803,7 @@ class SOAP_Server extends SOAP_Base
                            $service_desc = '')
     {
         if (!isset($this->_wsdl)) {
-            $this->_wsdl =& new SOAP_WSDL;
+            $this->_wsdl = new SOAP_WSDL;
         }
 
         $this->_wsdl->parseObject($wsdl_obj, $targetNamespace, $service_name, $service_desc);
@@ -812,4 +812,5 @@ class SOAP_Server extends SOAP_Base
             $this->_raiseSoapFault($this->_wsdl->fault);
         }
     }
+
 }

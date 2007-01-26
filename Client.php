@@ -217,9 +217,9 @@ class SOAP_Client extends SOAP_Client_Overload
         if ($wsdl) {
             $this->_endpointType = 'wsdl';
             // instantiate wsdl class
-            $this->_wsdl =& new SOAP_WSDL($this->_endpoint,
-                                          $this->_proxy_params,
-                                          $cache);
+            $this->_wsdl = new SOAP_WSDL($this->_endpoint,
+                                         $this->_proxy_params,
+                                         $cache);
             if ($this->_wsdl->fault) {
                 $this->_raiseSoapFault($this->_wsdl->fault);
             }
@@ -266,11 +266,11 @@ class SOAP_Client extends SOAP_Client_Overload
      *                                 'mustunderstand', and 'actor' to send
      *                                 as a header.
      */
-    function addHeader(&$soap_value)
+    function addHeader($soap_value)
     {
         // Add a new header to the message.
         if (is_a($soap_value, 'SOAP_Header')) {
-            $this->headersOut[] =& $soap_value;
+            $this->headersOut[] = $soap_value;
         } elseif (is_array($soap_value)) {
             // name, value, namespace, mustunderstand, actor
             $this->headersOut[] = new SOAP_Header($soap_value[0],
@@ -319,9 +319,9 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->wire = null;
         $this->xml = null;
 
-        $soap_data =& $this->_generate($method, $params, $namespace, $soapAction);
+        $soap_data = $this->_generate($method, $params, $namespace, $soapAction);
         if (PEAR::isError($soap_data)) {
-            $fault =& $this->_raiseSoapFault($soap_data);
+            $fault = $this->_raiseSoapFault($soap_data);
             return $fault;
         }
 
@@ -336,7 +336,7 @@ class SOAP_Client extends SOAP_Client_Overload
             if (PEAR::isError($this->_soap_transport)) {
                 $fault =& $this->_soap_transport;
                 $this->_soap_transport = null;
-                $fault =& $this->_raiseSoapFault($fault);
+                $fault = $this->_raiseSoapFault($fault);
                 return $fault;
             }
         }
@@ -354,7 +354,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->wire = $this->getWire();
         }
         if ($this->_soap_transport->fault) {
-            $fault =& $this->_raiseSoapFault($this->xml);
+            $fault = $this->_raiseSoapFault($this->xml);
             return $fault;
         }
 
@@ -527,8 +527,8 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_options['trace'] = $trace;
     }
 
-    function &_generate($method, &$params, $namespace = false,
-                        $soapAction = false)
+    function _generate($method, &$params, $namespace = false,
+                       $soapAction = false)
     {
         $this->fault = null;
         $this->_options['input'] = 'parse'; 
@@ -563,23 +563,20 @@ class SOAP_Client extends SOAP_Client_Overload
                 $this->_portName = $this->_wsdl->getPortName($method);
             }
             if (PEAR::isError($this->_portName)) {
-                $fault =& $this->_raiseSoapFault($this->_portName);
-                return $fault;
+                return $this->_raiseSoapFault($this->_portName);
             }
 
             // Get endpoint.
             $this->_endpoint = $this->_wsdl->getEndpoint($this->_portName);
             if (PEAR::isError($this->_endpoint)) {
-                $fault =& $this->_raiseSoapFault($this->_endpoint);
-                return $fault;
+                return $this->_raiseSoapFault($this->_endpoint);
             }
 
             // Get operation data.
             $opData = $this->_wsdl->getOperationData($this->_portName, $method);
 
             if (PEAR::isError($opData)) {
-                $fault =& $this->_raiseSoapFault($opData);
-                return $fault;
+                return $this->_raiseSoapFault($opData);
             }
             $namespace = $opData['namespace'];
             $this->_options['style'] = $opData['style'];
@@ -608,8 +605,7 @@ class SOAP_Client extends SOAP_Client_Overload
                         } else {
                             // We now force an associative array for
                             // parameters if using WSDL.
-                            $fault =& $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
-                            return $fault;
+                            return $this->_raiseSoapFault("The named parameter $name is not in the call parameters.");
                         }
                         if (gettype($nparams[$name]) != 'object' ||
                             !is_a($nparams[$name], 'SOAP_Value')) {
@@ -694,8 +690,7 @@ class SOAP_Client extends SOAP_Client_Overload
         unset($this->headersOut);
 
         if (PEAR::isError($soap_msg)) {
-            $fault =& $this->_raiseSoapFault($soap_msg);
-            return $fault;
+            return $this->_raiseSoapFault($soap_msg);
         }
 
         // Handle MIME or DIME encoding.
@@ -705,23 +700,20 @@ class SOAP_Client extends SOAP_Client_Overload
             if ((isset($this->_options['attachments']) &&
                  $this->_options['attachments'] == 'Mime') ||
                 isset($this->_options['Mime'])) {
-                $soap_msg =& $this->_makeMimeMessage($soap_msg,
-                                                     $this->_encoding);
+                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding);
             } else {
                 // default is dime
-                $soap_msg =& $this->_makeDIMEMessage($soap_msg,
-                                                     $this->_encoding);
+                $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->_encoding);
                 $this->_options['headers']['Content-Type'] = 'application/dime';
             }
             if (PEAR::isError($soap_msg)) {
-                $fault =& $this->_raiseSoapFault($soap_msg);
-                return $fault;
+                return $this->_raiseSoapFault($soap_msg);
             }
         }
 
         // Instantiate client.
         if (is_array($soap_msg)) {
-            $soap_data =& $soap_msg['body'];
+            $soap_data = $soap_msg['body'];
             if (count($soap_msg['headers'])) {
                 if (isset($this->_options['headers'])) {
                     $this->_options['headers'] = array_merge($this->_options['headers'], $soap_msg['headers']);
@@ -730,7 +722,7 @@ class SOAP_Client extends SOAP_Client_Overload
                 }
             }
         } else {
-            $soap_data =& $soap_msg;
+            $soap_data = $soap_msg;
         }
 
         return $soap_data;
@@ -753,7 +745,7 @@ class SOAP_Client extends SOAP_Client_Overload
      * @param string $encoding    Character set encoding, defaults to 'UTF-8'.
      * @param array $attachments  List of attachments.
      */
-    function &parseResponse(&$response, $encoding, &$attachments)
+    function &parseResponse($response, $encoding, &$attachments)
     {
         // Parse the response.
         $response =& new SOAP_Parser($response, $encoding, $attachments);
@@ -773,7 +765,7 @@ class SOAP_Client extends SOAP_Client_Overload
         return $decoded;
     }
 
-    function &_decodeResponse(&$response, $shift = true)
+    function &_decodeResponse($response, $shift = true)
     {
         if (!$response) {
             $decoded = null;
