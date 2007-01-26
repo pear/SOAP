@@ -108,7 +108,7 @@ class SOAP_Server extends SOAP_Base
         }
         // assume we encode with section 5
         $this->_section5 = true;
-        if ($this->_options['use']=='literal') {
+        if ($this->_options['use'] == 'literal') {
             $this->_section5 = false;
         }
     }
@@ -496,7 +496,7 @@ class SOAP_Server extends SOAP_Base
 
         if ($this->_options['parameters'] ||
             !$method_response ||
-            $this->_options['style']=='rpc') {
+            $this->_options['style'] == 'rpc') {
             /* Get the method result. */
             if (is_null($method_response)) {
                 $return_val = null;
