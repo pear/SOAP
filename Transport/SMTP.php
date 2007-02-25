@@ -156,7 +156,6 @@ class SOAP_Transport_SMTP extends SOAP_Transport
             $val = new SOAP_Value('Fault', 'Struct', $sval);
         }
 
-        $mqname = new QName($method, $namespace);
         $methodValue = new SOAP_Value('Response', 'Struct', array($val));
 
         $this->incoming_payload = $this->makeEnvelope($methodValue,
@@ -189,16 +188,16 @@ class SOAP_Transport_SMTP extends SOAP_Transport
     function _validateUrl()
     {
         if (!is_array($this->urlparts)) {
-            $this->_raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL $this->url");
             return false;
         }
         if (!isset($this->urlparts['scheme']) ||
             strcasecmp($this->urlparts['scheme'], 'mailto') != 0) {
-                $this->_raiseSoapFault("Unable to parse URL $url");
+                $this->_raiseSoapFault("Unable to parse URL $this->url");
                 return false;
         }
         if (!isset($this->urlparts['path'])) {
-            $this->_raiseSoapFault("Unable to parse URL $url");
+            $this->_raiseSoapFault("Unable to parse URL $this->url");
             return false;
         }
         return true;

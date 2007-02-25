@@ -132,7 +132,7 @@ class SOAP_Transport extends SOAP_Base
             /* Handle other transport types */
             $transport_type = strtoupper($urlparts['scheme']);
         }
-        $transport_include = 'SOAP/Transport/' . $transport_type . '.php';
+        $transport_include = 'SOAP/Transport/' . basename($transport_type) . '.php';
         $res = @include_once($transport_include);
         if (!$res) {
             $fault = SOAP_Base_Object::_raiseSoapFault("No Transport for {$urlparts['scheme']}");

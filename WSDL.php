@@ -209,10 +209,8 @@ class SOAP_WSDL extends SOAP_Base
      * Fills the WSDL array tree with data from a WSDL file.
      *
      * @param string $wsdl_uri  URL to WSDL file.
-     * @param array $proxy      Contains options for HTTP_Request class
-     *                          @see HTTP_Request.
      */
-    function parseURL($wsdl_uri, $proxy = array())
+    function parseURL($wsdl_uri)
     {
         $parser =& new $this->wsdlParserClass($wsdl_uri, $this, $this->docs);
 
@@ -380,7 +378,7 @@ class SOAP_WSDL extends SOAP_Base
         }
 
         // Overloading lowercases function names :(
-        foreach ($this->services[$this->service]['ports'] as $port => $portAttrs) {
+        foreach ($this->services[$this->service]['ports'] as $portAttrs) {
             foreach (array_keys($this->bindings[$portAttrs['binding']]['operations']) as $op) {
                 if (strcasecmp($op, $operation) == 0) {
                     $operation = $op;
@@ -415,7 +413,7 @@ class SOAP_WSDL extends SOAP_Base
                 $checkmessages = array();
                 // Find what messages use this datatype.
                 foreach ($this->messages as $messagename => $message) {
-                    foreach ($message as $partname => $part) {
+                    foreach ($message as $part) {
                         if ($part['type'] == $datatype) {
                             $checkmessages[] = $messagename;
                             break;
@@ -423,8 +421,7 @@ class SOAP_WSDL extends SOAP_Base
                     }
                 }
                 // Find the operation that uses this message.
-                $dataHandler = null;
-                foreach($this->portTypes as $portname => $porttype) {
+                foreach($this->portTypes as $porttype) {
                     foreach ($porttype as $opname => $opinfo) {
                         foreach ($checkmessages as $messagename) {
                             if ($opinfo['input']['message'] == $messagename) {
@@ -678,7 +675,6 @@ class SOAP_WSDL extends SOAP_Base
                             // The type or element refered to is used for
                             // parameters.
                             $elattrs = null;
-                            $element = $_argtype['element'];
                             $el = $this->elements[$_argtype['namespace']][$_argtype['type']];
 
                             if ($el['complex']) {
@@ -861,7 +857,7 @@ class SOAP_WSDL extends SOAP_Base
         if ($name && $type) {
             // XXX TODO:
             // look up the name in the wsdl and validate the type.
-            foreach ($this->complexTypes as $ns => $types) {
+            foreach ($this->complexTypes as $types) {
                 if (isset($types[$type])) {
                     if (isset($types[$type]['type'])) {
                         list($arraytype_ns, $arraytype, $array_depth) = isset($types[$type]['arrayType'])
@@ -1965,15 +1961,21 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
      */
     var $wsdl = null;
 
-    /** Constructor
+    /**
+     * Constructor.
      *
-     * @param  $objects Reference to the object or array of objects to parse
-     * @param  $wsdl Reference to the SOAP_WSDL object to populate
-     * @param  $targetNamespace The target namespace of schema types etc.
-     * @param  $service_name Name of the WSDL <service>
-     * @param  $service_desc Optional description of the WSDL <service>
+     * @param object|array $objects    Reference to the object or array of
+     *                                 objects to parse.
+     * @param SOAP_WSDL $wsdl          Reference to the SOAP_WSDL object to
+     *                                 populate.
+     * @param string $targetNamespace  The target namespace of schema types
+     *                                 etc.
+     * @param string $service_name     Name of the WSDL <service>.
+     * @param string $service_desc     Optional description of the WSDL
+     *                                 <service>.
      */
-    function SOAP_WSDL_ObjectParser(&$objects, &$wsdl, $targetNamespace, $service_name, $service_desc = '')
+    function SOAP_WSDL_ObjectParser(&$objects, &$wsdl, $targetNamespace,
+                                    $service_name, $service_desc = '')
     {
         parent::SOAP_Base('WSDLOBJECTPARSER');
 
@@ -1986,11 +1988,14 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         $wsdl_ref = (is_array($objects)? $objects : array(&$objects));
 
         foreach ($wsdl_ref as $ref_item) {
-            if (!is_object($ref_item))
-                return $this->_raiseSoapFault('Invalid web service object passed to object parser', 'urn:' . get_class($object));
+            if (!is_object($ref_item)) {
+                $this->_raiseSoapFault('Invalid web service object passed to object parser');
+                continue;
+            }
 
-            if ($this->_parse($ref_item, $targetNamespace, $service_name) != true)
+            if (!$this->_parse($ref_item, $targetNamespace, $service_name)) {
                 break;
+            }
         }
 
         // Build bindings from abstract data.
@@ -2163,24 +2168,25 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
     }
 
     /**
-     * Take all the abstract WSDL data and build concrete bindings and
+     * Takes all the abstract WSDL data and builds concrete bindings and
      * services (destructive).
      *
-     * XXX Current implementation discards $service_desc.
-     *
-     * @param  $schemaNamespace Namespace for types etc.
-     * @param  $service_name Name of the WSDL <service>
-     * @param  $service_desc Optional description of the WSDL <service>
      * @access private
+     * @todo Current implementation discards $service_desc.
+     *
+     * @param string $schemaNamespace  Namespace for types etc.
+     * @param string $service_name     Name of the WSDL <service>.
+     * @param string $service_desc     Optional description of the WSDL
+     *                                 <service>.
      */
-    function _generateBindingsAndServices($schemaNamespace, $service_name, $service_desc = '')
+    function _generateBindingsAndServices($schemaNamespace, $service_name,
+                                          $service_desc = '')
     {
         // Populate tree with bindings information
         // XXX Current implementation only supports one binding that
         // matches the single portType and all of its operations.
         // XXX Is this the correct use of $schemaNamespace here?
         // *** <wsdl:binding> ***
-
         $this->wsdl->bindings[$service_name . 'Binding'] = array(
                 'type' => $service_name . 'Port',
                 'namespace' => $this->tnsPrefix,

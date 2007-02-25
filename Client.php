@@ -589,7 +589,6 @@ class SOAP_Client extends SOAP_Client_Overload
                 $nparams = array();
                 if (isset($opData['input']['parts']) &&
                     count($opData['input']['parts'])) {
-                    $i = 0;
                     foreach ($opData['input']['parts'] as $name => $part) {
                         $xmlns = '';
                         $attrs = array();
@@ -620,7 +619,6 @@ class SOAP_Client extends SOAP_Client_Overload
                                 $type_namespace = null;
                             }
                             $qname->namespace = $type_namespace;
-                            $type = $qname->name;
                             $pqname = $name;
                             if ($xmlns) {
                                 $pqname = '{' . $xmlns . '}' . $name;

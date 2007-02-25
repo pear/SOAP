@@ -209,7 +209,7 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
                     } else {
                         $ctype['complexContent']['attr'] = '';
                         $ctype['complexContent']['restriction']['attr']['base'] = 'SOAP-ENC:Array';
-                        foreach ($_vartype as $array_var => $array_type) {
+                        foreach ($_vartype as $array_type) {
                             list($_vartypens, $_vartype) = $this->_getTypeNs($array_type);
                             $ctype['complexContent']['restriction']['attribute']['attr']['ref'] = 'SOAP-ENC:arrayType';
                             $ctype['complexContent']['restriction']['attribute']['attr']['wsdl:arrayType'] = $_vartypens . ':' . $_vartype . '[]';
@@ -372,8 +372,8 @@ class SOAP_DISCO_Server extends SOAP_Base_Object {
     function _ifComplexTypeExists($typesArray, $type_name)
     {
         if (is_array($typesArray)) {
-            foreach ($typesArray as $index => $type_data) {
-                if ($typesArray[$index]['attr']['name'] == $type_name) {
+            foreach ($typesArray as $type_data) {
+                if ($type_data['attr']['name'] == $type_name) {
                     return true;
                 }
             }

@@ -334,8 +334,7 @@ class SOAP_Transport_HTTP extends SOAP_Transport
             // SOAP faults.
             $this->_parseHeaders($match[1]);
 
-            list($protocol, $code, $msg) = sscanf($this->result_headers[0],
-                                                  '%s %s %s');
+            list(, $code, $msg) = sscanf($this->result_headers[0], '%s %s %s');
             unset($this->result_headers[0]);
 
             switch($code) {

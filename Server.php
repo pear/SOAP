@@ -122,7 +122,7 @@ class SOAP_Server extends SOAP_Base
      *
      * @see http://www.php.net/set_error_handler
      */
-    function _errorHandler($errno, $errmsg, $filename, $linenum, $vars)
+    function _errorHandler($errno, $errmsg, $filename, $linenum)
     {
         /* The error handler should ignore '0' errors, eg. hidden by @ - see
          * the set_error_handler manual page. (thanks to Alan Knowles). */
@@ -604,8 +604,8 @@ class SOAP_Server extends SOAP_Base
         }
 
         /* If there are input parameters required. */
-        if ($sig = $map['in']) {
-            $this->input_value = count($sig);
+        if ($map['in']) {
+            $this->input_value = count($map['in']);
             $this->return_type = false;
             if (is_array($map['out'])) {
                 $this->return_type = count($map['out']) > 1
@@ -614,12 +614,12 @@ class SOAP_Server extends SOAP_Base
             }
             if (is_array($params)) {
                 /* Validate the number of parameters. */
-                if (count($params) == count($sig)) {
+                if (count($params) == count($map['in'])) {
                     /* Make array of param types. */
                     foreach ($params as $param) {
                         $p[] = strtolower($param->type);
                     }
-                    $sig_t = array_values($sig);
+                    $sig_t = array_values($map['in']);
                     /* Validate each param's type. */
                     for ($i = 0; $i < count($p); $i++) {
                         /* If SOAP types do not match, it's still fine if the
@@ -639,12 +639,12 @@ class SOAP_Server extends SOAP_Base
                     return true;
                 } else {
                     /* Wrong number of params. */
-                    $this->_raiseSoapFault('SOAP request contained incorrect number of parameters. method "' . $this->methodname . '" required ' . count($sig) . ' and request provided ' . count($params), '', '', 'Client');
+                    $this->_raiseSoapFault('SOAP request contained incorrect number of parameters. method "' . $this->methodname . '" required ' . count($map['in']) . ' and request provided ' . count($params), '', '', 'Client');
                     return false;
                 }
             } else {
                 /* No params. */
-                $this->_raiseSoapFault('SOAP request contained incorrect number of parameters. method "' . $this->methodname . '" requires ' . count($sig) . ' parameters, and request provided none.', '', '', 'Client');
+                $this->_raiseSoapFault('SOAP request contained incorrect number of parameters. method "' . $this->methodname . '" requires ' . count($map['in']) . ' parameters, and request provided none.', '', '', 'Client');
                 return false;
             }
         }
