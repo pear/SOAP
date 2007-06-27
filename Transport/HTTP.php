@@ -560,8 +560,12 @@ class SOAP_Transport_HTTP extends SOAP_Transport
         if (!isset($options['soapaction'])) {
             $options['soapaction'] = '';
         }
+        if (!isset($options['headers']['Content-Type'])) {
+           $options['headers']['Content-Type'] = 'text/xml';
+        }
         curl_setopt($ch, CURLOPT_HTTPHEADER,
-                    array('Content-Type: text/xml;charset=' . $this->encoding,
+                    array('Content-Type: ' . $options['headers']['Content-Type']
+                         . ';charset=' . $this->encoding,
                           'SOAPAction: "' . $options['soapaction'] . '"'));
         curl_setopt($ch, CURLOPT_USERAGENT,
                     $this->_userAgent);
