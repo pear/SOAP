@@ -445,6 +445,8 @@ class SOAP_Transport_HTTP extends SOAP_Transport
         $this->headers['Content-Type'] = "text/xml; charset=$this->encoding";
         $this->headers['Content-Length'] = strlen($msg);
         $this->headers['SOAPAction'] = '"' . $action . '"';
+        $this->headers['Connection'] = 'close';
+
         if (isset($options['headers'])) {
             $this->headers = array_merge($this->headers, $options['headers']);
         }
