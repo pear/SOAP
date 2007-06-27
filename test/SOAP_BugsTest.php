@@ -8,6 +8,9 @@ require_once "PHPUnit/Framework/TestCase.php";
 require_once "PHPUnit/Framework/TestSuite.php";
 
 require_once 'SOAP/Base.php';
+require_once 'SOAP/Client.php';
+require_once 'SOAP/Parser.php';
+require_once 'SOAP/Value.php';
 
 /**
  * Test class for SOAP bugs.
@@ -51,7 +54,6 @@ class SOAP_BugsTest extends PHPUnit_Framework_TestCase {
     */
     public function testBug10131()
     {
-        require_once 'SOAP/Parser.php';
 
         /*
         require_once 'SOAP/Base.php';
@@ -107,7 +109,37 @@ EOT;
         $soapval = $parser->getResponse();
         $this->assertEquals('arraytest', $soapval->name);
         $this->assertEquals(array(),     $soapval->value);
-    }
+    }//public function testBug10131()
+
+
+
+    /**
+    *   Bug #2627   Array in return object was not parsed correctly
+    *   http://pear.php.net/bugs/bug.php?id=2627
+    */
+    public function testBug2627()
+    {
+        $val = new SOAP_Value('StructTest', 'Struct', array(
+            new SOAP_Value('zero', 'string', 'val11'),
+            new SOAP_Value('one', 'string', 'val11'),
+            new SOAP_Value('one', 'string', 'val12'),
+            new SOAP_Value('two', 'string', 'val21'),
+            new SOAP_Value('two', 'string', 'val22'),
+            new SOAP_Value('two', 'string', 'val31'),
+            new SOAP_Value('two', 'string', 'val32')
+        ));
+
+        $client = new SOAP_Client('http://localhost/');
+        $dec    = $client->_decodeResponse($val);
+
+        $this->assertTrue(is_array($dec));
+        $this->assertEquals(3, count($dec));
+        $this->assertTrue(is_string($dec['zero']));
+        $this->assertTrue(is_array($dec['one']));
+        $this->assertTrue(is_array($dec['two']));
+        $this->assertEquals(2, count($dec['one']));
+        $this->assertEquals(4, count($dec['two']));
+    }//public function testBug2627()
 
 
 }
