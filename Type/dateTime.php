@@ -94,7 +94,12 @@ class SOAP_Type_dateTime
             return 0;
         }
 
-        return date('Y-m-d\TH:i:sO', $timestamp);
+        //simulate PHP5's P parameter
+        $zone = date('O', $timestamp);
+        if (strlen($zone) == 5) {
+            $zone = substr($zone, 0, 3) . ':' . substr($zone, 3);
+        }
+        return date('Y-m-d\TH:i:s', $timestamp) . $zone;
     }
 
     /**

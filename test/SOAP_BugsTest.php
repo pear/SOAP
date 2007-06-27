@@ -12,6 +12,7 @@ require_once 'SOAP/Base.php';
 require_once 'SOAP/Client.php';
 require_once 'SOAP/Parser.php';
 require_once 'SOAP/Value.php';
+require_once 'SOAP/Type/dateTime.php';
 
 /**
  * Test class for SOAP bugs.
@@ -144,6 +145,30 @@ EOT;
         $this->assertEquals('val22', $dec->two[1]);
     }//public function testBug2627()
 
+
+
+    /**
+    *   Bug #10206: Timezone in Type/dateTime.php not converted correctly
+    *   http://pear.php.net/bugs/bug.php?id=10206
+    */
+    public function testBug10206()
+    {
+        $old = '2002-10-10T12:00:00+02:00';
+        $dt  = new SOAP_Type_dateTime($old);
+        $new = $dt->toString();
+        //can only check for local timezone
+        if (date('O') == '+0200') {
+            $this->assertEquals($old, $new);
+        }
+
+        $dt  = new SOAP_Type_dateTime(time());
+        $new = $dt->toString();
+        $dt2 = new SOAP_Type_dateTime($new);
+        $new2=$dt2->toString();
+        $this->assertEquals($new, $new2);
+        $this->assertEquals(13, strpos($new , ':'));
+        $this->assertEquals(13, strpos($new2, ':'));
+    }//public function testBug10206()
 
 
 
