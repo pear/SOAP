@@ -120,6 +120,7 @@ class SOAP_Base_Object extends PEAR
             if (!$code) {
                 $code = $is_instance ? $this->_myfaultcode : 'Client';
             }
+            require_once 'SOAP/Fault.php';
             $fault =& new SOAP_Fault($str,
                                      $code,
                                      $actorURI,
