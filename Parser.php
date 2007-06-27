@@ -239,10 +239,16 @@ class SOAP_Parser extends SOAP_Base
                              $this->message[$pos]['namespace']);
             $tqn = new QName($this->message[$pos]['type'],
                              $this->message[$pos]['type_namespace']);
-            $response = new SOAP_Value($nqn->fqn(),
-                                       $tqn->fqn(),
-                                       $this->message[$pos]['cdata'],
-                                       $attrs);
+            // Check if value is an empty array
+            if ($tqn->name == 'Array') {
+                $response =& new SOAP_Value($nqn->fqn(), $tqn->fqn(),
+                                            array(), $attrs);
+            } else {
+                $response = new SOAP_Value($nqn->fqn(),
+                                            $tqn->fqn(),
+                                            $this->message[$pos]['cdata'],
+                                            $attrs);
+            }
         }
 
         // Handle header attribute that we need.
