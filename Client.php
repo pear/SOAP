@@ -763,6 +763,13 @@ class SOAP_Client extends SOAP_Client_Overload
         return $decoded;
     }
 
+    /**
+    *   Converts a complex SOAP_Value into a PHP Array
+    *
+    *   @param SOAP_Value   $response   value object
+    *   @param boolean      $shift      FIXME
+    *   @return Array
+    */
     function &_decodeResponse($response, $shift = true)
     {
         if (!$response) {

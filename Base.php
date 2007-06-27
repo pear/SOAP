@@ -716,6 +716,9 @@ class SOAP_Base extends SOAP_Base_Object
         return strtr($string, $trans_tbl);
     }
 
+    /**
+    *   Converts a SOAP_Value object into a StdClass PHP object
+    */
     function &_decode(&$soapval)
     {
         if (!$this->_isSoapValue($soapval)) {
@@ -769,13 +772,18 @@ class SOAP_Base extends SOAP_Base_Object
                         } elseif (isset($return->{$item->name}) &&
                                   is_array($return->{$item->name})) {
                             $return->{$item->name}[] = $this->_decode($item);
+                        } elseif (isset($return->{$item->name})) {
+                            $return->{$item->name} = array(
+                                $return->{$item->name},
+                                $this->_decode($item)
+                            );
                         } elseif (is_array($return)) {
                             $return[] =& $this->_decode($item);
                         } else {
                             $return->{$item->name} =& $this->_decode($item);
                         }
                     } elseif (isset($return->{$item->name})) {
-                        $isstruct = false;
+                        //$isstruct = false;
                         if (count(get_object_vars($return)) == 1) {
                             $d =& $this->_decode($item);
                             $return = array($return->{$item->name}, $d);

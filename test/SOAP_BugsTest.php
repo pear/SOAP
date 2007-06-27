@@ -3,6 +3,7 @@
 if (!defined("PHPUnit_MAIN_METHOD")) {
     define("PHPUnit_MAIN_METHOD", "SOAP_BugsTest::main");
 }
+chdir(dirname(__FILE__) . '/../');
 
 require_once "PHPUnit/Framework/TestCase.php";
 require_once "PHPUnit/Framework/TestSuite.php";
@@ -120,27 +121,49 @@ EOT;
     public function testBug2627()
     {
         $val = new SOAP_Value('StructTest', 'Struct', array(
-            new SOAP_Value('zero', 'string', 'val11'),
+            new SOAP_Value('zero', 'string', 'val01'),
             new SOAP_Value('one', 'string', 'val11'),
             new SOAP_Value('one', 'string', 'val12'),
             new SOAP_Value('two', 'string', 'val21'),
             new SOAP_Value('two', 'string', 'val22'),
-            new SOAP_Value('two', 'string', 'val31'),
-            new SOAP_Value('two', 'string', 'val32')
         ));
 
-        $client = new SOAP_Client('http://localhost/');
-        $dec    = $client->_decodeResponse($val);
+        $client = new SOAP_Base();
+        $dec    = $client->_decode($val);
+        $this->assertType('object', $dec);
+        $this->assertType('string', $dec->zero);
+        $this->assertType('array' , $dec->one);
+        $this->assertType('array' , $dec->two);
+        $this->assertEquals(2, count($dec->one));
+        $this->assertEquals(2, count($dec->two));
 
-        $this->assertTrue(is_array($dec));
-        $this->assertEquals(3, count($dec));
-        $this->assertTrue(is_string($dec['zero']));
-        $this->assertTrue(is_array($dec['one']));
-        $this->assertTrue(is_array($dec['two']));
-        $this->assertEquals(2, count($dec['one']));
-        $this->assertEquals(4, count($dec['two']));
+        $this->assertEquals('val01', $dec->zero);
+        $this->assertEquals('val11', $dec->one[0]);
+        $this->assertEquals('val12', $dec->one[1]);
+        $this->assertEquals('val21', $dec->two[0]);
+        $this->assertEquals('val22', $dec->two[1]);
     }//public function testBug2627()
 
+
+
+
+
+
+
+
+    public static function echoSoapVal($val, $indent = '')
+    {
+        echo $indent . $val->name . '(' . $val->type . '): ';
+        echo gettype($val->value) . ':' ;
+        if (!is_array($val->value)) {
+            echo $val->value . "\n";
+        } else {
+            echo "\n";
+            foreach ($val->value as $sub) {
+                echoSoapVal($sub, $indent . '  ');
+            }
+        }
+    }//public static function echoSoapVal($val, $indent = '')
 
 }
 
