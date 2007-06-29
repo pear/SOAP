@@ -38,7 +38,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>arnaud@php.net</email>
   <active>no</active>
  </lead>
- <date>2007-01-23</date>
+ <date>2007-06-29</date>
  <version>
   <release>0.11.0</release>
   <api>0.11.0</api>
@@ -48,15 +48,15 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>
-* Fix bug 2627: Values of multiple arrays in result object were dismissed on soap to php-object conversion
-* Fix bug 6213: Wrong Content-Type on HTTPS requests
-* Fix bug 10131: Empty arrays in xml were converted to empty string instead of empty array
-* Fix bug 10206: Timezone in Type/dateTime.php not converted correctly
-
-* Remove SOAP_RAW_CONVERT and SOAP_OBJECT_STRUCT settings.
-* Don't decode base64 encoded data automatically to be consistent with other encodings like hexBinary that aren't decoded either.
-* Fix serializing of arrays.</notes>
+ <notes>* Remove SOAP_RAW_CONVERT and SOAP_OBJECT_STRUCT settings.
+* Don't decode base64 encoded data automatically to be consistent with other encodings like hexBinary that aren't decoded either (Bug #9840).
+* Always close HTTP connections on requests to avoid keep-alive request (Maik Greubel, Bug #11123).
+* Fix serializing of arrays (Bugs #10283, #10635).
+* Fix MIME type quoting when using MIME attachments (Bug #10023).
+* Fix values of multiple arrays in result object being dismissed on SOAP to PHP-object conversion (Christian Weiske, Bug #2627).
+* Fix wrong Content-Type header on HTTPS requests (Christian Weiske, Bug #6213).
+* Fix empty arrays in SOAP responses being converted to empty string instead of empty array (Christian Weiske, Bug #10131).
+* Fix timezones in Type/dateTime.php not being converted correctly (Christian Weiske, Bug #10206).</notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
    <dir name="example">
