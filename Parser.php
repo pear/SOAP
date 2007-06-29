@@ -101,11 +101,11 @@ class SOAP_Parser extends SOAP_Base
             // Parse the XML file.
             if (!xml_parse($parser, $xml, true)) {
                 $err = sprintf('XML error on line %d col %d byte %d %s',
-                    xml_get_current_line_number($parser),
-                    xml_get_current_column_number($parser),
-                    xml_get_current_byte_index($parser),
-                    xml_error_string(xml_get_error_code($parser)));
-                $this->_raiseSoapFault($err,htmlspecialchars($xml));
+                               xml_get_current_line_number($parser),
+                               xml_get_current_column_number($parser),
+                               xml_get_current_byte_index($parser),
+                               xml_error_string(xml_get_error_code($parser)));
+                $this->_raiseSoapFault($err, htmlspecialchars($xml));
             }
             xml_parser_free($parser);
         }
@@ -120,8 +120,7 @@ class SOAP_Parser extends SOAP_Base
      */
     function getResponse()
     {
-        if (isset($this->root_struct[0]) &&
-            $this->root_struct[0]) {
+        if (!empty($this->root_struct[0])) {
             return $this->_buildResponse($this->root_struct[0]);
         } else {
             return $this->_raiseSoapFault('Cannot build response');
@@ -137,8 +136,7 @@ class SOAP_Parser extends SOAP_Base
      */
     function getHeaders()
     {
-        if (isset($this->header_struct[0]) &&
-            $this->header_struct[0]) {
+        if (!empty($this->header_struct[0])) {
             return $this->_buildResponse($this->header_struct[0]);
         } else {
             // We don't fault if there are no headers; that can be handled by
@@ -152,10 +150,10 @@ class SOAP_Parser extends SOAP_Base
      *
      * @see _buildResponse()
      */
-    function _domulti($d, &$ar, &$r, &$v, $ad=0)
+    function _domulti($d, &$ar, &$r, &$v, $ad = 0)
     {
         if ($d) {
-            $this->_domulti($d-1, $ar, $r[$ar[$ad]], $v, $ad+1);
+            $this->_domulti($d - 1, $ar, $r[$ar[$ad]], $v, $ad + 1);
         } else {
             $r = $v;
         }
@@ -271,12 +269,12 @@ class SOAP_Parser extends SOAP_Base
         $pos = $this->position++;
 
         // And set mine.
-        $this->message[$pos] = array();
-        $this->message[$pos]['type'] = '';
-        $this->message[$pos]['type_namespace'] = '';
-        $this->message[$pos]['cdata'] = '';
-        $this->message[$pos]['pos'] = $pos;
-        $this->message[$pos]['id'] = '';
+        $this->message[$pos] = array(
+            'type' => '',
+            'type_namespace' => '',
+            'cdata' => '',
+            'pos' => $pos,
+            'id' => '');
 
         // Parent/child/depth determinations.
 
