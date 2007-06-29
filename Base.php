@@ -910,7 +910,7 @@ class SOAP_Base extends SOAP_Base_Object
 
         // Encode any attachments.  See http://www.w3.org/TR/SOAP-attachments
         // Now we have to mime encode the message.
-        $params = array('content_type' => 'multipart/related; type=text/xml');
+        $params = array('content_type' => 'multipart/related; type="text/xml"');
         $msg = new Mail_mimePart('', $params);
 
         // Add the xml part.
