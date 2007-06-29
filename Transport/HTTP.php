@@ -403,7 +403,7 @@ class SOAP_Transport_HTTP extends SOAP_Transport
     }
 
     /**
-     * Creates an HTTP request, including headers, for th eoutgoing request.
+     * Creates an HTTP request, including headers, for the outgoing request.
      *
      * @access private
      *
