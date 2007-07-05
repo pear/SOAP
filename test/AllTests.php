@@ -1,7 +1,6 @@
 <?php
 if (!defined('PHPUnit_MAIN_METHOD')) {
-    define('PHPUnit_MAIN_METHOD', 'AllTests::main');
-    chdir(dirname(__FILE__) . '/../');
+    define('PHPUnit_MAIN_METHOD', 'SOAP_AllTests::main');
 }
 
 if (!defined('PHPUnit_INSIDE_OWN_TESTSUITE')) {
@@ -11,10 +10,11 @@ require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 
 
+chdir(dirname(__FILE__));
 require_once 'SOAP_BugsTest.php';
 
 
-class AllTests
+class SOAP_AllTests
 {
     public static function main()
     {
@@ -24,7 +24,7 @@ class AllTests
 
     public static function suite()
     {
-        $suite = new PHPUnit_Framework_TestSuite('SOAP_BugsTest');
+        $suite = new PHPUnit_Framework_TestSuite('SOAP Tests');
         /** Add testsuites, if there is. */
         $suite->addTestSuite('SOAP_BugsTest');
 
@@ -32,7 +32,7 @@ class AllTests
     }
 }
 
-if (PHPUnit_MAIN_METHOD == 'AllTests::main') {
-    AllTests::main();
+if (PHPUnit_MAIN_METHOD == 'SOAP_AllTests::main') {
+    SOAP_AllTests::main();
 }
 ?>
