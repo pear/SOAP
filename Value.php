@@ -82,9 +82,10 @@ class SOAP_Value
      *                           automatically if not set.
      * @param mixed $value       Value to set.
      * @param array $attributes  Attributes.
+     * @param array $options     Options.
      */
     function SOAP_Value($name = '', $type = false, $value = null,
-                        $attributes = array())
+                        $attributes = array(), $options = array())
     {
         // Detect type if not passed.
         $this->nqn = new QName($name);
@@ -96,6 +97,7 @@ class SOAP_Value
         $this->type_namespace = $this->tqn->namespace;
         $this->value = $value;
         $this->attributes = $attributes;
+        $this->options = $options;
     }
 
     /**
@@ -156,11 +158,11 @@ class SOAP_Header extends SOAP_Value
         parent::SOAP_Value($name, $type, $value, $attributes);
 
         if (isset($actor)) {
-            $this->attributes['SOAP-ENV:actor'] = $actor;
-        } elseif (!isset($this->attributes['SOAP-ENV:actor'])) {
-            $this->attributes['SOAP-ENV:actor'] = 'http://schemas.xmlsoap.org/soap/actor/next';
+            $this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'] = $actor;
+        } elseif (!isset($this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'])) {
+            $this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'] = 'http://schemas.xmlsoap.org/soap/actor/next';
         }
-        $this->attributes['SOAP-ENV:mustUnderstand'] = (int)$mustunderstand;
+        $this->attributes[SOAP_BASE::setSOAPENVPrefix().':mustUnderstand'] = (int)$mustunderstand;
     }
 
 }
@@ -183,9 +185,10 @@ class SOAP_Attachment extends SOAP_Value
      * @param string $filename  The attachment's file name. Ignored if $file
      *                          is provide.
      * @param string $file      The attachment data.
+     * @param array $attributes Attributes.
      */
     function SOAP_Attachment($name = '', $type = 'application/octet-stream',
-                             $filename, $file = null)
+                             $filename, $file = null, $attributes = null)
     {
         parent::SOAP_Value($name, null, null);
 
@@ -198,7 +201,8 @@ class SOAP_Attachment extends SOAP_Value
 
         $cid = md5(uniqid(time()));
 
-        $this->attributes['href'] = 'cid:' . $cid; 
+        $this->attributes = $attributes;
+        $this->attributes['href'] = 'cid:' . $cid;
 
         $this->options['attachment'] = array('body' => $filedata,
                                              'disposition' => $filename,

@@ -531,7 +531,7 @@ class SOAP_Client extends SOAP_Client_Overload
                        $soapAction = false)
     {
         $this->fault = null;
-        $this->_options['input'] = 'parse'; 
+        $this->_options['input'] = 'parse';
         $this->_options['result'] = 'parse';
         $this->_options['parameters'] = false;
 
@@ -648,7 +648,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->_options['style'] = 'rpc';
             $this->docparams = true;
             $mqname = new QName($method, $namespace);
-            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params);
+            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params, array(), $this->_options);
             $soap_msg = $this->makeEnvelope($methodValue,
                                             $this->headersOut,
                                             $this->_encoding,
@@ -698,7 +698,8 @@ class SOAP_Client extends SOAP_Client_Overload
             if ((isset($this->_options['attachments']) &&
                  $this->_options['attachments'] == 'Mime') ||
                 isset($this->_options['Mime'])) {
-                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding);
+                $soap_encoding = isset($this->_options['soap_encoding']) ? $this->_options['soap_encoding'] : 'base64';
+                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding, $soap_encoding);
             } else {
                 // default is dime
                 $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->_encoding);
@@ -801,7 +802,7 @@ class SOAP_Client extends SOAP_Client_Overload
         }
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) ||
-                isset($returnArray['SOAP-ENV:faultcode'])) {
+                isset($returnArray[SOAP_BASE::setSOAPENVPrefix().':faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($returnArray as $k => $v) {
                     if (stristr($k, 'faultcode')) $faultcode = $v;

@@ -543,7 +543,7 @@ class SOAP_Server extends SOAP_Base
         }
         if (is_array($requestArray)) {
             if (isset($requestArray['faultcode']) ||
-                isset($requestArray['SOAP-ENV:faultcode'])) {
+                isset($requestArray[SOAP_BASE::setSOAPENVPrefix().':faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($requestArray as $k => $v) {
                     if (stristr($k, 'faultcode')) {

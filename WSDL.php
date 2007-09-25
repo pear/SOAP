@@ -2020,7 +2020,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         $this->wsdl->namespaces['soap'] = SCHEMA_SOAP;                                      // WSDL SOAP bindings
         $this->wsdl->namespaces[$this->tnsPrefix] = 'urn:' . $service_name;                 // Target namespace
         $this->wsdl->namespaces['xsd'] = array_search('xsd', $this->_namespaces);           // XML Schema
-        $this->wsdl->namespaces['SOAP-ENC'] = array_search('SOAP-ENC', $this->_namespaces); // SOAP types
+        $this->wsdl->namespaces[SOAP_BASE::setSOAPENCPrefix()] = array_search(SOAP_BASE::setSOAPENCPrefix(), $this->_namespaces); // SOAP types
 
         // XXX Refactor $namespace/$ns for Shane :-)
         unset($this->wsdl->ns['urn:' . $service_name]);

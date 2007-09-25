@@ -286,6 +286,46 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     /**
+     * Sets the SOAP-ENV prefix and returns the current value.
+     *
+     * @access public
+     *
+     * @param string SOAP-ENV prefix
+     *
+     * @return string current SOAP-ENV prefix.
+     */
+    function setSOAPENVPrefix($prefix = null)
+    {
+        static $_soapenv_prefix;
+        if (!is_null($prefix)) {
+            $_soapenv_prefix = $prefix;
+        } elseif (is_null($_soapenv_prefix)) {
+            $_soapenv_prefix = 'SOAP-ENV';
+        }
+        return $_soapenv_prefix;
+    }
+
+    /**
+     * Sets the SOAP-ENC prefix and returns the current value.
+     *
+     * @access public
+     *
+     * @param string SOAP-ENC prefix
+     *
+     * @return string current SOAP-ENC prefix.
+     */
+    function setSOAPENCPrefix($prefix = null)
+    {
+        static $_soapenv_prefix;
+        if (!is_null($prefix)) {
+            $_soapenv_prefix = $prefix;
+        } elseif (is_null($_soapenv_prefix)) {
+            $_soapenv_prefix = 'SOAP-ENC';
+        }
+        return $_soapenv_prefix;
+    }
+
+    /**
      * Sets the default namespace.
      *
      * @param string $namespace  The default namespace.
@@ -298,10 +338,10 @@ class SOAP_Base extends SOAP_Base_Object
     function _resetNamespaces()
     {
         $this->_namespaces = array(
-            'http://schemas.xmlsoap.org/soap/envelope/' => 'SOAP-ENV',
+            'http://schemas.xmlsoap.org/soap/envelope/' => SOAP_BASE::setSOAPENVPrefix(),
             'http://www.w3.org/2001/XMLSchema' => 'xsd',
             'http://www.w3.org/2001/XMLSchema-instance' => 'xsi',
-            'http://schemas.xmlsoap.org/soap/encoding/' => 'SOAP-ENC');
+            'http://schemas.xmlsoap.org/soap/encoding/' => SOAP_BASE::setSOAPENCPrefix());
     }
 
     /**
@@ -402,10 +442,10 @@ class SOAP_Base extends SOAP_Base_Object
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
                             // should really do.
-                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5 ? null : $elNamespace);
+                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5 ? null : $elNamespace, null, $options);
                         }
                     } else {
-                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $this->_section5 ? null : $elNamespace);
+                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $this->_section5 ? null : $elNamespace, null, $options);
                     }
                 }
             }
@@ -446,11 +486,15 @@ class SOAP_Base extends SOAP_Base_Object
                     } else {
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
-                        $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace);
+                        if (empty($options['keep_arrays_flat'])) {
+                            $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace, $options);
+                        } else {
+                            $xmlout_value .= $this->_serializeValue($array_val, $name, $array_type, $elNamespace, null, $options, $attributes);
+                        }
                     }
                 }
 
-                $xmlout_offset = ' SOAP-ENC:offset="[0]"';
+                $xmlout_offset = ' '.SOAP_BASE::setSOAPENCPrefix().':offset="[0]"';
                 if (!$arrayType) {
                     $numtypes = count($array_types);
                     if ($numtypes == 1) {
@@ -483,7 +527,7 @@ class SOAP_Base extends SOAP_Base_Object
                 }
             }
 
-            $xmlout_arrayType = ' SOAP-ENC:arrayType="' . $arrayType;
+            $xmlout_arrayType = ' '.SOAP_BASE::setSOAPENCPrefix().':arrayType="' . $arrayType;
             if ($array_depth != null) {
                 for ($i = 0; $i < $array_depth; $i++) {
                     $xmlout_arrayType .= '[]';
@@ -515,7 +559,10 @@ class SOAP_Base extends SOAP_Base_Object
         }
 
         if ($typeNamespace) {
-            $typePrefix = $this->_getNamespacePrefix($typeNamespace);
+            $typePrefix = false;
+            if (empty($options['no_type_prefix'])) {
+                $typePrefix = $this->_getNamespacePrefix($typeNamespace);
+            }
             if ($typePrefix) {
                 $xmlout_type = "$typePrefix:$type";
             } else {
@@ -558,6 +605,8 @@ class SOAP_Base extends SOAP_Base_Object
                 $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType" .
                     "$xmlout_offset$xml_attr>$xmlout_value</$xmlout_name>";
             }
+        } elseif ($type == 'Array' && !empty($options['keep_arrays_flat'])) {
+            $xml = $xmlout_value;
         } else {
             if (is_null($xmlout_value)) {
                 $xml = "\r\n<$xmlout_name$xmlns$xml_attr/>";
@@ -865,7 +914,7 @@ class SOAP_Base extends SOAP_Base_Object
             for ($i = 0; $i < $c; $i++) {
                 $header_xml .= $headers[$i]->serialize($this);
             }
-            $header_xml = "<SOAP-ENV:Header>\r\n$header_xml\r\n</SOAP-ENV:Header>\r\n";
+            $header_xml = "<".SOAP_BASE::setSOAPENVPrefix().":Header>\r\n$header_xml\r\n</".SOAP_BASE::setSOAPENVPrefix().":Header>\r\n";
         }
 
         if (!isset($options['input']) || $options['input'] == 'parse') {
@@ -880,7 +929,7 @@ class SOAP_Base extends SOAP_Base_Object
         } else {
             $smsg = $method;
         }
-        $body = "<SOAP-ENV:Body>\r\n" . $smsg . "\r\n</SOAP-ENV:Body>\r\n";
+        $body = "<".SOAP_BASE::setSOAPENVPrefix().":Body>\r\n" . $smsg . "\r\n</".SOAP_BASE::setSOAPENVPrefix().":Body>\r\n";
 
         foreach ($this->_namespaces as $k => $v) {
             $ns_string .= " xmlns:$v=\"$k\"\r\n";
@@ -894,15 +943,15 @@ class SOAP_Base extends SOAP_Base_Object
          * more granular level than we are dealing with here, so this does not
          * work for all services. */
         $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
-            "<SOAP-ENV:Envelope $ns_string".
-            ($this->_section5 ? ' SOAP-ENV:encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
+            "<".SOAP_BASE::setSOAPENVPrefix().":Envelope $ns_string".
+            ($this->_section5 ? ' '.SOAP_BASE::setSOAPENVPrefix().':encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
             ">\r\n".
-            "$header_xml$body</SOAP-ENV:Envelope>\r\n";
+            "$header_xml$body</".SOAP_BASE::setSOAPENVPrefix().":Envelope>\r\n";
 
         return $xml;
     }
 
-    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING)
+    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING, $soap_encoding = 'base64')
     {
         if (!@include_once 'Mail/mimePart.php') {
             return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
@@ -916,7 +965,7 @@ class SOAP_Base extends SOAP_Base_Object
         // Add the xml part.
         $params['content_type'] = 'text/xml';
         $params['charset'] = $encoding;
-        $params['encoding'] = 'base64';
+        $params['encoding'] = $soap_encoding;
         $msg->addSubPart($xml, $params);
 
         // Add the attachements

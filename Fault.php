@@ -75,7 +75,7 @@ class SOAP_Fault extends PEAR_Error
     {
         $msg = new SOAP_Base();
         $params = array();
-        $params[] = new SOAP_Value('faultcode', 'QName', 'SOAP-ENV:' . $this->code);
+        $params[] = new SOAP_Value('faultcode', 'QName', SOAP_BASE::setSOAPENVPrefix().':' . $this->code);
         $params[] = new SOAP_Value('faultstring', 'string', $this->message);
         $params[] = new SOAP_Value('faultactor', 'anyURI', $this->error_message_prefix);
         if (isset($this->backtrace)) {
