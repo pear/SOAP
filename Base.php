@@ -296,11 +296,9 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function SOAPENVPrefix($prefix = null)
     {
-        static $_soapenv_prefix;
+        static $_soapenv_prefix = 'SOAP-ENV';
         if (!is_null($prefix)) {
             $_soapenv_prefix = $prefix;
-        } elseif (is_null($_soapenv_prefix)) {
-            $_soapenv_prefix = 'SOAP-ENV';
         }
         return $_soapenv_prefix;
     }
@@ -316,11 +314,9 @@ class SOAP_Base extends SOAP_Base_Object
      */
     function SOAPENCPrefix($prefix = null)
     {
-        static $_soapenv_prefix;
+        static $_soapenv_prefix = 'SOAP-ENC';
         if (!is_null($prefix)) {
             $_soapenv_prefix = $prefix;
-        } elseif (is_null($_soapenv_prefix)) {
-            $_soapenv_prefix = 'SOAP-ENC';
         }
         return $_soapenv_prefix;
     }
@@ -487,7 +483,7 @@ class SOAP_Base extends SOAP_Base_Object
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
                         if (empty($options['keep_arrays_flat'])) {
-                            $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace, $options);
+                            $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace, null, $options);
                         } else {
                             $xmlout_value .= $this->_serializeValue($array_val, $name, $array_type, $elNamespace, null, $options, $attributes);
                         }
