@@ -802,7 +802,7 @@ class SOAP_Client extends SOAP_Client_Overload
         }
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) ||
-                isset($returnArray[SOAP_BASE::setSOAPENVPrefix().':faultcode'])) {
+                isset($returnArray[SOAP_BASE::SOAPENVPrefix().':faultcode'])) {
                 $faultcode = $faultstring = $faultdetail = $faultactor = '';
                 foreach ($returnArray as $k => $v) {
                     if (stristr($k, 'faultcode')) $faultcode = $v;

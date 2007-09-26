@@ -294,7 +294,7 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return string current SOAP-ENV prefix.
      */
-    function setSOAPENVPrefix($prefix = null)
+    function SOAPENVPrefix($prefix = null)
     {
         static $_soapenv_prefix;
         if (!is_null($prefix)) {
@@ -314,7 +314,7 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return string current SOAP-ENC prefix.
      */
-    function setSOAPENCPrefix($prefix = null)
+    function SOAPENCPrefix($prefix = null)
     {
         static $_soapenv_prefix;
         if (!is_null($prefix)) {
@@ -338,10 +338,10 @@ class SOAP_Base extends SOAP_Base_Object
     function _resetNamespaces()
     {
         $this->_namespaces = array(
-            'http://schemas.xmlsoap.org/soap/envelope/' => SOAP_BASE::setSOAPENVPrefix(),
+            'http://schemas.xmlsoap.org/soap/envelope/' => SOAP_BASE::SOAPENVPrefix(),
             'http://www.w3.org/2001/XMLSchema' => 'xsd',
             'http://www.w3.org/2001/XMLSchema-instance' => 'xsi',
-            'http://schemas.xmlsoap.org/soap/encoding/' => SOAP_BASE::setSOAPENCPrefix());
+            'http://schemas.xmlsoap.org/soap/encoding/' => SOAP_BASE::SOAPENCPrefix());
     }
 
     /**
@@ -494,7 +494,7 @@ class SOAP_Base extends SOAP_Base_Object
                     }
                 }
 
-                $xmlout_offset = ' '.SOAP_BASE::setSOAPENCPrefix().':offset="[0]"';
+                $xmlout_offset = ' '.SOAP_BASE::SOAPENCPrefix().':offset="[0]"';
                 if (!$arrayType) {
                     $numtypes = count($array_types);
                     if ($numtypes == 1) {
@@ -527,7 +527,7 @@ class SOAP_Base extends SOAP_Base_Object
                 }
             }
 
-            $xmlout_arrayType = ' '.SOAP_BASE::setSOAPENCPrefix().':arrayType="' . $arrayType;
+            $xmlout_arrayType = ' '.SOAP_BASE::SOAPENCPrefix().':arrayType="' . $arrayType;
             if ($array_depth != null) {
                 for ($i = 0; $i < $array_depth; $i++) {
                     $xmlout_arrayType .= '[]';
@@ -914,7 +914,7 @@ class SOAP_Base extends SOAP_Base_Object
             for ($i = 0; $i < $c; $i++) {
                 $header_xml .= $headers[$i]->serialize($this);
             }
-            $header_xml = "<".SOAP_BASE::setSOAPENVPrefix().":Header>\r\n$header_xml\r\n</".SOAP_BASE::setSOAPENVPrefix().":Header>\r\n";
+            $header_xml = "<".SOAP_BASE::SOAPENVPrefix().":Header>\r\n$header_xml\r\n</".SOAP_BASE::SOAPENVPrefix().":Header>\r\n";
         }
 
         if (!isset($options['input']) || $options['input'] == 'parse') {
@@ -929,7 +929,7 @@ class SOAP_Base extends SOAP_Base_Object
         } else {
             $smsg = $method;
         }
-        $body = "<".SOAP_BASE::setSOAPENVPrefix().":Body>\r\n" . $smsg . "\r\n</".SOAP_BASE::setSOAPENVPrefix().":Body>\r\n";
+        $body = "<".SOAP_BASE::SOAPENVPrefix().":Body>\r\n" . $smsg . "\r\n</".SOAP_BASE::SOAPENVPrefix().":Body>\r\n";
 
         foreach ($this->_namespaces as $k => $v) {
             $ns_string .= " xmlns:$v=\"$k\"\r\n";
@@ -943,10 +943,10 @@ class SOAP_Base extends SOAP_Base_Object
          * more granular level than we are dealing with here, so this does not
          * work for all services. */
         $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
-            "<".SOAP_BASE::setSOAPENVPrefix().":Envelope $ns_string".
-            ($this->_section5 ? ' '.SOAP_BASE::setSOAPENVPrefix().':encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
+            "<".SOAP_BASE::SOAPENVPrefix().":Envelope $ns_string".
+            ($this->_section5 ? ' '.SOAP_BASE::SOAPENVPrefix().':encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
             ">\r\n".
-            "$header_xml$body</".SOAP_BASE::setSOAPENVPrefix().":Envelope>\r\n";
+            "$header_xml$body</".SOAP_BASE::SOAPENVPrefix().":Envelope>\r\n";
 
         return $xml;
     }

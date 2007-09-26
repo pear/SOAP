@@ -158,11 +158,11 @@ class SOAP_Header extends SOAP_Value
         parent::SOAP_Value($name, $type, $value, $attributes);
 
         if (isset($actor)) {
-            $this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'] = $actor;
-        } elseif (!isset($this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'])) {
-            $this->attributes[SOAP_BASE::setSOAPENVPrefix().':actor'] = 'http://schemas.xmlsoap.org/soap/actor/next';
+            $this->attributes[SOAP_BASE::SOAPENVPrefix().':actor'] = $actor;
+        } elseif (!isset($this->attributes[SOAP_BASE::SOAPENVPrefix().':actor'])) {
+            $this->attributes[SOAP_BASE::SOAPENVPrefix().':actor'] = 'http://schemas.xmlsoap.org/soap/actor/next';
         }
-        $this->attributes[SOAP_BASE::setSOAPENVPrefix().':mustUnderstand'] = (int)$mustunderstand;
+        $this->attributes[SOAP_BASE::SOAPENVPrefix().':mustUnderstand'] = (int)$mustunderstand;
     }
 
 }
