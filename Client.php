@@ -307,6 +307,14 @@ class SOAP_Client extends SOAP_Client_Overload
      * @param string $method           The method to call.
      * @param array $params            The method parameters.
      * @param string|array $namespace  Namespace or hash with options.
+     *                              Options (note most options need to be repeated for SOAP_Value instances)
+     *                                  attachments (what encoding to use for attachments [Mime, Dime])
+     *                                  trace (if to trace the SOAP communication)
+     *                                  style (when set to 'document' the parameters are not wrapped inside a tag with the SOAP action name)
+     *                                  use (when set to 'literal' SOAP types will be omitted)
+     *                                  soap_encoding (defines encoding for SOAP message part of a MIME encoded SOAP request - default: base64)
+     *                                  keep_arrays_flat (use the tag name multiple times for each element when passing in an array in literal mode)
+     *                                  no_type_prefix (supress adding of the namespace prefix)
      * @param string $soapAction
      *
      * @return mixed  The method result or a SOAP_Fault on error.
