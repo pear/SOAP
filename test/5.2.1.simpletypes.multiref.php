@@ -1,4 +1,9 @@
 <?php
+/**
+ * @category Web Services
+ * @package SOAP
+ */
+
 require_once dirname(__FILE__) . '/test.utility.php';
 $prefix = "5.2.1 Multi-Reference";
 

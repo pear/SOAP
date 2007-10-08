@@ -22,8 +22,12 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+/** SOAP_Base */
 require_once 'SOAP/Base.php';
 
+/**
+ * @package SOAP
+ */
 class SOAP_DISCO_Server extends SOAP_Base_Object {
 
     var $namespaces     = array(SCHEMA_WSDL => 'wsdl', SCHEMA_SOAP => 'soap');

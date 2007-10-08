@@ -22,6 +22,7 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+/** SOAP_Value */
 require_once 'SOAP/Value.php';
 require_once 'SOAP/Base.php';
 require_once 'SOAP/Transport.php';
@@ -35,6 +36,9 @@ require_once 'SOAP/Parser.php';
 // NOTE: Overload SEGFAULTS ON PHP4 + Zend Optimizer
 // these two are BC/FC handlers for call in PHP4/5
 
+/**
+ * @package SOAP
+ */
 if (!class_exists('SOAP_Client_Overload')) {
     if (substr(zend_version(), 0, 1) > 1) {
         class SOAP_Client_Overload extends SOAP_Base {
@@ -292,29 +296,33 @@ class SOAP_Client extends SOAP_Client_Overload
      * it is overloaded, the soapaction parameter is ignored and MUST be
      * placed in the options array.  This is done to provide backwards
      * compatibility with current clients, but may be removed in the future.
-     * The currently supported values are:<pre>
-     *   namespace
-     *   soapaction
-     *   timeout (HTTP socket timeout)
-     *   transfer-encoding (SMTP, Content-Transfer-Encoding: header)
-     *   from (SMTP, From: header)
-     *   subject (SMTP, Subject: header)
-     *   headers (SMTP, hash of extra SMTP headers)
-     * </pre>
+     * The currently supported values are:
+     * - 'namespace'
+     * - 'soapaction'
+     * - 'timeout': HTTP socket timeout
+     * - 'transfer-encoding': SMTP transport, Content-Transfer-Encoding: header
+     * - 'from': SMTP transport, From: header
+     * - 'subject': SMTP transport, Subject: header
+     * - 'headers': SMTP transport, hash of extra SMTP headers
+     * - 'attachments': what encoding to use for attachments (Mime, Dime)
+     * - 'trace': whether to trace the SOAP communication
+     * - 'style': 'document' or 'rpc'; when set to 'document' the parameters
+     *   are not wrapped inside a tag with the SOAP action name
+     * - 'use': 'literal' for literal encoding, anything else for section 5
+     *   encoding; when set to 'literal' SOAP types will be omitted.
+     * - 'soap_encoding': encoding for SOAP message parts of a MIME encoded
+     *   SOAP request (default: base64)
+     * - 'keep_arrays_flat': use the tag name multiple times for each element
+     *   when passing in an array in literal mode
+     * - 'no_type_prefix': supress adding of the namespace prefix
      *
      * @access public
      *
      * @param string $method           The method to call.
      * @param array $params            The method parameters.
-     * @param string|array $namespace  Namespace or hash with options.
-     *                              Options (note most options need to be repeated for SOAP_Value instances)
-     *                                  attachments (what encoding to use for attachments [Mime, Dime])
-     *                                  trace (if to trace the SOAP communication)
-     *                                  style (when set to 'document' the parameters are not wrapped inside a tag with the SOAP action name)
-     *                                  use (when set to 'literal' SOAP types will be omitted)
-     *                                  soap_encoding (defines encoding for SOAP message part of a MIME encoded SOAP request - default: base64)
-     *                                  keep_arrays_flat (use the tag name multiple times for each element when passing in an array in literal mode)
-     *                                  no_type_prefix (supress adding of the namespace prefix)
+     * @param string|array $namespace  Namespace or hash with options. Note:
+     *                                 most options need to be repeated for
+     *                                 SOAP_Value instances.
      * @param string $soapAction
      *
      * @return mixed  The method result or a SOAP_Fault on error.

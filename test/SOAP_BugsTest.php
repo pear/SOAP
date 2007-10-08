@@ -1,4 +1,9 @@
 <?php
+/**
+ * @category Web Services
+ * @package SOAP
+ */
+
 // Call SOAP_BugsTest::main() if this source file is executed directly.
 if (!defined("PHPUnit_MAIN_METHOD")) {
     define("PHPUnit_MAIN_METHOD", "SOAP_BugsTest::main");

@@ -24,7 +24,9 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+/** Define linebreak sequence for the Mail_Mime package. */
 define('MAIL_MIMEPART_CRLF', "\r\n");
+
 require_once 'PEAR.php';
 
 if (!defined('INF')) {
@@ -60,6 +62,9 @@ define('SCHEMA_REF',               'http://schemas.xmlsoap.org/ws/2002/04/refere
 
 define('SOAP_DEFAULT_ENCODING',  'UTF-8');
 
+/**
+ * @package SOAP
+ */
 class SOAP_Base_Object extends PEAR
 {
 
@@ -240,14 +245,14 @@ class SOAP_Base extends SOAP_Base_Object
     /**
      * Hash with used namespaces.
      *
-     * @array
+     * @var array
      */
     var $_namespaces;
 
     /**
      * The default namespace.
      *
-     * @string
+     * @var string
      */
     var $_namespace;
 

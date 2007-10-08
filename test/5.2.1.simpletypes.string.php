@@ -1,4 +1,9 @@
 <?php
+/**
+ * @category Web Services
+ * @package SOAP
+ */
+
 require_once dirname(__FILE__) . '/test.utility.php';
 require_once 'SOAP/Base.php';
 $soap_base = new SOAP_Base();

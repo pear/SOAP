@@ -23,6 +23,7 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+/** PEAR_Error */
 require_once 'PEAR.php';
 
 /**

@@ -15,18 +15,18 @@
  * @category   Web Services
  * @package    SOAP
  * @author     Shane Caraveo <Shane@Caraveo.com>   Port to PEAR and more
- * @copyright  2003-2005 The PHP Group
+ * @author     Jan Schneider <jan@horde.org>       Maintenance
+ * @copyright  2003-2007 The PHP Group
  * @license    http://www.php.net/license/2_02.txt  PHP License 2.02
  * @link       http://pear.php.net/package/SOAP
  */
 
+/** SOAP_Client */
 require 'SOAP/Client.php';
 
-/**
- * This client runs against the example server in SOAP/example/server.php.  It
+/* This client runs against the example server in SOAP/example/server.php.  It
  * does not use WSDL to run these requests, but that can be changed easily by
- * simply adding '?wsdl' to the end of the url.
- */
+ * simply adding '?wsdl' to the end of the url. */
 $soapclient = new SOAP_Client('http://localhost/SOAP/example/server.php');
 // This namespace is the same as declared in server.php.
 $options = array('namespace' => 'urn:SOAP_Example_Server',

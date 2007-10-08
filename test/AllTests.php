@@ -1,4 +1,9 @@
 <?php
+/**
+ * @category Web Services
+ * @package SOAP
+ */
+
 if (!defined('PHPUnit_MAIN_METHOD')) {
     define('PHPUnit_MAIN_METHOD', 'SOAP_AllTests::main');
 }

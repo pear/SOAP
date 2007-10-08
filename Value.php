@@ -82,11 +82,17 @@ class SOAP_Value
      *                           automatically if not set.
      * @param mixed $value       Value to set.
      * @param array $attributes  Attributes.
-     * @param array $options     Options
-     *                              attachment (array with information about the attachment)
-     *                              soap_encoding (defines encoding for SOAP message part of a MIME encoded SOAP request - default: base64)
-     *                              keep_arrays_flat (use the tag name multiple times for each element when passing in an array in literal mode)
-     *                              no_type_prefix (supress adding of the namespace prefix)
+     * @param array $options     Options:
+     *                           - 'attachment': array with information about
+     *                             the attachment
+     *                           - 'soap_encoding': defines encoding for SOAP
+     *                             message part of a MIME encoded SOAP request
+     *                             (default: base64)
+     *                           - 'keep_arrays_flat': use the tag name
+     *                             multiple times for each element when
+     *                             passing in an array in literal mode
+     *                           - 'no_type_prefix': supress adding of the
+     *                             namespace prefix
      */
     function SOAP_Value($name = '', $type = false, $value = null,
                         $attributes = array(), $options = array())

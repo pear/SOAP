@@ -1,4 +1,8 @@
 <?php
+/**
+ * @category Web Services
+ * @package SOAP
+ */
 
 require_once 'SOAP/Parser.php';
 require_once 'SOAP/Value.php';

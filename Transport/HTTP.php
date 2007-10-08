@@ -24,7 +24,7 @@
  * HTTP Transport class
  *
  * @package  SOAP
- * @category Web_Services
+ * @category Web Services
  */
 
 /**
