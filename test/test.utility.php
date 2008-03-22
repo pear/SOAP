@@ -10,19 +10,19 @@ require_once 'SOAP/Value.php';
 function number_compare($f1, $f2)
 {
     // figure out which has the least fractional digits
-    preg_match('/.*?\.(.*)/',$f1,$m1);
-    preg_match('/.*?\.(.*)/',$f2,$m2);
+    preg_match('/.*?\.(.*)/', $f1, $m1);
+    preg_match('/.*?\.(.*)/', $f2, $m2);
     //print_r($m1);
     // always use at least 2 digits of precision
-    $d = max(min(strlen(count($m1)?$m1[1]:'0'),strlen(count($m2)?$m2[1]:'0')),2);
+    $d = max(min(strlen(count($m1)?$m1[1]:'0'), strlen(count($m2)?$m2[1]:'0')) ,2);
     $f1 = round($f1, $d);
     $f2 = round($f2, $d);
 
     if (function_exists('bccomp')) {
         return bccomp($f1, $f2, $d) == 0;
-    } else {
-        return $f1 == $f2;
     }
+
+    return $f1 == $f2;
 }
 
 function boolean_compare($f1, $f2)
@@ -36,6 +36,9 @@ function boolean_compare($f1, $f2)
 
 function string_compare($e1, $e2)
 {
+    if (!is_string($e1) || !is_string($e2)) {
+        return false;
+    }
     $e1 = trim(str_replace(array("\r", "\n"), '', $e1));
     $e2 = trim(str_replace(array("\r", "\n"), '', $e2));
 
@@ -96,7 +99,7 @@ function parseMessage($msg)
     }
     $return = $response->getResponse();
     $v = $response->_decode($return);
-    if (gettype($v) == 'array' && count($v)==1) {
+    if (gettype($v) == 'array' && count($v) === 1) {
         return array_shift($v);
     }
     return $v;

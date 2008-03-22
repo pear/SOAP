@@ -3,7 +3,7 @@ SOAP_Type_dateTime test
 --FILE--
 <?php
 
-require dirname(__FILE__) . '/../Type/dateTime.php';
+require 'SOAP/Type/dateTime.php';
 
 $orig = '2001-04-25T09:31:41-0700';
 $dt = new SOAP_Type_dateTime();

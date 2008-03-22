@@ -25,13 +25,15 @@ include("SOAP/Client.php");
 
 print "getting wsdl list from xmethods...\n";
 $soapclient = new SOAP_Client("http://www.xmethods.net/wsdl/query.wsdl","wsdl");
-$summary = $soapclient->call("getAllServiceSummaries",array());
+$params  = array();
+$summary = $soapclient->call("getAllServiceSummaries", $params);
 
 # !@#^%$ php needs real timeouts on windows
 $skip = array('Unisys Weather Web Service');
 
 print "getting wsdls in list...\n";
 foreach ($summary as $info) {
+    var_dump($info);break;
     if (in_array($info['name'],$skip)) continue;
     print "retrieving {$info['name']}...";
     $wsdl = new SOAP_WSDL($info['wsdlURL']);
