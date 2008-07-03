@@ -397,9 +397,9 @@ class SOAP_Base extends SOAP_Base_Object
                              $options = array(), $attributes = array(),
                              $artype = '')
     {
-        $namespaces = array();
-        $arrayType = $array_depth = $xmlout_value = null;
-        $typePrefix = $elPrefix = $xmlout_offset = $xmlout_arrayType = '';
+        $namespaces  = array();
+        $arrayType   = $array_depth = $xmlout_value = null;
+        $typePrefix  = $elPrefix = $xmlout_offset = $xmlout_arrayType = '';
         $xmlout_type = $xmlns = $ptype = $array_type_ns = '';
 
         if (!$name || is_numeric($name)) {
@@ -430,6 +430,7 @@ class SOAP_Base extends SOAP_Base_Object
             } else {
                 $vars = &$value;
             }
+
             if (is_array($vars)) {
                 foreach (array_keys($vars) as $k) {
                     // Hide private vars.
