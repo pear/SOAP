@@ -800,7 +800,6 @@ class SOAP_Base extends SOAP_Base_Object
                 $return = array();
             }
 
-            $counter = 1;
             $isstruct = !is_array($return);
             foreach ($soapval->value as $item) {
                 if (is_object($return)) {
