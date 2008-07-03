@@ -24,8 +24,8 @@ $msg = '<?xml version="1.0" encoding="UTF-8"?>
 $val = parseMessage($msg);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#4 (4) {
+--EXPECTF--
+object(stdClass)%s (4) {
   ["age"]=>
   string(2) "45"
   ["height"]=>

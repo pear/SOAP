@@ -18,8 +18,8 @@ $v->serialize($soap_base);
 $val = $soap_base->_decode($v);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#17 (4) {
+--EXPECTF--
+object(stdClass)%s (4) {
   ["age"]=>
   &int(45)
   ["height"]=>
