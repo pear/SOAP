@@ -30,7 +30,7 @@
  * @author   Shane Caraveo <shane@php.net>       Port to PEAR and more
  * @author   Jan Schneider <jan@horde.org>       Maintenance
  */
-class SOAP_Type_dateTime 
+class SOAP_Type_dateTime
 {
     var $_iso8601 =
         '# 1: centuries & years CCYY-
@@ -96,7 +96,7 @@ class SOAP_Type_dateTime
 
         //simulate PHP5's P parameter
         $zone = date('O', $timestamp);
-        if (strlen($zone) == 5) {
+        if (strlen($zone) === 5) {
             $zone = substr($zone, 0, 3) . ':' . substr($zone, 3);
         }
         return date('Y-m-d\TH:i:s', $timestamp) . $zone;
