@@ -834,8 +834,8 @@ class SOAP_Base extends SOAP_Base_Object
                             $return->{$item->name} =& $this->_decode($item);
                         }
                     } elseif (isset($return->{$item->name})) {
-                        //$isstruct = false;
                         if (count(get_object_vars($return)) == 1) {
+                            $isstruct = false;
                             $d =& $this->_decode($item);
                             $return = array($return->{$item->name}, $d);
                         } else {
