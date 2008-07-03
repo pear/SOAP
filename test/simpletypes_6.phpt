@@ -7,10 +7,18 @@ require_once 'test.utility.php';
 require_once 'SOAP/Fault.php';
 $soap_base = new SOAP_Base();
 
-$v = new SOAP_Value("inputString","Struct",array('age'=>45, 'height'=> 5.9, 'displacement' => -450, 'color' => 'Blue'));
+$params = array(
+    'age'          => 45,
+    'height'       => 5.9,
+    'displacement' => -450,
+    'color'        => 'Blue'
+);
+
+$v   = new SOAP_Value('inputString', 'Struct', $params);
 $val = $v->serialize($soap_base);
 $val = $soap_base->_decode($v);
 var_dump($val);
+?>
 --EXPECT--
 object(stdClass)#4 (4) {
   ["age"]=>

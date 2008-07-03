@@ -16,11 +16,11 @@ $v = new SOAP_Value('inputStruct', 'Struct', array(
 
 $val = $v->serialize($soap_base);
 var_dump($val);
+?>
 --EXPECT--
 string(215) "
 <inputStruct>
 <age xsi:type="xsd:int">45</age>
 <height xsi:type="xsd:float">5.9</height>
 <displacement xsi:type="xsd:negativeInteger">-450</displacement>
-<color xsi:type="xsd:string">Blue</color>
-</inputStruct>"
+<color xsi:type="xsd:string">Blue</color></inputStruct>"

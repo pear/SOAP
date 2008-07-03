@@ -17,6 +17,7 @@ $v = new SOAP_Value('inputStruct', 'Struct', array(
 $v->serialize($soap_base);
 $val = $soap_base->_decode($v);
 var_dump($val);
+?>
 --EXPECT--
 object(stdClass)#17 (4) {
   ["age"]=>

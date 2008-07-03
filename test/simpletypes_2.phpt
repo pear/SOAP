@@ -20,7 +20,8 @@ $val = parseMessage($msg);
 if ($val === NULL) {
     echo 'OK';
 } else {
-    echo 'FAILED';
+    var_dump($val);
 }
+?>
 --EXPECT--
 OK
