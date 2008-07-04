@@ -541,11 +541,11 @@ class SOAP_Base extends SOAP_Base_Object
         } elseif ($type == 'string') {
             $xmlout_value = htmlspecialchars($value);
         } elseif ($type == 'rawstring') {
-            $xmlout_value =& $value;
+            $xmlout_value = $value;
         } elseif ($type == 'boolean') {
             $xmlout_value = $value ? 'true' : 'false';
         } else {
-            $xmlout_value =& $value;
+            $xmlout_value = $value;
         }
 
         // Add namespaces.
@@ -888,6 +888,8 @@ class SOAP_Base extends SOAP_Base_Object
             // If we can, set variable type.
             settype($soapval->value,
                     $this->_typemap[SOAP_XML_SCHEMA_VERSION][$soapval->type]);
+        } elseif ($soapval->type == 'Struct') {
+            $soapval->value = null;
         }
 
         return $soapval->value;
@@ -1058,7 +1060,7 @@ class SOAP_Base extends SOAP_Base_Object
 
         // This SHOULD be moved to the transport layer, e.g. PHP itself should
         // handle parsing DIME ;)
-        $dime =& new Net_DIME_Message();
+        $dime = new Net_DIME_Message();
         $err = $dime->decodeData($data);
         if (PEAR::isError($err)) {
             $this->_raiseSoapFault('Failed to decode the DIME message!', '', '', 'Server');
