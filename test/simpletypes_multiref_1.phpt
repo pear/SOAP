@@ -19,8 +19,8 @@ $msg = '<?xml version="1.0" encoding="UTF-8"?>
 $val = parseMessage($msg);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#3 (2) {
+--EXPECTF--
+object(stdClass)%s2) {
   ["greeting"]=>
   string(5) "Hello"
   ["salutation"]=>

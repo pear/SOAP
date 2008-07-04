@@ -25,7 +25,7 @@ $val = parseMessage($msg);
 var_dump($val);
 ?>
 --EXPECTF--
-object(stdClass)%s (4) {
+object(stdClass)%s4) {
   ["age"]=>
   string(2) "45"
   ["height"]=>

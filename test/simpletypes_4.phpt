@@ -19,13 +19,13 @@ $val = $soap_base->_decode($v);
 var_dump($val);
 ?>
 --EXPECTF--
-object(stdClass)%s (4) {
+object(stdClass)%s4) {
   ["age"]=>
-  &int(45)
+ %sint(45)
   ["height"]=>
-  &float(5.9)
+ %sfloat(5.9)
   ["displacement"]=>
-  &int(-450)
+ %sint(-450)
   ["color"]=>
-  &string(4) "Blue"
+ %sstring(4) "Blue"
 }

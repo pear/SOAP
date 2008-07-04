@@ -68,7 +68,7 @@ $parser = new SOAP_Parser($stringArrayOne);
 var_dump($parser->getResponse());
 
 ?>
---EXPECT--
+--EXPECTF--
 object(soap_value)(11) {
   ["value"]=>
   array(1) {

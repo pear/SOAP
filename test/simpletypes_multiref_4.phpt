@@ -35,10 +35,10 @@ arg</varString>
 $val = parseMessage($msg);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#4 (1) {
+--EXPECTF--
+object(stdClass)%s1) {
   ["return"]=>
-  object(stdClass)#2 (4) {
+ %sobject(stdClass)%s4) {
     ["varString"]=>
     string(4) "
 arg"
@@ -47,7 +47,7 @@ arg"
     ["varFloat"]=>
     float(325.32501220703)
     ["varStruct"]=>
-    object(stdClass)#31 (3) {
+   %sobject(stdClass)%s3) {
       ["varString"]=>
       string(4) "
 arg"

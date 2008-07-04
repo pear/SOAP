@@ -26,10 +26,10 @@ arg</varString>
 $val = parseMessage($msg);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#2 (1) {
+--EXPECTF--
+object(stdClass)%s1) {
   ["Result"]=>
-  object(stdClass)#4 (3) {
+ %sobject(stdClass)%s3) {
     ["varString"]=>
     string(4) "
 arg"

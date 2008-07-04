@@ -20,8 +20,8 @@ $msg = '<?xml version="1.0" encoding="UTF-8"?>
 $val = parseMessage($msg);
 var_dump($val);
 ?>
---EXPECT--
-object(stdClass)#5 (1) {
+--EXPECTF--
+object(stdClass)%s1) {
   ["return"]=>
   string(11) "hello world"
 }
