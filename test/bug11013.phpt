@@ -3,8 +3,10 @@ Bug 11013 - SOAP crashes php with SEGV
 --FILE--
 <?php
 $_SERVER['SERVER_NAME'] = 'localhost';
-$_SERVER['SERVER_PORT'] = '80';
-$GLOBALS['HTTP_RAW_POST_DATA'] = array(array('Helgi'));
+$GLOBALS['HTTP_RAW_POST_DATA'] = 'Helgi';
+
+// Make parser handle array requests and just simply only accept strings
+// just handle it gracefully
 
 require_once 'SOAP/Server.php';
 $soap = new SOAP_Server();
