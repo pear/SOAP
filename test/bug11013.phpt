@@ -2,6 +2,7 @@
 Bug 11013 - SOAP crashes php with SEGV
 --FILE--
 <?php
+
 $_SERVER['SERVER_NAME'] = 'localhost';
 $GLOBALS['HTTP_RAW_POST_DATA'] = 'Helgi';
 
@@ -19,7 +20,8 @@ class Service
 {
 }
 
- echo 'OK';
- ?>
+echo 'OK';
+
+?>
 --EXPECT--
 OK
