@@ -450,15 +450,6 @@ class SOAP_Client extends SOAP_Client_Overload
     }
 
     /**
-     * @deprecated Use getLastRequest().
-     */
-    function &__getlastrequest()
-    {
-        $request = $this->getLastRequest();
-        return $request;
-    }
-
-    /**
      * Returns the XML content of the last SOAP request.
      *
      * @return string  The last request.
@@ -466,15 +457,6 @@ class SOAP_Client extends SOAP_Client_Overload
     function getLastRequest()
     {
         return $this->_last_request;
-    }
-
-    /**
-     * @deprecated Use getLastResponse().
-     */
-    function &__getlastresponse()
-    {
-        $response =& $this->getLastResponse;
-        return $response;
     }
 
     /**
@@ -488,14 +470,6 @@ class SOAP_Client extends SOAP_Client_Overload
     }
 
     /**
-     * @deprecated Use setUse().
-     */
-    function __use($use)
-    {
-        $this->setUse($use);
-    }
-
-    /**
      * Sets the SOAP encoding.
      *
      * @param string $use  Either 'literal' or 'encoded' (section 5).
@@ -506,14 +480,6 @@ class SOAP_Client extends SOAP_Client_Overload
     }
 
     /**
-     * @deprecated Use setStyle().
-     */
-    function __style($style)
-    {
-        $this->setStyle($style);
-    }
-
-    /**
      * Sets the SOAP encoding style.
      *
      * @param string $style  Either 'document' or 'rpc'.
@@ -521,14 +487,6 @@ class SOAP_Client extends SOAP_Client_Overload
     function setStyle($style)
     {
         $this->_options['style'] = $style;
-    }
-
-    /**
-     * @deprecated Use setTrace().
-     */
-    function __trace($level)
-    {
-        $this->setTrace($level);
     }
 
     /**
@@ -744,14 +702,6 @@ class SOAP_Client extends SOAP_Client_Overload
     }
 
     /**
-     * @deprecated Use parseResponse().
-     */
-    function &__parse(&$response, $encoding, &$attachments)
-    {
-        return $this->parseResponse($response, $encoding, $attachments);
-    }
-
-    /**
      * Parses a SOAP response.
      *
      * @see SOAP_Parser::
@@ -837,14 +787,6 @@ class SOAP_Client extends SOAP_Client_Overload
             return $returnArray;
         }
         return $returnArray;
-    }
-
-    /**
-     * @deprecated Use getWire().
-     */
-    function __get_wire()
-    {
-        return $this->getWire();
     }
 
     /**

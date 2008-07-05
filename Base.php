@@ -1088,14 +1088,6 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     /**
-     * @deprecated Use setTypeTranslation().
-     */
-    function __set_type_translation($type, $class = null)
-    {
-        $this->setTypeTranslation($type, $class);
-    }
-
-    /**
      * Explicitly sets the translation for a specific class.
      *
      * Auto translation works for all cases, but opens ANY class in the script
