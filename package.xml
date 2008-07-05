@@ -127,7 +127,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <min>4.3</min>
    </php>
    <pearinstaller>
-    <min>1.4.0b1</min>
+    <min>1.5.4</min>
    </pearinstaller>
    <package>
     <name>PEAR</name>
