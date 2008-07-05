@@ -421,8 +421,7 @@ class SOAP_Base extends SOAP_Base_Object
             $type = $ptype;
         }
 
-        if (strcasecmp($ptype, 'Struct') == 0 ||
-            strcasecmp($type, 'Struct') == 0) {
+        if (strcasecmp($ptype, 'Struct') == 0 || strcasecmp($type, 'Struct') == 0) {
             // Struct
             $vars = null;
             if (is_object($value)) {
@@ -437,6 +436,7 @@ class SOAP_Base extends SOAP_Base_Object
                     if ($k[0] == '_') {
                         continue;
                     }
+
                     if (is_object($vars[$k])) {
                         if (is_a($vars[$k], 'SOAP_Value')) {
                             $xmlout_value .= $vars[$k]->serialize($this);
@@ -444,10 +444,12 @@ class SOAP_Base extends SOAP_Base_Object
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
                             // should really do.
-                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $this->_section5 ? null : $elNamespace, null, $options);
+                            $elNS = $this->_section5 ? null : $elNamespace;
+                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $elNS, null, $options);
                         }
                     } else {
-                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $this->_section5 ? null : $elNamespace, null, $options);
+                        $elNS = $this->_section5 ? null : $elNamespace;
+                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $elNS, null, $options);
                     }
                 }
             }
