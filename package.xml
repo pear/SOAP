@@ -96,6 +96,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
     <file name="HTTP.php" role="php" />
     <file name="SMTP.php" role="php" />
     <file name="TCP.php" role="php" />
+    <file name="TEST.php" role="php" />
    </dir> <!-- /Transport -->
    <dir name="Type">
     <file name="dateTime.php" role="php" />
