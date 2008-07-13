@@ -43,7 +43,9 @@ class SOAP_Transport_TEST extends SOAP_Transport
     {
         ob_start();
         $options['server']->service($msg);
-        return ob_get_flush();
+        $result = ob_get_contents();
+        ob_end_clean();
+        return $result;
     }
 
 }

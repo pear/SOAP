@@ -19,29 +19,55 @@ $server->addObjectMap(new SOAP_Example_Server(), 'urn:SOAP_Example_Server');
 /* Create example client. */
 $client = new SOAP_Client('test://foo/');
 $client->setOpt('server', $server);
+$client->_auto_translation = true;
+$client->setTypeTranslation('{http://soapinterop.org/xsd}SOAPStruct',
+                            'SOAPStruct');
 $options = array('namespace' => 'urn:SOAP_Example_Server',
                  'trace' => true);
 
+/* Create test list. */
+$struct = new SOAPStruct('test string', 123, 123.123);
+$calls = array(
+    array('echoStringSimple',
+          array('inputStringSimple' => 'this is a test string')),
+    array('echoString',
+          array('inputString' => 'this is a test string')),
+    array('divide',
+          array('dividend' => 22, 'divisor' => 7)),
+    array('divide',
+          array('dividend' => 22, 'divisor' => 0)),
+    array('echoStruct',
+          array('inputStruct' => $struct->__to_soap())),
+    array('echoStructAsSimpleTypes',
+          array('inputStruct' => $struct->__to_soap()))
+);
+
 /* Run tests. */
-var_export($client->call('echoStringSimple',
-                         $p = array('inputStringSimple' => 'this is a test string'),
-                         $options));
-echo "\n";
+ob_start();
+foreach ($calls as $call) {
+    $result = $client->call($call[0], $call[1], $options);
+    if (is_a($result, 'PEAR_Error')) {
+        echo $result->getMessage();
+    } else {
+        var_export($result);
+    }
+    echo "\n";
+}
+ob_end_flush();
 
 ?>
 --EXPECT--
-<?xml version="1.0" encoding="UTF-8"?>
-
-<SOAP-ENV:Envelope  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
- xmlns:xsd="http://www.w3.org/2001/XMLSchema"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
- xmlns:ns4="urn:SOAP_Example_Server"
- SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<SOAP-ENV:Body>
-
-<ns4:echoStringSimpleResponse>
-<return xsi:type="xsd:string">this is a test string</return></ns4:echoStringSimpleResponse>
-</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
 'this is a test string'
+'this is a test string'
+3.1428571428571
+You cannot divide by zero
+class stdClass {
+  var $varString = 'test string';
+  var $varInt = 123;
+  var $varFloat = 123.123;
+}
+class stdClass {
+  var $varString = 'test string';
+  var $varInt = 123;
+  var $varFloat = 123.123;
+}
