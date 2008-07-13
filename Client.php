@@ -350,9 +350,8 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->_endpoint != $this->_soap_transport->url) {
             $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
             if (PEAR::isError($this->_soap_transport)) {
-                $fault =& $this->_soap_transport;
+                $fault = $this->_raiseSoapFault($this->_soap_transport);
                 $this->_soap_transport = null;
-                $fault = $this->_raiseSoapFault($fault);
                 return $fault;
             }
         }
@@ -381,8 +380,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
         $this->__result_encoding = $this->_soap_transport->result_encoding;
 
-        $result = &$this->parseResponse($this->xml, $this->__result_encoding,
-                                        $this->_soap_transport->attachments);
+        $result = $this->parseResponse($this->xml, $this->__result_encoding,
+                                       $this->_soap_transport->attachments);
         return $result;
     }
 
@@ -710,34 +709,35 @@ class SOAP_Client extends SOAP_Client_Overload
      * @param string $encoding    Character set encoding, defaults to 'UTF-8'.
      * @param array $attachments  List of attachments.
      */
-    function &parseResponse($response, $encoding, &$attachments)
+    function parseResponse($response, $encoding, $attachments)
     {
         // Parse the response.
-        $response =& new SOAP_Parser($response, $encoding, $attachments);
+        $response = new SOAP_Parser($response, $encoding, $attachments);
         if ($response->fault) {
-            $fault =& $this->_raiseSoapFault($response->fault);
+            $fault = $this->_raiseSoapFault($response->fault);
             return $fault;
         }
 
         // Return array of parameters.
-        $return =& $response->getResponse();
-        $headers =& $response->getHeaders();
+        $return = $response->getResponse();
+        $headers = $response->getHeaders();
         if ($headers) {
-            $this->headersIn =& $this->_decodeResponse($headers, false);
+            $this->headersIn = $this->_decodeResponse($headers, false);
         }
 
-        $decoded = &$this->_decodeResponse($return);
+        $decoded = $this->_decodeResponse($return);
         return $decoded;
     }
 
     /**
-    *   Converts a complex SOAP_Value into a PHP Array
-    *
-    *   @param SOAP_Value   $response   value object
-    *   @param boolean      $shift      FIXME
-    *   @return Array
-    */
-    function &_decodeResponse($response, $shift = true)
+     * Converts a complex SOAP_Value into a PHP Array
+     *
+     * @param SOAP_Value $response  Value object.
+     * @param boolean $shift
+     *
+     * @return array
+     */
+    function _decodeResponse($response, $shift = true)
     {
         if (!$response) {
             $decoded = null;
@@ -746,19 +746,19 @@ class SOAP_Client extends SOAP_Client_Overload
 
         // Check for valid response.
         if (PEAR::isError($response)) {
-            $fault =& $this->_raiseSoapFault($response);
+            $fault = $this->_raiseSoapFault($response);
             return $fault;
         } elseif (!is_a($response, 'soap_value')) {
-            $fault =& $this->_raiseSoapFault("Didn't get SOAP_Value object back from client");
+            $fault = $this->_raiseSoapFault("Didn't get SOAP_Value object back from client");
             return $fault;
         }
 
         // Decode to native php datatype.
-        $returnArray =& $this->_decode($response);
+        $returnArray = $this->_decode($response);
 
         // Fault?
         if (PEAR::isError($returnArray)) {
-            $fault =& $this->_raiseSoapFault($returnArray);
+            $fault = $this->_raiseSoapFault($returnArray);
             return $fault;
         }
 
@@ -766,6 +766,7 @@ class SOAP_Client extends SOAP_Client_Overload
             strcasecmp(get_class($returnArray), 'stdClass') == 0) {
             $returnArray = get_object_vars($returnArray);
         }
+
         if (is_array($returnArray)) {
             if (isset($returnArray['faultcode']) ||
                 isset($returnArray[SOAP_BASE::SOAPENVPrefix().':faultcode'])) {
@@ -776,7 +777,8 @@ class SOAP_Client extends SOAP_Client_Overload
                     if (stristr($k, 'detail')) $faultdetail = $v;
                     if (stristr($k, 'faultactor')) $faultactor = $v;
                 }
-                $fault =& $this->_raiseSoapFault($faultstring, $faultdetail, $faultactor, $faultcode);
+                $fault = $this->_raiseSoapFault($faultstring, $faultdetail,
+                                                $faultactor, $faultcode);
                 return $fault;
             }
             // Return array of return values.
@@ -786,6 +788,7 @@ class SOAP_Client extends SOAP_Client_Overload
             }
             return $returnArray;
         }
+
         return $returnArray;
     }
 
