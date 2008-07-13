@@ -1,5 +1,5 @@
 --TEST--
-Bug #4523 (Parse dates without timezone)
+Bug #4523: Parse dates without timezone
 --FILE--
 <?php
 
