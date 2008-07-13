@@ -40,7 +40,7 @@ function myCallHandler($methodname, $args)
 }
 $server->setCallHandler('myCallHandler', false);
 
-require_once './example_server.php';
+require_once dirname(__FILE__) . '/example_server.php';
 $soapclass = new SOAP_Example_Server();
 $server->addObjectMap($soapclass, 'urn:SOAP_Example_Server');
 

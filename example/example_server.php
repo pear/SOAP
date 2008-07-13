@@ -25,7 +25,7 @@ require_once 'SOAP/Value.php';
 require_once 'SOAP/Fault.php';
 
 /** SOAPStruct */
-require_once './example_types.php';
+require_once dirname(__FILE__) . '/example_types.php';
 
 /* Create a class for your SOAP functions. */
 class SOAP_Example_Server {

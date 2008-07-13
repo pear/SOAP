@@ -28,7 +28,7 @@ $server = new SOAP_Server_TCP('127.0.0.1', 82);
 /* Tell the server to translate to classes we provide if possible. */
 $server->_auto_translation = true;
 
-require_once './example_server.php';
+require_once dirname(__FILE__) . '/example_server.php';
 $soapclass = new SOAP_Example_Server();
 $server->addObjectMap($soapclass, 'urn:SOAP_Example_Server');
 $server->run();
