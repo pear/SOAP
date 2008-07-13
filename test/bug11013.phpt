@@ -1,5 +1,5 @@
 --TEST--
-Bug 11013 - SOAP crashes php with SEGV
+Bug #11013: Endless loop with empty service provider
 --FILE--
 <?php
 
