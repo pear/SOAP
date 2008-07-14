@@ -402,7 +402,7 @@ class SOAP_Base extends SOAP_Base_Object
     {
         $namespaces  = array();
         $arrayType   = $array_depth = $xmlout_value = null;
-        $typePrefix  = $elPrefix = $xmlout_offset = $xmlout_arrayType = '';
+        $typePrefix  = $elPrefix = $xmlout_arrayType = '';
         $xmlout_type = $xmlns = $ptype = $array_type_ns = '';
 
         if (!$name->name || is_numeric($name->name)) {
@@ -498,7 +498,6 @@ class SOAP_Base extends SOAP_Base_Object
                     }
                 }
 
-                $xmlout_offset = ' '.SOAP_BASE::SOAPENCPrefix().':offset="[0]"';
                 if (!$arrayType) {
                     $numtypes = count($array_types);
                     if ($numtypes == 1) {
@@ -607,7 +606,7 @@ class SOAP_Base extends SOAP_Base_Object
                     "$xml_attr xsi:nil=\"true\"/>";
             } else {
                 $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType" .
-                    "$xmlout_offset$xml_attr>$xmlout_value</$xmlout_name>";
+                    "$xml_attr>$xmlout_value</$xmlout_name>";
             }
         } elseif ($type->name == 'Array' && !empty($options['keep_arrays_flat'])) {
             $xml = $xmlout_value;
