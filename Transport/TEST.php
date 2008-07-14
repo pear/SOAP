@@ -41,11 +41,14 @@ class SOAP_Transport_TEST extends SOAP_Transport
      */
     function send($msg, $options = array())
     {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->outgoing_payload = $msg;
         ob_start();
-        $options['server']->service($msg);
-        $result = ob_get_contents();
+        $server = clone($options['server']);
+        $server->service($msg);
+        $this->incoming_payload = ob_get_contents();
         ob_end_clean();
-        return $result;
+        return $this->incoming_payload;
     }
 
 }
