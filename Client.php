@@ -677,7 +677,7 @@ class SOAP_Client extends SOAP_Client_Overload
                                             $this->_encoding,
                                             $this->_options);
         }
-        unset($this->headersOut);
+        $this->headersOut = null;
 
         if (PEAR::isError($soap_msg)) {
             return $this->_raiseSoapFault($soap_msg);
