@@ -61,7 +61,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
    They were all deprecated in 0.10.0 - Use the ones below instead
    setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
 * Fix missing namespace in serialized array of Structs and Arrays (Bug #1927).
-*  SOAP_Fault objects no longer contain backtraces by default.
+* SOAP_Fault objects no longer contain backtraces by default.
+* Use namespace and soapAction options set with SOAP_Client::setOpt().
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
