@@ -808,7 +808,7 @@ class SOAP_Server extends SOAP_Base
     /**
      * @return void
      */
-    function addObjectWSDL(&$wsdl_obj, $targetNamespace, $service_name,
+    function addObjectWSDL($wsdl_obj, $targetNamespace, $service_name,
                            $service_desc = '')
     {
         if (!isset($this->_wsdl)) {
