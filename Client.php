@@ -535,16 +535,20 @@ class SOAP_Client extends SOAP_Client_Overload
             foreach ($namespace as $optname => $opt) {
                 $this->_options[strtolower($optname)] = $opt;
             }
-            if (isset($this->_options['namespace'])) {
-                $namespace = $this->_options['namespace'];
-            } else {
-                $namespace = false;
-            }
         } else {
             // We'll place $soapAction into our array for usage in the
             // transport.
-            $this->_options['soapaction'] = $soapAction;
-            $this->_options['namespace'] = $namespace;
+            if ($soapAction) {
+                $this->_options['soapaction'] = $soapAction;
+            }
+            if ($namespace) {
+                $this->_options['namespace'] = $namespace;
+            }
+        }
+        if (isset($this->_options['namespace'])) {
+            $namespace = $this->_options['namespace'];
+        } else {
+            $namespace = false;
         }
 
         if ($this->_endpointType == 'wsdl') {
