@@ -1,5 +1,7 @@
 --TEST--
-Example server test
+Example server test (PHP 4)
+--SKIPIF--
+<?php if (version_compare(zend_version(), 1, '>')) echo 'skip PHP 4 only'; ?>
 --FILE--
 <?php
 
