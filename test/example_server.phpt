@@ -61,13 +61,13 @@ ob_end_flush();
 'this is a test string'
 3.1428571428571
 You cannot divide by zero
-class stdClass {
+class soapstruct {
   var $varString = 'test string';
   var $varInt = 123;
   var $varFloat = 123.123;
 }
-class stdClass {
-  var $varString = 'test string';
-  var $varInt = 123;
-  var $varFloat = 123.123;
-}
+array (
+  'outputString' => 'test string',
+  'outputInteger' => 123,
+  'outputFloat' => 123.123,
+)
