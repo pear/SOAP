@@ -13,14 +13,13 @@ echo $soap_client->_generate('echoString', $p);
 ?>
 --EXPECT--
 <?xml version="1.0" encoding="UTF-8"?>
-
-<SOAP-ENV:Envelope  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+<SOAP-ENV:Envelope
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
  SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
 <SOAP-ENV:Body>
-
 <echoString>
 <inputString xsi:type="xsd:string">hello world</inputString></echoString>
 </SOAP-ENV:Body>

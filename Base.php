@@ -903,24 +903,23 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return string
      */
-    function makeEnvelope(&$method, &$headers,
-                          $encoding = SOAP_DEFAULT_ENCODING,
+    function makeEnvelope($method, $headers, $encoding = SOAP_DEFAULT_ENCODING,
                           $options = array())
     {
         $smsg = $header_xml = $ns_string = '';
 
         if ($headers) {
-            $c = count($headers);
-            for ($i = 0; $i < $c; $i++) {
+            for ($i = 0, $c = count($headers); $i < $c; $i++) {
                 $header_xml .= $headers[$i]->serialize($this);
             }
-            $header_xml = "<".SOAP_BASE::SOAPENVPrefix().":Header>\r\n$header_xml\r\n</".SOAP_BASE::SOAPENVPrefix().":Header>\r\n";
+            $header_xml = sprintf("<%s:Header>\r\n%s\r\n</%s:Header>\r\n",
+                                  SOAP_BASE::SOAPENVPrefix(), $header_xml,
+                                  SOAP_BASE::SOAPENVPrefix());
         }
 
         if (!isset($options['input']) || $options['input'] == 'parse') {
             if (is_array($method)) {
-                $c = count($method);
-                for ($i = 0; $i < $c; $i++) {
+                for ($i = 0, $c = count($method); $i < $c; $i++) {
                     $smsg .= $method[$i]->serialize($this);
                 }
             } else {
@@ -929,29 +928,37 @@ class SOAP_Base extends SOAP_Base_Object
         } else {
             $smsg = $method;
         }
-        $body = "<".SOAP_BASE::SOAPENVPrefix().":Body>\r\n" . $smsg . "\r\n</".SOAP_BASE::SOAPENVPrefix().":Body>\r\n";
+        $body = sprintf("<%s:Body>%s\r\n</%s:Body>\r\n",
+                        SOAP_BASE::SOAPENVPrefix(), $smsg,
+                        SOAP_BASE::SOAPENVPrefix());
 
         foreach ($this->_namespaces as $k => $v) {
-            $ns_string .= " xmlns:$v=\"$k\"\r\n";
+            $ns_string .= "\r\n " . sprintf('xmlns:%s="%s"', $v, $k);
         }
         if ($this->_namespace) {
-            $ns_string .= " xmlns=\"{$this->_namespace}\"\r\n";
+            $ns_string .= "\r\n " . sprintf('xmlns="%s"', $this->_namespace);
         }
 
-        /* If 'use' == 'literal', we do not put in the encodingStyle.  This is
+        /* If 'use' == 'literal', do not put in the encodingStyle.  This is
          * denoted by $this->_section5 being false.  'use' can be defined at a
          * more granular level than we are dealing with here, so this does not
          * work for all services. */
-        $xml = "<?xml version=\"1.0\" encoding=\"$encoding\"?>\r\n\r\n".
-            "<".SOAP_BASE::SOAPENVPrefix().":Envelope $ns_string".
-            ($this->_section5 ? ' '.SOAP_BASE::SOAPENVPrefix().':encodingStyle="' . SOAP_SCHEMA_ENCODING . '"' : '').
-            ">\r\n".
-            "$header_xml$body</".SOAP_BASE::SOAPENVPrefix().":Envelope>\r\n";
+        $xml = sprintf('<?xml version="1.0" encoding="%s"?>%s<%s:Envelope%s',
+                       $encoding, "\r\n", SOAP_BASE::SOAPENVPrefix(),
+                       $ns_string);
+        if ($this->_section5) {
+            $xml .= "\r\n " . sprintf('%s:encodingStyle="%s"',
+                                      SOAP_BASE::SOAPENVPrefix(),
+                                      SOAP_SCHEMA_ENCODING);
+        }
+        $xml .= sprintf('>%s%s%s</%s:Envelope>' . "\r\n",
+                        "\r\n", $header_xml, $body, SOAP_BASE::SOAPENVPrefix());
 
         return $xml;
     }
 
-    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING, $soap_encoding = 'base64')
+    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING,
+                              $soap_encoding = 'base64')
     {
         if (!@include_once 'Mail/mimePart.php') {
             return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
