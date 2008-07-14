@@ -327,7 +327,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *
      * @return mixed  The method result or a SOAP_Fault on error.
      */
-    function &call($method, &$params, $namespace = false, $soapAction = false)
+    function call($method, $params, $namespace = false, $soapAction = false)
     {
         $this->headersIn = null;
         $this->_last_request = null;
@@ -443,7 +443,7 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->_wsdl->matchMethod($method);
         }
 
-        $return_value =& $this->call($method, $params);
+        $return_value = $this->call($method, $params);
 
         return true;
     }
