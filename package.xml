@@ -60,6 +60,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
    __use(), __style(), __trace(), __parse(), __getlastrequest(), __getlastresponse(), and __get_wire() methods
    They were all deprecated in 0.10.0 - Use the ones below instead
    setUse(), setStyle(), setTrace(), parseResponse(), getLastRequest(), getLastResponse(), and getWire().
+* Fix missing namespace in serialized array of Structs and Arrays (Bug #1927).
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
