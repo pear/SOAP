@@ -21,9 +21,12 @@ $server->addObjectMap(new SOAP_Example_Server(), 'urn:SOAP_Example_Server');
 /* Create example client. */
 $client = new SOAP_Client('test://foo/');
 $client->setOpt('server', $server);
-
+$client->setOpt('namespace', 'urn:SOAP_Example_Server');
+ob_start();
 var_export($client->call('echoString', array('hello world')));
+echo "\n";
 var_export($client->echoString('hello world'));
+ob_end_flush();
 
 ?>
 --EXPECT--
