@@ -427,13 +427,7 @@ class SOAP_Base extends SOAP_Base_Object
         if (strcasecmp($ptype, 'Struct') == 0 ||
             strcasecmp($type->name, 'Struct') == 0) {
             // Struct
-            $vars = null;
-            if (is_object($value)) {
-                $vars = get_object_vars($value);
-            } else {
-                $vars = &$value;
-            }
-
+            $vars = is_object($value) ? get_object_vars($value) : $value;
             if (is_array($vars)) {
                 foreach (array_keys($vars) as $k) {
                     // Hide private vars.
