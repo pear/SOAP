@@ -382,10 +382,16 @@ class SOAP_Server extends SOAP_Base
     function parseRequest($data = '', $attachments = null)
     {
         /* Parse response, get SOAP_Parser object. */
-        $parser =& new SOAP_Parser($data, $this->xml_encoding, $attachments);
-        /* If fault occurred during message parsing. */
+        $parser = new SOAP_Parser($data, $this->xml_encoding, $attachments);
+
         if ($parser->fault) {
+            /* Fault occurred during message parsing. */
             $this->fault = $parser->fault;
+            return null;
+        }
+        if (!count($parser->root_struct_name)) {
+            /* No method specified. */
+            $this->_raiseSoapFault('No method specified in request.');
             return null;
         }
 
