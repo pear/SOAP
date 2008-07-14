@@ -29,7 +29,7 @@ echo $fault->message();
 <faultactor xsi:type="xsd:anyURI"></faultactor>
 <detail xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="SOAP-ENC:Struct[2]">
 <item>
-<file xsi:type="xsd:string">/usr/share/php/SOAP/Fault.php</file>
+<file xsi:type="xsd:string">%s/SOAP/Fault.php</file>
 <line xsi:type="xsd:int">64</line>
 <function xsi:type="xsd:string">pear_error</function>
 <class xsi:type="xsd:string">pear_error</class>
@@ -41,8 +41,8 @@ echo $fault->message();
 <item xsi:nil="true"/>
 <item xsi:nil="true"/></args></item>
 <item>
-<file xsi:type="xsd:string">/home/jan/cvs/pear/SOAP/test/bug1927.php</file>
-<line xsi:type="xsd:int">8</line>
+<file xsi:type="xsd:string">%s/test/bug1927.php</file>
+<line xsi:type="xsd:int">%d</line>
 <function xsi:type="xsd:string">soap_fault</function>
 <class xsi:type="xsd:string">soap_fault</class>
 <type xsi:type="xsd:string">-&gt;</type>
