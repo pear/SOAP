@@ -524,13 +524,16 @@ class SOAP_Base extends SOAP_Base_Object
                     $array_type_prefix = $this->_getNamespacePrefix($array_type_ns);
                 } elseif (isset($this->_typemap[$this->_XMLSchemaVersion][$arrayType])) {
                     $array_type_prefix = $this->_namespaces[$this->_XMLSchemaVersion];
+                } elseif (isset($this->_typemap[SOAP_SCHEMA_ENCODING][$arrayType])) {
+                    $array_type_prefix = SOAP_BASE::SOAPENCPrefix();
                 }
                 if ($array_type_prefix) {
                     $arrayType = $array_type_prefix . ':' . $arrayType;
                 }
             }
 
-            $xmlout_arrayType = ' '.SOAP_BASE::SOAPENCPrefix().':arrayType="' . $arrayType;
+            $xmlout_arrayType = ' ' . SOAP_BASE::SOAPENCPrefix()
+                . ':arrayType="' . $arrayType;
             if ($array_depth != null) {
                 for ($i = 0; $i < $array_depth; $i++) {
                     $xmlout_arrayType .= '[]';
