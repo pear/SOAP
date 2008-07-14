@@ -471,6 +471,8 @@ class SOAP_Client extends SOAP_Client_Overload
     /**
      * Sets the SOAP encoding.
      *
+     * The default encoding is section 5 encoded.
+     *
      * @param string $use  Either 'literal' or 'encoded' (section 5).
      */
     function setUse($use)
@@ -480,6 +482,8 @@ class SOAP_Client extends SOAP_Client_Overload
 
     /**
      * Sets the SOAP encoding style.
+     *
+     * The default style is rpc.
      *
      * @param string $style  Either 'document' or 'rpc'.
      */
@@ -500,7 +504,7 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_options['trace'] = $trace;
     }
 
-    function _generate($method, &$params, $namespace = false,
+    function _generate($method, $params, $namespace = false,
                        $soapAction = false)
     {
         $this->fault = null;
@@ -629,8 +633,7 @@ class SOAP_Client extends SOAP_Client_Overload
         } else {
             if (!$params) {
                 $mqname = new QName($method, $namespace);
-                $mynull = null;
-                $params = new SOAP_Value($mqname->fqn(), 'Struct', $mynull);
+                $params = new SOAP_Value($mqname->fqn(), 'Struct', null);
             } elseif ($this->_options['input'] == 'parse') {
                 if (is_array($params)) {
                     $nparams = array();
