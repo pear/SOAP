@@ -383,11 +383,6 @@ class SOAP_Base extends SOAP_Base_Object
         return null;
     }
 
-    function _isSoapValue(&$value)
-    {
-        return is_a($value, 'SOAP_Value');
-    }
-
     /**
      * Serializes a value, array or object according to the rules set by this
      * object.
@@ -429,6 +424,7 @@ class SOAP_Base extends SOAP_Base_Object
             $type = new QName($ptype);
         }
 
+        //if ($type->name == 'SOAPStruct') var_dump($value, $ptype);
         if (strcasecmp($ptype, 'Struct') == 0 ||
             strcasecmp($type->name, 'Struct') == 0) {
             // Struct
@@ -487,7 +483,7 @@ class SOAP_Base extends SOAP_Base_Object
                 // Serialize each array element.
                 $ar_size = count($value);
                 foreach ($value as $array_val) {
-                    if ($this->_isSoapValue($array_val)) {
+                    if (is_a($array_val, 'SOAP_Value')) {
                         $array_type = $array_val->type;
                         $array_types[$array_type] = 1;
                         $array_type_ns = $array_val->type_namespace;
@@ -543,7 +539,7 @@ class SOAP_Base extends SOAP_Base_Object
                 }
             }
             $xmlout_arrayType .= "[$ar_size]\"";
-        } elseif ($this->_isSoapValue($value)) {
+        } elseif (is_a($value, 'SOAP_Value')) {
             $xmlout_value = $value->serialize($this);
         } elseif ($type->name == 'string') {
             $xmlout_value = htmlspecialchars($value);
@@ -631,13 +627,11 @@ class SOAP_Base extends SOAP_Base_Object
     /**
      * Converts a PHP type to a SOAP type.
      *
-     * @access   private
-     *
-     * @param string $value  The value to inspect.
+     * @param mixed $value  The value to inspect.
      *
      * @return string  The value's SOAP type.
      */
-    function _getType(&$value)
+    function _getType($value)
     {
         $type = gettype($value);
         switch ($type) {
@@ -653,26 +647,22 @@ class SOAP_Base extends SOAP_Base_Object
             // Hashes are always handled as structs.
             if ($this->_isHash($value)) {
                 $type = 'Struct';
-            } else {
-                $ar_size = count($value);
+                break;
+            }
+            if (count($value) > 1) {
+                // For non-wsdl structs that are all the same type
                 reset($value);
-                $key1 = key($value);
-                if ($ar_size > 0 && is_a($key1, 'SOAP_Value')) {
-                    // FIXME: for non-wsdl structs that are all the same type
-                    $key2 = key($value);
-                    if ($ar_size > 1 &&
-                        $this->_isSoapValue($key1) &&
-                        $this->_isSoapValue($key2) &&
-                        $key1->name != $key2->name) {
-                        // This is a struct, not an array.
-                        $type = 'Struct';
-                    } else {
-                        $type = 'Array';
-                    }
-                } else {
-                    $type = 'Array';
+                $value1 = next($value);
+                $value2 = next($value);
+                if (is_a($value1, 'SOAP_Value') &&
+                    is_a($value2, 'SOAP_Value') &&
+                    $value1->name != $value2->name) {
+                    // This is a struct, not an array.
+                    $type = 'Struct';
+                    break;
                 }
             }
+            $type = 'Array';
             break;
 
         case 'integer':
@@ -779,7 +769,7 @@ class SOAP_Base extends SOAP_Base_Object
     */
     function &_decode(&$soapval)
     {
-        if (!$this->_isSoapValue($soapval)) {
+        if (!is_a($soapval, 'SOAP_Value')) {
             return $soapval;
         } elseif (is_array($soapval->value)) {
             if ($soapval->type != 'Array') {
@@ -859,7 +849,7 @@ class SOAP_Base extends SOAP_Base_Object
                         }
                     }
                 } else {
-                    if ($soapval->arrayType && $this->_isSoapValue($item)) {
+                    if ($soapval->arrayType && is_a($item, 'SOAP_Value')) {
                         if ($this->_isBase64Type($item->type) &&
                             !$this->_isBase64Type($soapval->arrayType)) {
                             // Decode the value if we're losing the base64
