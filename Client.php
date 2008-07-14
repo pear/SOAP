@@ -504,6 +504,20 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_options['trace'] = $trace;
     }
 
+    /**
+     * Generates the complete XML SOAP message for an RPC call.
+     *
+     * @see call()
+     *
+     * @param string $method           The method to call.
+     * @param array $params            The method parameters.
+     * @param string|array $namespace  Namespace or hash with options. Note:
+     *                                 most options need to be repeated for
+     *                                 SOAP_Value instances.
+     * @param string $soapAction
+     *
+     * @return string  The SOAP message including envelope.
+     */
     function _generate($method, $params, $namespace = false,
                        $soapAction = false)
     {
@@ -512,11 +526,12 @@ class SOAP_Client extends SOAP_Client_Overload
         $this->_options['result'] = 'parse';
         $this->_options['parameters'] = false;
 
-        if ($params && gettype($params) != 'array') {
+        if ($params && !is_array($params)) {
             $params = array($params);
         }
 
-        if (gettype($namespace) == 'array') {
+        if (is_array($namespace)) {
+            // Options passed as a hash.
             foreach ($namespace as $optname => $opt) {
                 $this->_options[strtolower($optname)] = $opt;
             }
@@ -555,9 +570,9 @@ class SOAP_Client extends SOAP_Client_Overload
             if (PEAR::isError($opData)) {
                 return $this->_raiseSoapFault($opData);
             }
-            $namespace = $opData['namespace'];
-            $this->_options['style'] = $opData['style'];
-            $this->_options['use'] = $opData['input']['use'];
+            $namespace                    = $opData['namespace'];
+            $this->_options['style']      = $opData['style'];
+            $this->_options['use']        = $opData['input']['use'];
             $this->_options['soapaction'] = $opData['soapAction'];
 
             // Set input parameters.
@@ -625,7 +640,8 @@ class SOAP_Client extends SOAP_Client_Overload
             $this->_options['style'] = 'rpc';
             $this->docparams = true;
             $mqname = new QName($method, $namespace);
-            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params, array(), $this->_options);
+            $methodValue = new SOAP_Value($mqname->fqn(), 'Struct', $params,
+                                          array(), $this->_options);
             $soap_msg = $this->makeEnvelope($methodValue,
                                             $this->headersOut,
                                             $this->_encoding,

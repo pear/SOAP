@@ -850,7 +850,14 @@ class SOAP_WSDL extends SOAP_Base
         return null;
     }
 
-    function getSchemaType($type, $name, $type_namespace)
+    /**
+     * @param QName $name  A parameter name.
+     * @param QName $type  A parameter type.
+     *
+     * @return array  A list of [type, array element type, array element
+     *                namespace, array length].
+     */
+    function getSchemaType($type, $name)
     {
         // see if it's a complex type so we can deal properly with
         // SOAPENC:arrayType.
@@ -858,56 +865,56 @@ class SOAP_WSDL extends SOAP_Base
             // XXX TODO:
             // look up the name in the wsdl and validate the type.
             foreach ($this->complexTypes as $types) {
-                if (isset($types[$type])) {
-                    if (isset($types[$type]['type'])) {
-                        list($arraytype_ns, $arraytype, $array_depth) = isset($types[$type]['arrayType'])
-                            ? $this->_getDeepestArrayType($types[$type]['namespace'], $types[$type]['arrayType'])
-                            : array($this->namespaces[$types[$type]['namespace']], null, 0);
-                        return array($types[$type]['type'], $arraytype, $arraytype_ns, $array_depth);
+                if (isset($types[$type->name])) {
+                    if (isset($types[$type->name]['type'])) {
+                        list($arraytype_ns, $arraytype, $array_depth) = isset($types[$type->name]['arrayType'])
+                            ? $this->_getDeepestArrayType($types[$type->name]['namespace'], $types[$type->name]['arrayType'])
+                            : array($this->namespaces[$types[$type->name]['namespace']], null, 0);
+                        return array($types[$type->name]['type'], $arraytype, $arraytype_ns, $array_depth);
                     }
-                    if (isset($types[$type]['arrayType'])) {
+                    if (isset($types[$type->name]['arrayType'])) {
                         list($arraytype_ns, $arraytype, $array_depth) =
-                            $this->_getDeepestArrayType($types[$type]['namespace'], $types[$type]['arrayType']);
+                            $this->_getDeepestArrayType($types[$type->name]['namespace'], $types[$type->name]['arrayType']);
                         return array('Array', $arraytype, $arraytype_ns, $array_depth);
                     }
-                    if (!empty($types[$type]['elements'][$name])) {
-                        $type = $types[$type]['elements']['type'];
-                        return array($type, null, $this->namespaces[$types[$type]['namespace']], null);
+                    if (!empty($types[$type->name]['elements'][$name->name])) {
+                        $type->name = $types[$type->name]['elements']['type'];
+                        return array($type->name, null, $this->namespaces[$types[$type->name]['namespace']], null);
                     }
                     break;
                 }
             }
         }
-        if ($type && $type_namespace) {
+        if ($type && $type->namespace) {
             $arrayType = null;
             // XXX TODO:
             // this code currently handles only one way of encoding array
             // types in wsdl need to do a generalized function to figure out
             // complex types
-            $p = $this->ns[$type_namespace];
-            if ($p && !empty($this->complexTypes[$p][$type])) {
-                if ($arrayType = $this->complexTypes[$p][$type]['arrayType']) {
-                    $type = 'Array';
-                } elseif ($this->complexTypes[$p][$type]['order'] == 'sequence' &&
-                          array_key_exists('elements', $this->complexTypes[$p][$type])) {
-                    reset($this->complexTypes[$p][$type]['elements']);
+            $p = $this->ns[$type->namespace];
+            if ($p && !empty($this->complexTypes[$p][$type->name])) {
+                if ($arrayType = $this->complexTypes[$p][$type->name]['arrayType']) {
+                    $type->name = 'Array';
+                } elseif ($this->complexTypes[$p][$type->name]['order'] == 'sequence' &&
+                          array_key_exists('elements', $this->complexTypes[$p][$type->name])) {
+                    reset($this->complexTypes[$p][$type->name]['elements']);
                     // assume an array
-                    if (count($this->complexTypes[$p][$type]['elements']) == 1) {
-                        $arg = current($this->complexTypes[$p][$type]['elements']);
+                    if (count($this->complexTypes[$p][$type->name]['elements']) == 1) {
+                        $arg = current($this->complexTypes[$p][$type->name]['elements']);
                         $arrayType = $arg['type'];
-                        $type = 'Array';
+                        $type->name = 'Array';
                     } else {
-                        foreach ($this->complexTypes[$p][$type]['elements'] as $element) {
-                            if ($element['name'] == $type) {
+                        foreach ($this->complexTypes[$p][$type->name]['elements'] as $element) {
+                            if ($element['name'] == $type->name) {
                                 $arrayType = $element['type'];
-                                $type = $element['type'];
+                                $type->name = $element['type'];
                             }
                         }
                     }
                 } else {
-                    $type = 'Struct';
+                    $type->name = 'Struct';
                 }
-                return array($type, $arrayType, $type_namespace, null);
+                return array($type->name, $arrayType, $type->namespace, null);
             }
         }
         return array(null, null, null, null);

@@ -39,7 +39,7 @@ $calls = array(
     array('echoStruct',
           array('inputStruct' => $struct->__to_soap())),
     array('echoStructAsSimpleTypes',
-          array('inputStruct' => $struct->__to_soap()))
+          array('inputStruct' => $struct->__to_soap())),
 );
 
 /* Run tests. */

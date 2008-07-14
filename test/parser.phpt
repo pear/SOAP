@@ -69,33 +69,17 @@ var_dump($parser->getResponse());
 
 ?>
 --EXPECTREGEX--
-object\((soap_value|SOAP_Value)\).+?11\) \{
+object\((soap_value|SOAP_Value)\).+?10\) \{
   \["value"\]\=\>
   array\(1\) \{
     \[0\]\=\>
-    object\((soap_value|SOAP_Value)\).+?11\) \{
+    object\((soap_value|SOAP_Value)\).+?10\) \{
       \["value"\]\=\>
       array\(2\) \{
         \[0\]\=\>
-        object\((soap_value|SOAP_Value)\).+?11\) \{
+        object\((soap_value|SOAP_Value)\).+?10\) \{
           \["value"\]\=\>
           string\(4\) "good"
-          \["name"\]\=\>
-          string\(4\) "item"
-          \["type"\]\=\>
-          string\(6\) "string"
-          \["namespace"\]\=\>
-          string\(23\) "http:\/\/soapinterop.org\/"
-          \["type_namespace"\]\=\>
-          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
-          \["attributes"\]\=\>
-          array\(0\) \{
-          \}
-          \["arrayType"\]\=\>
-          string\(0\) ""
-          \["options"\]\=\>
-          array\(0\) \{
-          \}
           \["nqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -105,6 +89,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
           \}
+          \["name"\]\=\>
+          string\(4\) "item"
+          \["namespace"\]\=\>
+          string\(23\) "http:\/\/soapinterop.org\/"
           \["tqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -114,29 +102,23 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
           \}
-          \["type_prefix"\]\=\>
+          \["type"\]\=\>
+          string\(6\) "string"
+          \["type_namespace"\]\=\>
+          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
+          \["arrayType"\]\=\>
           string\(0\) ""
+          \["attributes"\]\=\>
+          array\(0\) \{
+          \}
+          \["options"\]\=\>
+          array\(0\) \{
+          \}
         \}
         \[1\]\=\>
-        object\((soap_value|SOAP_Value)\).+?11\) \{
+        object\((soap_value|SOAP_Value)\).+?10\) \{
           \["value"\]\=\>
           string\(3\) "bad"
-          \["name"\]\=\>
-          string\(4\) "item"
-          \["type"\]\=\>
-          string\(6\) "string"
-          \["namespace"\]\=\>
-          string\(23\) "http:\/\/soapinterop.org\/"
-          \["type_namespace"\]\=\>
-          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
-          \["attributes"\]\=\>
-          array\(0\) \{
-          \}
-          \["arrayType"\]\=\>
-          string\(0\) ""
-          \["options"\]\=\>
-          array\(0\) \{
-          \}
           \["nqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -146,6 +128,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
           \}
+          \["name"\]\=\>
+          string\(4\) "item"
+          \["namespace"\]\=\>
+          string\(23\) "http:\/\/soapinterop.org\/"
           \["tqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -155,25 +141,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
           \}
-          \["type_prefix"\]\=\>
+          \["type"\]\=\>
+          string\(6\) "string"
+          \["type_namespace"\]\=\>
+          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
+          \["arrayType"\]\=\>
           string\(0\) ""
+          \["attributes"\]\=\>
+          array\(0\) \{
+          \}
+          \["options"\]\=\>
+          array\(0\) \{
+          \}
         \}
-      \}
-      \["name"\]\=\>
-      string\(6\) "return"
-      \["type"\]\=\>
-      string\(5\) "Array"
-      \["namespace"\]\=\>
-      string\(23\) "http:\/\/soapinterop.org\/"
-      \["type_namespace"\]\=\>
-      string\(41\) "http:\/\/schemas.xmlsoap.org\/soap\/encoding\/"
-      \["attributes"\]\=\>
-      array\(0\) \{
-      \}
-      \["arrayType"\]\=\>
-      string\(6\) "string"
-      \["options"\]\=\>
-      array\(0\) \{
       \}
       \["nqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
@@ -184,6 +164,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
       \}
+      \["name"\]\=\>
+      string\(6\) "return"
+      \["namespace"\]\=\>
+      string\(23\) "http:\/\/soapinterop.org\/"
       \["tqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
@@ -193,25 +177,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(41\) "http:\/\/schemas.xmlsoap.org\/soap\/encoding\/"
       \}
-      \["type_prefix"\]\=\>
-      string\(0\) ""
+      \["type"\]\=\>
+      string\(5\) "Array"
+      \["type_namespace"\]\=\>
+      string\(41\) "http:\/\/schemas.xmlsoap.org\/soap\/encoding\/"
+      \["arrayType"\]\=\>
+      string\(6\) "string"
+      \["attributes"\]\=\>
+      array\(0\) \{
+      \}
+      \["options"\]\=\>
+      array\(0\) \{
+      \}
     \}
-  \}
-  \["name"\]\=\>
-  string\(23\) "echoStringArrayResponse"
-  \["type"\]\=\>
-  string\(6\) "Struct"
-  \["namespace"\]\=\>
-  string\(23\) "http:\/\/soapinterop.org\/"
-  \["type_namespace"\]\=\>
-  string\(0\) ""
-  \["attributes"\]\=\>
-  array\(0\) \{
-  \}
-  \["arrayType"\]\=\>
-  string\(0\) ""
-  \["options"\]\=\>
-  array\(0\) \{
   \}
   \["nqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
@@ -222,6 +200,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
   \}
+  \["name"\]\=\>
+  string\(23\) "echoStringArrayResponse"
+  \["namespace"\]\=\>
+  string\(23\) "http:\/\/soapinterop.org\/"
   \["tqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
@@ -231,36 +213,30 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(0\) ""
   \}
-  \["type_prefix"\]\=\>
+  \["type"\]\=\>
+  string\(6\) "Struct"
+  \["type_namespace"\]\=\>
   string\(0\) ""
+  \["arrayType"\]\=\>
+  string\(0\) ""
+  \["attributes"\]\=\>
+  array\(0\) \{
+  \}
+  \["options"\]\=\>
+  array\(0\) \{
+  \}
 \}
-object\((soap_value|SOAP_Value)\).+?11\) \{
+object\((soap_value|SOAP_Value)\).+?10\) \{
   \["value"\]\=\>
   array\(1\) \{
     \[0\]\=\>
-    object\((soap_value|SOAP_Value)\).+?11\) \{
+    object\((soap_value|SOAP_Value)\).+?10\) \{
       \["value"\]\=\>
       array\(2\) \{
         \[0\]\=\>
-        object\((soap_value|SOAP_Value)\).+?11\) \{
+        object\((soap_value|SOAP_Value)\).+?10\) \{
           \["value"\]\=\>
           string\(4\) "good"
-          \["name"\]\=\>
-          string\(4\) "item"
-          \["type"\]\=\>
-          string\(6\) "string"
-          \["namespace"\]\=\>
-          string\(23\) "http:\/\/soapinterop.org\/"
-          \["type_namespace"\]\=\>
-          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
-          \["attributes"\]\=\>
-          array\(0\) \{
-          \}
-          \["arrayType"\]\=\>
-          string\(0\) ""
-          \["options"\]\=\>
-          array\(0\) \{
-          \}
           \["nqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -270,6 +246,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
           \}
+          \["name"\]\=\>
+          string\(4\) "item"
+          \["namespace"\]\=\>
+          string\(23\) "http:\/\/soapinterop.org\/"
           \["tqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -279,29 +259,23 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
           \}
-          \["type_prefix"\]\=\>
+          \["type"\]\=\>
+          string\(6\) "string"
+          \["type_namespace"\]\=\>
+          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
+          \["arrayType"\]\=\>
           string\(0\) ""
+          \["attributes"\]\=\>
+          array\(0\) \{
+          \}
+          \["options"\]\=\>
+          array\(0\) \{
+          \}
         \}
         \[1\]\=\>
-        object\((soap_value|SOAP_Value)\).+?11\) \{
+        object\((soap_value|SOAP_Value)\).+?10\) \{
           \["value"\]\=\>
           string\(3\) "bad"
-          \["name"\]\=\>
-          string\(4\) "item"
-          \["type"\]\=\>
-          string\(6\) "string"
-          \["namespace"\]\=\>
-          string\(23\) "http:\/\/soapinterop.org\/"
-          \["type_namespace"\]\=\>
-          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
-          \["attributes"\]\=\>
-          array\(0\) \{
-          \}
-          \["arrayType"\]\=\>
-          string\(0\) ""
-          \["options"\]\=\>
-          array\(0\) \{
-          \}
           \["nqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -311,6 +285,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
           \}
+          \["name"\]\=\>
+          string\(4\) "item"
+          \["namespace"\]\=\>
+          string\(23\) "http:\/\/soapinterop.org\/"
           \["tqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -320,25 +298,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
           \}
-          \["type_prefix"\]\=\>
+          \["type"\]\=\>
+          string\(6\) "string"
+          \["type_namespace"\]\=\>
+          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
+          \["arrayType"\]\=\>
           string\(0\) ""
+          \["attributes"\]\=\>
+          array\(0\) \{
+          \}
+          \["options"\]\=\>
+          array\(0\) \{
+          \}
         \}
-      \}
-      \["name"\]\=\>
-      string\(17\) "outputStringArray"
-      \["type"\]\=\>
-      string\(6\) "Struct"
-      \["namespace"\]\=\>
-      string\(23\) "http:\/\/soapinterop.org\/"
-      \["type_namespace"\]\=\>
-      string\(0\) ""
-      \["attributes"\]\=\>
-      array\(0\) \{
-      \}
-      \["arrayType"\]\=\>
-      string\(0\) ""
-      \["options"\]\=\>
-      array\(0\) \{
       \}
       \["nqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
@@ -349,6 +321,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
       \}
+      \["name"\]\=\>
+      string\(17\) "outputStringArray"
+      \["namespace"\]\=\>
+      string\(23\) "http:\/\/soapinterop.org\/"
       \["tqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
@@ -358,25 +334,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(0\) ""
       \}
-      \["type_prefix"\]\=\>
+      \["type"\]\=\>
+      string\(6\) "Struct"
+      \["type_namespace"\]\=\>
       string\(0\) ""
+      \["arrayType"\]\=\>
+      string\(0\) ""
+      \["attributes"\]\=\>
+      array\(0\) \{
+      \}
+      \["options"\]\=\>
+      array\(0\) \{
+      \}
     \}
-  \}
-  \["name"\]\=\>
-  string\(23\) "echoStringArrayResponse"
-  \["type"\]\=\>
-  string\(6\) "Struct"
-  \["namespace"\]\=\>
-  string\(23\) "http:\/\/soapinterop.org\/"
-  \["type_namespace"\]\=\>
-  string\(0\) ""
-  \["attributes"\]\=\>
-  array\(0\) \{
-  \}
-  \["arrayType"\]\=\>
-  string\(0\) ""
-  \["options"\]\=\>
-  array\(0\) \{
   \}
   \["nqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
@@ -387,6 +357,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
   \}
+  \["name"\]\=\>
+  string\(23\) "echoStringArrayResponse"
+  \["namespace"\]\=\>
+  string\(23\) "http:\/\/soapinterop.org\/"
   \["tqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
@@ -396,36 +370,30 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(0\) ""
   \}
-  \["type_prefix"\]\=\>
+  \["type"\]\=\>
+  string\(6\) "Struct"
+  \["type_namespace"\]\=\>
   string\(0\) ""
+  \["arrayType"\]\=\>
+  string\(0\) ""
+  \["attributes"\]\=\>
+  array\(0\) \{
+  \}
+  \["options"\]\=\>
+  array\(0\) \{
+  \}
 \}
-object\((soap_value|SOAP_Value)\).+?11\) \{
+object\((soap_value|SOAP_Value)\).+?10\) \{
   \["value"\]\=\>
   array\(1\) \{
     \[0\]\=\>
-    object\((soap_value|SOAP_Value)\).+?11\) \{
+    object\((soap_value|SOAP_Value)\).+?10\) \{
       \["value"\]\=\>
       array\(1\) \{
         \[0\]\=\>
-        object\((soap_value|SOAP_Value)\).+?11\) \{
+        object\((soap_value|SOAP_Value)\).+?10\) \{
           \["value"\]\=\>
           string\(4\) "good"
-          \["name"\]\=\>
-          string\(4\) "item"
-          \["type"\]\=\>
-          string\(6\) "string"
-          \["namespace"\]\=\>
-          string\(23\) "http:\/\/soapinterop.org\/"
-          \["type_namespace"\]\=\>
-          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
-          \["attributes"\]\=\>
-          array\(0\) \{
-          \}
-          \["arrayType"\]\=\>
-          string\(0\) ""
-          \["options"\]\=\>
-          array\(0\) \{
-          \}
           \["nqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -435,6 +403,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
           \}
+          \["name"\]\=\>
+          string\(4\) "item"
+          \["namespace"\]\=\>
+          string\(23\) "http:\/\/soapinterop.org\/"
           \["tqn"\]\=\>
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
@@ -444,25 +416,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
           \}
-          \["type_prefix"\]\=\>
+          \["type"\]\=\>
+          string\(6\) "string"
+          \["type_namespace"\]\=\>
+          string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
+          \["arrayType"\]\=\>
           string\(0\) ""
+          \["attributes"\]\=\>
+          array\(0\) \{
+          \}
+          \["options"\]\=\>
+          array\(0\) \{
+          \}
         \}
-      \}
-      \["name"\]\=\>
-      string\(17\) "outputStringArray"
-      \["type"\]\=\>
-      string\(6\) "Struct"
-      \["namespace"\]\=\>
-      string\(23\) "http:\/\/soapinterop.org\/"
-      \["type_namespace"\]\=\>
-      string\(0\) ""
-      \["attributes"\]\=\>
-      array\(0\) \{
-      \}
-      \["arrayType"\]\=\>
-      string\(0\) ""
-      \["options"\]\=\>
-      array\(0\) \{
       \}
       \["nqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
@@ -473,6 +439,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
       \}
+      \["name"\]\=\>
+      string\(17\) "outputStringArray"
+      \["namespace"\]\=\>
+      string\(23\) "http:\/\/soapinterop.org\/"
       \["tqn"\]\=\>
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
@@ -482,25 +452,19 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
         \["namespace"\]\=\>
         string\(0\) ""
       \}
-      \["type_prefix"\]\=\>
+      \["type"\]\=\>
+      string\(6\) "Struct"
+      \["type_namespace"\]\=\>
       string\(0\) ""
+      \["arrayType"\]\=\>
+      string\(0\) ""
+      \["attributes"\]\=\>
+      array\(0\) \{
+      \}
+      \["options"\]\=\>
+      array\(0\) \{
+      \}
     \}
-  \}
-  \["name"\]\=\>
-  string\(23\) "echoStringArrayResponse"
-  \["type"\]\=\>
-  string\(6\) "Struct"
-  \["namespace"\]\=\>
-  string\(23\) "http:\/\/soapinterop.org\/"
-  \["type_namespace"\]\=\>
-  string\(0\) ""
-  \["attributes"\]\=\>
-  array\(0\) \{
-  \}
-  \["arrayType"\]\=\>
-  string\(0\) ""
-  \["options"\]\=\>
-  array\(0\) \{
   \}
   \["nqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
@@ -511,6 +475,10 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
   \}
+  \["name"\]\=\>
+  string\(23\) "echoStringArrayResponse"
+  \["namespace"\]\=\>
+  string\(23\) "http:\/\/soapinterop.org\/"
   \["tqn"\]\=\>
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
@@ -520,6 +488,16 @@ object\((soap_value|SOAP_Value)\).+?11\) \{
     \["namespace"\]\=\>
     string\(0\) ""
   \}
-  \["type_prefix"\]\=\>
+  \["type"\]\=\>
+  string\(6\) "Struct"
+  \["type_namespace"\]\=\>
   string\(0\) ""
+  \["arrayType"\]\=\>
+  string\(0\) ""
+  \["attributes"\]\=\>
+  array\(0\) \{
+  \}
+  \["options"\]\=\>
+  array\(0\) \{
+  \}
 \}

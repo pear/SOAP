@@ -388,8 +388,20 @@ class SOAP_Base extends SOAP_Base_Object
         return is_a($value, 'SOAP_Value');
     }
 
-    function _serializeValue(&$value, $name = '', $type = false,
-                             $elNamespace = null, $typeNamespace = null,
+    /**
+     * Serializes a value, array or object according to the rules set by this
+     * object.
+     *
+     * @see SOAP_Value
+     *
+     * @param mixed $value       The actual value.
+     * @param QName $name        The value name.
+     * @param QName $type        The value type.
+     * @param array $options     A list of encoding and serialization options.
+     * @param array $attributes  A hash of additional attributes.
+     * @param string $artype     The type of any array elements.
+     */
+    function _serializeValue($value, $name = null, $type = null,
                              $options = array(), $attributes = array(),
                              $artype = '')
     {
@@ -398,13 +410,13 @@ class SOAP_Base extends SOAP_Base_Object
         $typePrefix  = $elPrefix = $xmlout_offset = $xmlout_arrayType = '';
         $xmlout_type = $xmlns = $ptype = $array_type_ns = '';
 
-        if (!$name || is_numeric($name)) {
-            $name = 'item';
+        if (!$name->name || is_numeric($name->name)) {
+            $name->name = 'item';
         }
 
         if ($this->_wsdl) {
             list($ptype, $arrayType, $array_type_ns, $array_depth)
-                = $this->_wsdl->getSchemaType($type, $name, $typeNamespace);
+                = $this->_wsdl->getSchemaType($type, $name);
         }
 
         if (!$arrayType) {
@@ -414,10 +426,11 @@ class SOAP_Base extends SOAP_Base_Object
             $ptype = $this->_getType($value);
         }
         if (!$type) {
-            $type = $ptype;
+            $type = new QName($ptype);
         }
 
-        if (strcasecmp($ptype, 'Struct') == 0 || strcasecmp($type, 'Struct') == 0) {
+        if (strcasecmp($ptype, 'Struct') == 0 ||
+            strcasecmp($type->name, 'Struct') == 0) {
             // Struct
             $vars = null;
             if (is_object($value)) {
@@ -440,21 +453,17 @@ class SOAP_Base extends SOAP_Base_Object
                             // XXX get the members and serialize them instead
                             // converting to an array is more overhead than we
                             // should really do.
-                            $elNS = $this->_section5 ? null : $elNamespace;
-                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), $k, false, $elNS, null, $options);
+                            $xmlout_value .= $this->_serializeValue(get_object_vars($vars[$k]), new QName($k, $this->_section5 ? null : $name->namepace), null, $options);
                         }
                     } else {
-                        $elNS = $this->_section5 ? null : $elNamespace;
-                        $xmlout_value .= $this->_serializeValue($vars[$k], $k, false, $elNS, null, $options);
+                        $xmlout_value .= $this->_serializeValue($vars[$k], new QName($k, $this->_section5 ? null : $name->namespace), false, $options);
                     }
                 }
             }
         } elseif (strcasecmp($ptype, 'Array') == 0 ||
-                  strcasecmp($type, 'Array') == 0) {
+                  strcasecmp($type->name, 'Array') == 0) {
             // Array.
-            $typeNamespace = SOAP_SCHEMA_ENCODING;
-            $orig_type = $type;
-            $type = 'Array';
+            $type = new QName('Array', SOAP_SCHEMA_ENCODING);
             $numtypes = 0;
             $value = (array)$value;
             // XXX this will be slow on larger arrays.  Basically, it flattens
@@ -487,9 +496,9 @@ class SOAP_Base extends SOAP_Base_Object
                         $array_type = $this->_getType($array_val);
                         $array_types[$array_type] = 1;
                         if (empty($options['keep_arrays_flat'])) {
-                            $xmlout_value .= $this->_serializeValue($array_val, 'item', $array_type, $this->_section5 ? null : $elNamespace, null, $options);
+                            $xmlout_value .= $this->_serializeValue($array_val, new QName('item', $this->_section5 ? null : $name->namespace), new QName($array_type), $options);
                         } else {
-                            $xmlout_value .= $this->_serializeValue($array_val, $name, $array_type, $elNamespace, null, $options, $attributes);
+                            $xmlout_value .= $this->_serializeValue($array_val, $name, new QName($array_type), $options, $attributes);
                         }
                     }
                 }
@@ -536,45 +545,45 @@ class SOAP_Base extends SOAP_Base_Object
             $xmlout_arrayType .= "[$ar_size]\"";
         } elseif ($this->_isSoapValue($value)) {
             $xmlout_value = $value->serialize($this);
-        } elseif ($type == 'string') {
+        } elseif ($type->name == 'string') {
             $xmlout_value = htmlspecialchars($value);
-        } elseif ($type == 'rawstring') {
+        } elseif ($type->name == 'rawstring') {
             $xmlout_value = $value;
-        } elseif ($type == 'boolean') {
+        } elseif ($type->name == 'boolean') {
             $xmlout_value = $value ? 'true' : 'false';
         } else {
             $xmlout_value = $value;
         }
 
         // Add namespaces.
-        if ($elNamespace) {
-            $elPrefix = $this->_getNamespacePrefix($elNamespace);
+        if ($name->namespace) {
+            $elPrefix = $this->_getNamespacePrefix($name->namespace);
             if ($elPrefix) {
-                $xmlout_name = "$elPrefix:$name";
+                $xmlout_name = $elPrefix . ':' . $name->name;
             } else {
-                $xmlout_name = $name;
+                $xmlout_name = $name->name;
             }
         } else {
-            $xmlout_name = $name;
+            $xmlout_name = $name->name;
         }
 
-        if ($typeNamespace) {
+        if ($type->namespace) {
             $typePrefix = false;
             if (empty($options['no_type_prefix'])) {
-                $typePrefix = $this->_getNamespacePrefix($typeNamespace);
+                $typePrefix = $this->_getNamespacePrefix($type->namespace);
             }
             if ($typePrefix) {
-                $xmlout_type = "$typePrefix:$type";
+                $xmlout_type = $typePrefix . ':' . $type->name;
             } else {
-                $xmlout_type = $type;
+                $xmlout_type = $type->name;
             }
-        } elseif ($type &&
-                  isset($this->_typemap[$this->_XMLSchemaVersion][$type])) {
+        } elseif ($type->name &&
+                  isset($this->_typemap[$this->_XMLSchemaVersion][$type->name])) {
             $typePrefix = $this->_namespaces[$this->_XMLSchemaVersion];
             if ($typePrefix) {
-                $xmlout_type = "$typePrefix:$type";
+                $xmlout_type = $typePrefix . ':' . $type->name;
             } else {
-                $xmlout_type = $type;
+                $xmlout_type = $type->name;
             }
         }
 
@@ -605,7 +614,7 @@ class SOAP_Base extends SOAP_Base_Object
                 $xml = "\r\n<$xmlout_name$xmlout_type$xmlns$xmlout_arrayType" .
                     "$xmlout_offset$xml_attr>$xmlout_value</$xmlout_name>";
             }
-        } elseif ($type == 'Array' && !empty($options['keep_arrays_flat'])) {
+        } elseif ($type->name == 'Array' && !empty($options['keep_arrays_flat'])) {
             $xml = $xmlout_value;
         } else {
             if (is_null($xmlout_value)) {
@@ -712,7 +721,7 @@ class SOAP_Base extends SOAP_Base_Object
             $xml .= $value->serialize($this);
         } else {
             $type = $this->_getType($value);
-            $xml .= $this->_serializeValue($value, 'item', $type);
+            $xml .= $this->_serializeValue($value, new QName('item'), new QName($type));
         }
         $size = null;
 
@@ -896,12 +905,14 @@ class SOAP_Base extends SOAP_Base_Object
     /**
      * Creates the SOAP envelope with the SOAP envelop data.
      *
-     * @param mixed $method
-     * @param array $headers
-     * @param string $encoding
-     * @param array $options
+     * @param SOAP_Value $method  SOAP_Value instance with the method name as
+     *                            the name, and the method arguments as the
+     *                            value.
+     * @param array $headers      A list of additional SOAP_Header objects.
+     * @param string $encoding    The charset of the SOAP message.
+     * @param array $options      A list of encoding/serialization options.
      *
-     * @return string
+     * @return string  The complete SOAP message.
      */
     function makeEnvelope($method, $headers, $encoding = SOAP_DEFAULT_ENCODING,
                           $options = array())
@@ -1113,7 +1124,6 @@ class SOAP_Base extends SOAP_Base_Object
 /**
  * Class used to handle QNAME values in XML.
  *
- * @access   public
  * @package  SOAP
  * @author   Shane Caraveo <shane@php.net> Conversion to PEAR and updates
  */
@@ -1121,7 +1131,7 @@ class QName
 {
     var $name = '';
     var $ns = '';
-    var $namespace='';
+    var $namespace = '';
 
     function QName($name, $namespace = '')
     {
