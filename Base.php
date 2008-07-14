@@ -424,7 +424,6 @@ class SOAP_Base extends SOAP_Base_Object
             $type = new QName($ptype);
         }
 
-        //if ($type->name == 'SOAPStruct') var_dump($value, $ptype);
         if (strcasecmp($ptype, 'Struct') == 0 ||
             strcasecmp($type->name, 'Struct') == 0) {
             // Struct
