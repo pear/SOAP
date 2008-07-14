@@ -16,8 +16,8 @@ echo $v->serialize($soap_base);
 
 ?>
 --EXPECT--
-<inputString>
+<inputStruct>
 <age xsi:type="xsd:int">45</age>
 <height xsi:type="xsd:float">5.9</height>
 <displacement xsi:type="xsd:int">-450</displacement>
-<color xsi:type="xsd:string">Blue</color></inputString>
+<color xsi:type="xsd:string">Blue</color></inputStruct>
