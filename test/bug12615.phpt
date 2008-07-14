@@ -1,8 +1,7 @@
 --TEST--
-Test for
-Bug #12099  Client of .Net SOAP server is missing first two rows of data?
-Bug #12615  Decoded arrays missing some values
-Bug #12774  I am Missing Response Information.
+Bug #12099: Client of .Net SOAP server is missing first two rows of data?
+Bug #12615: Decoded arrays missing some values
+Bug #12774: I am Missing Response Information.
 --FILE--
 <?php
 require_once 'SOAP/Parser.php';
@@ -92,10 +91,6 @@ function getXml($stringarray)
     return $xml;
 }
 
-?>
---DONE--
-<?php
-exit;
 ?>
 --EXPECT--
 OK 0.
