@@ -230,16 +230,16 @@ class SOAP_WSDL extends SOAP_Base
      * @param string $service_desc     Optional description of the WSDL
      *                                 service.
      */
-    function parseObject(&$wsdl_obj, $targetNamespace, $service_name,
+    function parseObject($wsdl_obj, $targetNamespace, $service_name,
                          $service_desc = '')
     {
-        $parser =& new SOAP_WSDL_ObjectParser($wsdl_obj, $this,
-                                              $targetNamespace, $service_name,
-                                              $service_desc);
+        $parser = new SOAP_WSDL_ObjectParser($wsdl_obj, $this,
+                                             $targetNamespace, $service_name,
+                                             $service_desc);
 
-         if ($parser->fault) {
-             $this->_raiseSoapFault($parser->fault);
-         }
+        if ($parser->fault) {
+            $this->_raiseSoapFault($parser->fault);
+        }
     }
 
     function getEndpoint($portName)
@@ -405,29 +405,33 @@ class SOAP_WSDL extends SOAP_Base
             $namespace = $this->namespaces[$namespace];
         }
 
-        if (isset($this->ns[$namespace])) {
-            $nsp = $this->ns[$namespace];
-            //if (!isset($this->elements[$nsp]))
-            //    $nsp = $this->namespaces[$nsp];
-            if (isset($this->elements[$nsp][$datatype])) {
-                $checkmessages = array();
-                // Find what messages use this datatype.
-                foreach ($this->messages as $messagename => $message) {
-                    foreach ($message as $part) {
-                        if ($part['type'] == $datatype) {
-                            $checkmessages[] = $messagename;
-                            break;
-                        }
-                    }
+        if (!isset($this->ns[$namespace])) {
+            return null;
+        }
+
+        $nsp = $this->ns[$namespace];
+        //if (!isset($this->elements[$nsp]))
+        //    $nsp = $this->namespaces[$nsp];
+        if (!isset($this->elements[$nsp][$datatype])) {
+            return null;
+        }
+
+        $checkmessages = array();
+        // Find what messages use this datatype.
+        foreach ($this->messages as $messagename => $message) {
+            foreach ($message as $part) {
+                if ($part['type'] == $datatype) {
+                    $checkmessages[] = $messagename;
+                    break;
                 }
-                // Find the operation that uses this message.
-                foreach($this->portTypes as $porttype) {
-                    foreach ($porttype as $opname => $opinfo) {
-                        foreach ($checkmessages as $messagename) {
-                            if ($opinfo['input']['message'] == $messagename) {
-                                return $opname;
-                            }
-                        }
+            }
+        }
+        // Find the operation that uses this message.
+        foreach($this->portTypes as $porttype) {
+            foreach ($porttype as $opname => $opinfo) {
+                foreach ($checkmessages as $messagename) {
+                    if ($opinfo['input']['message'] == $messagename) {
+                        return $opname;
                     }
                 }
             }
@@ -1981,7 +1985,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
      * @param string $service_desc     Optional description of the WSDL
      *                                 <service>.
      */
-    function SOAP_WSDL_ObjectParser(&$objects, &$wsdl, $targetNamespace,
+    function SOAP_WSDL_ObjectParser($objects, &$wsdl, $targetNamespace,
                                     $service_name, $service_desc = '')
     {
         parent::SOAP_Base('WSDLOBJECTPARSER');
@@ -1992,7 +1996,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         $this->_initialise($service_name);
 
         // Parse each web service object
-        $wsdl_ref = (is_array($objects)? $objects : array(&$objects));
+        $wsdl_ref = is_array($objects) ? $objects : array($objects);
 
         foreach ($wsdl_ref as $ref_item) {
             if (!is_object($ref_item)) {
@@ -2046,7 +2050,7 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
      * @param string $schemaNamespace
      * @param string $service_name     Name of the WSDL <service>.
      */
-    function _parse(&$object, $schemaNamespace, $service_name)
+    function _parse($object, $schemaNamespace, $service_name)
     {
         // Create namespace prefix for the schema
         list($schPrefix,) = $this->_getTypeNs('{' . $schemaNamespace . '}');
