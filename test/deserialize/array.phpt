@@ -1,11 +1,9 @@
 --TEST--
-Bug #1312: Broken parsing with nested arrays
+Deserialize nested arrays
 --FILE--
 <?php
-require_once 'SOAP/Base.php';
-require_once 'test.utility.php';
-require_once 'SOAP/Fault.php';
-$soap_base = new SOAP_Base();
+
+require_once dirname(__FILE__) . '/../test.utility.php';
 
 $msg = '
 <?xml version="1.0" encoding="utf-8"?>
@@ -48,6 +46,7 @@ $msg = '
 
 $val = parseMessage($msg);
 var_dump($val);
+
 ?>
 --EXPECT--
 array(4) {
