@@ -63,6 +63,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * Fix missing namespace in serialized array of Structs and Arrays (Bug #1927).
 * SOAP_Fault objects no longer contain backtraces by default.
 * Use namespace and soapAction options set with SOAP_Client::setOpt().
+* No longer return SOAP faults when trying to detect the type of large hashes.
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
