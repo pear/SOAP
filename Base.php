@@ -938,8 +938,7 @@ class SOAP_Base extends SOAP_Base_Object
         return $xml;
     }
 
-    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING,
-                              $soap_encoding = 'base64')
+    function _makeMimeMessage($xml, $encoding = SOAP_DEFAULT_ENCODING)
     {
         if (!@include_once 'Mail/mimePart.php') {
             return $this->_raiseSoapFault('MIME messages are unsupported, the Mail_Mime package is not installed');
@@ -953,7 +952,6 @@ class SOAP_Base extends SOAP_Base_Object
         // Add the xml part.
         $params['content_type'] = 'text/xml';
         $params['charset'] = $encoding;
-        $params['encoding'] = $soap_encoding;
         $msg->addSubPart($xml, $params);
 
         // Add the attachements
@@ -1002,7 +1000,7 @@ class SOAP_Base extends SOAP_Base_Object
         $params['decode_headers'] = true;
 
         // Lame thing to have to do for decoding.
-        $decoder =& new Mail_mimeDecode($data);
+        $decoder = new Mail_mimeDecode($data);
         $structure = $decoder->decode($params);
 
         if (isset($structure->body)) {
@@ -1014,21 +1012,21 @@ class SOAP_Base extends SOAP_Base_Object
             $data = $structure->parts[0]->body;
             $headers = array_merge($structure->headers,
                                    $structure->parts[0]->headers);
-            if (count($structure->parts) > 1) {
-                $mime_parts = array_splice($structure->parts,1);
-                // Prepare the parts for the SOAP parser.
+            if (count($structure->parts) <= 1) {
+                return;
+            }
 
-                $c = count($mime_parts);
-                for ($i = 0; $i < $c; $i++) {
-                    $p =& $mime_parts[$i];
-                    if (isset($p->headers['content-location'])) {
-                        // TODO: modify location per SwA note section 3
-                        // http://www.w3.org/TR/SOAP-attachments
-                        $attachments[$p->headers['content-location']] = $p->body;
-                    } else {
-                        $cid = 'cid:' . substr($p->headers['content-id'], 1, -1);
-                        $attachments[$cid] = $p->body;
-                    }
+            $mime_parts = array_splice($structure->parts, 1);
+            // Prepare the parts for the SOAP parser.
+            for ($i = 0, $c = count($mime_parts); $i < $c; $i++) {
+                $p = $mime_parts[$i];
+                if (isset($p->headers['content-location'])) {
+                    // TODO: modify location per SwA note section 3
+                    // http://www.w3.org/TR/SOAP-attachments
+                    $attachments[$p->headers['content-location']] = $p->body;
+                } else {
+                    $cid = 'cid:' . substr($p->headers['content-id'], 1, -1);
+                    $attachments[$cid] = $p->body;
                 }
             }
 

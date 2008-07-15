@@ -310,8 +310,6 @@ class SOAP_Client extends SOAP_Client_Overload
      *   are not wrapped inside a tag with the SOAP action name
      * - 'use': 'literal' for literal encoding, anything else for section 5
      *   encoding; when set to 'literal' SOAP types will be omitted.
-     * - 'soap_encoding': encoding for SOAP message parts of a MIME encoded
-     *   SOAP request (default: base64)
      * - 'keep_arrays_flat': use the tag name multiple times for each element
      *   when passing in an array in literal mode
      * - 'no_type_prefix': supress adding of the namespace prefix
@@ -348,7 +346,7 @@ class SOAP_Client extends SOAP_Client_Overload
         // probably be optimized.
         if (!$this->_soap_transport ||
             $this->_endpoint != $this->_soap_transport->url) {
-            $this->_soap_transport =& SOAP_Transport::getTransport($this->_endpoint);
+            $this->_soap_transport = SOAP_Transport::getTransport($this->_endpoint);
             if (PEAR::isError($this->_soap_transport)) {
                 $fault = $this->_raiseSoapFault($this->_soap_transport);
                 $this->_soap_transport = null;
@@ -694,8 +692,7 @@ class SOAP_Client extends SOAP_Client_Overload
             if ((isset($this->_options['attachments']) &&
                  $this->_options['attachments'] == 'Mime') ||
                 isset($this->_options['Mime'])) {
-                $soap_encoding = isset($this->_options['soap_encoding']) ? $this->_options['soap_encoding'] : 'base64';
-                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding, $soap_encoding);
+                $soap_msg = $this->_makeMimeMessage($soap_msg, $this->_encoding);
             } else {
                 // default is dime
                 $soap_msg = $this->_makeDIMEMessage($soap_msg, $this->_encoding);

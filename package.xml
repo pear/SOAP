@@ -64,6 +64,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * SOAP_Fault objects no longer contain backtraces by default.
 * Use namespace and soapAction options set with SOAP_Client::setOpt().
 * No longer return SOAP faults when trying to detect the type of large hashes.
+* Don't encode message body in base64 if sending MIME encoded attachments (Request #14343).
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
