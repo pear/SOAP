@@ -238,7 +238,7 @@ class SOAP_Attachment extends SOAP_Value
     {
         parent::SOAP_Value($name, null, null);
 
-        $filedata = ($file === null) ? $this->_file2str($filename) : $file;
+        $filedata = $file === null ? $this->_file2str($filename) : $file;
         $filename = basename($filename);
         if (PEAR::isError($filedata)) {
             $this->options['attachment'] = $filedata;
