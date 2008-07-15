@@ -195,11 +195,11 @@ class SOAP_Server extends SOAP_Base
                 $this->_decodeMimeMessage($data, $this->headers, $attachments);
                 $useEncoding = 'Mime';
             }
-            if (!isset($this->headers['Content-Type'])) {
-                $this->headers['Content-Type'] = stripslashes($_SERVER['CONTENT_TYPE']);
+            if (!isset($this->headers['content-type'])) {
+                $this->headers['content-type'] = stripslashes($_SERVER['CONTENT_TYPE']);
             }
             if (!$this->fault &&
-                !$this->_getContentEncoding($this->headers['Content-Type'])) {
+                !$this->_getContentEncoding($this->headers['content-type'])) {
                 $this->xml_encoding = SOAP_DEFAULT_ENCODING;
                 /* Found encoding we don't understand; return a fault. */
                 $this->_raiseSoapFault('Unsupported encoding, use one of ISO-8859-1, US-ASCII, UTF-8', '', '', 'Server');
@@ -209,13 +209,13 @@ class SOAP_Server extends SOAP_Base
         /* If this is not a POST with Content-Type text/xml, try to return a
          * WSDL file. */
         if (!$this->fault && !$test &&
-            ((isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] != 'POST') ||
-             (isset($this->headers['Content-Type'])
-              && strncmp($this->headers['Content-Type'], 'text/xml', 8) != 0))
-        ) {
+            ((isset($_SERVER['REQUEST_METHOD']) &&
+              $_SERVER['REQUEST_METHOD'] != 'POST') ||
+             (isset($this->headers['content-type']) &&
+              strncmp($this->headers['content-type'], 'text/xml', 8) != 0))) {
             /* This is not possibly a valid SOAP request, try to return a WSDL
              * file. */
-            $got = isset($this->headers['Content-Type']) ? $this->headers['Content-Type'] : 'Nothing!';
+            $got = isset($this->headers['content-type']) ? $this->headers['content-type'] : 'Nothing!';
             $this->_raiseSoapFault('Invalid SOAP request, must be POST with content-type: text/xml, got: ' . $got, '', '', 'Server');
         }
 
