@@ -32,36 +32,38 @@ $soapclient = new SOAP_Client('http://localhost/SOAP/example/server.php');
 $options = array('namespace' => 'urn:SOAP_Example_Server',
                  'trace' => true);
 
+header('Content-Type: text/plain');
+
 $ret = $soapclient->call('echoStringSimple',
                          $params = array('inputStringSimple' => 'this is a test string'),
                          $options);
 // print $soapclient->getWire();
 print_r($ret);
-echo "<br>\n";
+echo "\n";
 
 $ret = $soapclient->call('echoString',
                          $params = array('inputString' => 'this is a test string'),
                          $options);
 print_r($ret);
-echo "<br>\n";
+echo "\n";
 
 $ret = $soapclient->call('divide',
                          $params = array('dividend' => 22, 'divisor' => 7),
                          $options);
 // print $soapclient->getWire();
 if (PEAR::isError($ret)) {
-    echo 'Error: ' . $ret->getMessage() . "<br>\n";
+    echo 'Error: ' . $ret->getMessage() . "\n";
 } else {
-    echo 'Quotient is ' . $ret . "<br>\n";
+    echo 'Quotient is ' . $ret . "\n";
 }
 
 $ret = $soapclient->call('divide',
                          $params = array('dividend' => 22, 'divisor' => 0),
                          $options);
 if (PEAR::isError($ret)) {
-    echo 'Error: ' . $ret->getMessage() . "<br>\n";
+    echo 'Error: ' . $ret->getMessage() . "\n";
 } else {
-    echo 'Quotient is ' . $ret . "<br>\n";
+    echo 'Quotient is ' . $ret . "\n";
 }
 
 
@@ -85,17 +87,23 @@ $ret = $soapclient->call('echoStruct',
 // print $soapclient->getWire();
 print_r($ret);
 
-/**
- * PHP doesn't support multiple OUT parameters in function calls, so we must
+/* PHP doesn't support multiple OUT parameters in function calls, so we must
  * do a little work to make it happen here.  This requires knowledge on the
- * developers part to figure out how they want to deal with it.
- */
+ * developers part to figure out how they want to deal with it. */
 $ret = $soapclient->call('echoStructAsSimpleTypes',
                          $p = array('inputStruct' => $struct->__to_soap()),
                          $options);
 if (PEAR::isError($ret)) {
-    echo 'Error: ' . $ret->getMessage() . "<br>\n";
+    echo 'Error: ' . $ret->getMessage() . "\n";
 } else {
     list($string, $int, $float) = array_values($ret);
-    echo "varString: $string<br>\nvarInt: $int<br>\nvarFloat: $float<br>\n";
+    echo "varString: $string\nvarInt: $int\nvarFloat: $float\n";
 }
+
+$options['attachments'] = 'Mime';
+$attachment = new SOAP_Attachment('attachment', 'text/plain', null,
+                                  'This is a MIME attachment');
+$ret = $soapclient->call('echoMimeAttachment',
+                         $params = array($attachment),
+                         $options);
+print_r($ret);
