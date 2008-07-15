@@ -1038,14 +1038,9 @@ class SOAP_WSDL_Cache extends SOAP_Base
         if ($this->_cacheUse) {
             // Try to retrieve WSDL from cache
             $cachename = $this->_cacheDir() . '/' . md5($wsdl_fname). ' .wsdl';
-            if (file_exists($cachename)) {
-                $wf = fopen($cachename, 'rb');
-                if ($wf) {
-                    // Reading cached file
-                    $file_data = fread($wf, filesize($cachename));
-                    $md5_wsdl = md5($file_data);
-                    fclose($wf);
-                }
+            if (file_exists($cachename) &&
+                $file_data = file_get_contents($cachename)) {
+                $md5_wsdl = md5($file_data);
                 if ($cache) {
                     if ($cache != $md5_wsdl) {
                         return $this->_raiseSoapFault('WSDL Checksum error!', $wsdl_fname);
@@ -1053,28 +1048,28 @@ class SOAP_WSDL_Cache extends SOAP_Base
                 } else {
                     $fi = stat($cachename);
                     $cache_mtime = $fi[8];
-                    //print cache_mtime, time()
                     if ($cache_mtime + $this->_cacheMaxAge < time()) {
-                        // expired
-                        $md5_wsdl = ''; // refetch
+                        // Expired, refetch.
+                        $md5_wsdl = '';
                     }
                 }
             }
         }
 
+        // Not cached or not using cache. Retrieve WSDL from URL
         if (!$md5_wsdl) {
-            // Not cached or not using cache. Retrieve WSDL from URL
-
-            // is it a local file?
-            // this section should be replace by curl at some point
-            if (!preg_match('/^(https?|file):\/\//', $wsdl_fname)) {
+            // Is it a local file?
+            if (strpos($wsdl_fname, 'file://') === 0) {
+                $wsdl_fname = substr($wsdl_fname, 7);
                 if (!file_exists($wsdl_fname)) {
-                    return $this->_raiseSoapFault("Unable to read local WSDL $wsdl_fname", $wsdl_fname);
+                    return $this->_raiseSoapFault('Unable to read local WSDL file', $wsdl_fname);
                 }
                 $file_data = file_get_contents($wsdl_fname);
+            } elseif (!preg_match('|^https?://|', $wsdl_fname)) {
+                return $this->_raiseSoapFault('Unknown schema of WSDL URL', $wsdl_fname);
             } else {
                 $uri = explode('?', $wsdl_fname);
-                $rq =& new HTTP_Request($uri[0], $proxy_params);
+                $rq = new HTTP_Request($uri[0], $proxy_params);
                 // the user agent HTTP_Request uses fouls things up
                 if (isset($uri[1])) {
                     $rq->addRawQueryString($uri[1]);
@@ -1084,11 +1079,14 @@ class SOAP_WSDL_Cache extends SOAP_Base
                     isset($proxy_params['proxy_port']) &&
                     isset($proxy_params['proxy_user']) &&
                     isset($proxy_params['proxy_pass'])) {
-                    $rq->setProxy($proxy_params['proxy_host'], $proxy_params['proxy_port'],
-                                  $proxy_params['proxy_user'], $proxy_params['proxy_pass']);
+                    $rq->setProxy($proxy_params['proxy_host'],
+                                  $proxy_params['proxy_port'],
+                                  $proxy_params['proxy_user'],
+                                  $proxy_params['proxy_pass']);
                 } elseif (isset($proxy_params['proxy_host']) &&
                           isset($proxy_params['proxy_port'])) {
-                    $rq->setProxy($proxy_params['proxy_host'], $proxy_params['proxy_port']);
+                    $rq->setProxy($proxy_params['proxy_host'],
+                                  $proxy_params['proxy_port']);
                 }
 
                 $result = $rq->sendRequest();
@@ -1109,9 +1107,11 @@ class SOAP_WSDL_Cache extends SOAP_Base
                 fclose($fp);
             }
         }
+
         if ($this->_cacheUse && $cache && $cache != $md5_wsdl) {
-            return $this->_raiseSoapFault("WSDL Checksum error!", $wsdl_fname);
+            return $this->_raiseSoapFault('WSDL Checksum error!', $wsdl_fname);
         }
+
         return $file_data;
     }
 
