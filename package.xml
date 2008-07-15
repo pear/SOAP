@@ -66,6 +66,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * No longer return SOAP faults when trying to detect the type of large hashes.
 * Don't encode message body in base64 if sending MIME encoded attachments (Request #14343).
 * Fix sending attachments over HTTPS (Bug #9538).
+* Fix retrieving WSDL data from file:// URLs (Bug #11729).
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
