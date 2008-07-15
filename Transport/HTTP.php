@@ -557,18 +557,18 @@ class SOAP_Transport_HTTP extends SOAP_Transport
                         $options['user'] . ':' . $options['pass']);
         }
 
-        if (!isset($options['soapaction'])) {
-            $options['soapaction'] = '';
+        $headers = array();
+        $action = isset($options['soapaction']) ? $options['soapaction'] : '';
+        $headers['Content-Type'] = "text/xml; charset=$this->encoding";
+        $headers['SOAPAction'] = '"' . $action . '"';
+        if (isset($options['headers'])) {
+            $headers = array_merge($headers, $options['headers']);
         }
-        if (!isset($options['headers']['Content-Type'])) {
-           $options['headers']['Content-Type'] = 'text/xml';
+        foreach ($headers as $header => $value) {
+            $headers[$header] = $header . ': ' . $value;
         }
-        curl_setopt($ch, CURLOPT_HTTPHEADER,
-                    array('Content-Type: ' . $options['headers']['Content-Type']
-                         . ';charset=' . $this->encoding,
-                          'SOAPAction: "' . $options['soapaction'] . '"'));
-        curl_setopt($ch, CURLOPT_USERAGENT,
-                    $this->_userAgent);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->_userAgent);
 
         if ($this->timeout) {
             curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
