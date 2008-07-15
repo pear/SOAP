@@ -313,7 +313,7 @@ class SOAP_WSDL extends SOAP_Base
         if (is_array($this->bindings[$binding]['operations'][$operation])) {
             $opData = $this->bindings[$binding]['operations'][$operation];
         }
-        // get operation data from porttype
+        // Get operation data from porttype.
         $portType = $this->bindings[$binding]['type'];
         if (!$portType) {
             return $this->_raiseSoapFault("No port type for binding $binding in WSDL.", $this->uri);
@@ -2109,6 +2109,10 @@ class SOAP_WSDL_ObjectParser extends SOAP_Base
         // Populate tree with message information
         // *** <wsdl:message> ***
         foreach ($object->__dispatch_map as $operationName => $messages) {
+            // We need at least 'in' and 'out' parameters.
+            if (!isset($messages['in']) || !isset($messages['out'])) {
+                return $this->_raiseSoapFault('The dispatch map for the method "' . $operationName . '" is missing an "in" or "out" definition.', 'urn:' . get_class($object));
+            }
             foreach ($messages as $messageType => $messageParts) {
                 unset($thisMessage);
 
