@@ -67,6 +67,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * Don't encode message body in base64 if sending MIME encoded attachments (Request #14343).
 * Fix sending attachments over HTTPS (Bug #9538).
 * Fix retrieving WSDL data from file:// URLs (Bug #11729).
+* Add examples for how to use Basic HTTP Authentication (Request #11830).
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
