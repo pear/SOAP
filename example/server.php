@@ -32,7 +32,7 @@ $soapclass = new SOAP_Example_Server();
 $server->addObjectMap($soapclass, 'urn:SOAP_Example_Server');
 
 if (isset($_SERVER['REQUEST_METHOD']) &&
-    $_SERVER['REQUEST_METHOD']=='POST') {
+    $_SERVER['REQUEST_METHOD'] == 'POST') {
     $server->service($HTTP_RAW_POST_DATA);
 } else {
     require_once 'SOAP/Disco.php';
