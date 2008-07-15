@@ -20,6 +20,18 @@
  * @link       http://pear.php.net/package/SOAP
  */
 
+/* If you want to implement Basic HTTP Authentication, uncomment the following
+ * lines of code. */
+// if (!isset($_SERVER['PHP_AUTH_USER']) ||
+//     !isset($_SERVER['PHP_AUTH_PW']) ||
+//     $_SERVER['PHP_AUTH_USER'] !== 'username' ||
+//     $_SERVER['PHP_AUTH_PW'] !== 'password') {
+//     header('WWW-Authenticate: Basic realm="My Realm"');
+//     header('HTTP/1.0 401 Unauthorized');
+//     echo 'Not authorized!';
+//     exit;
+// }
+
 /* First, include the SOAP_Server class. */
 require_once 'SOAP/Server.php';
 $server = new SOAP_Server;
