@@ -732,21 +732,12 @@ class SOAP_Base extends SOAP_Base_Object
      *
      * @return boolean  True if the specified array is a hash.
      */
-    function _isHash(&$a)
+    function _isHash($a)
     {
-        // I really dislike having to loop through this in PHP code, really
-        // large arrays will be slow.  We need a C function to do this.
-        $it = 0;
-        foreach ($a as $k => $v) {
+        foreach (array_keys($a) as $k) {
             // Checking the type is faster than regexp.
             if (!is_int($k)) {
                 return true;
-            }
-            // If someone has a large hash they should really be defining the
-            // type.
-            if ($it++ > 10) {
-                $this->_raiseSoapFault('Large associative array passed where a SOAP_Value was expected');
-                return false;
             }
         }
         return false;
@@ -760,15 +751,19 @@ class SOAP_Base extends SOAP_Base_Object
     }
 
     /**
-    *   Converts a SOAP_Value object into a StdClass PHP object
-    */
-    function &_decode(&$soapval)
+     * Converts a SOAP_Value object into a PHP value.
+     */
+    function _decode($soapval)
     {
         if (!is_a($soapval, 'SOAP_Value')) {
             return $soapval;
-        } elseif (is_array($soapval->value)) {
-            if ($soapval->type != 'Array') {
+        }
+
+        if (is_array($soapval->value)) {
+            $isstruct = $soapval->type != 'Array';
+            if ($isstruct) {
                 $classname = $this->_defaultObjectClassname;
+                var_dump($soapval);
                 if (isset($this->_type_translation[$soapval->tqn->fqn()])) {
                     // This will force an error in PHP if the class does not
                     // exist.
@@ -787,14 +782,13 @@ class SOAP_Base extends SOAP_Base_Object
                         }
                     }
                 }
-                $return =& new $classname;
+                $return = new $classname;
             } else {
                 $return = array();
             }
 
-            $isstruct = !is_array($return);
             foreach ($soapval->value as $item) {
-                if (is_object($return)) {
+                if ($isstruct) {
                     if ($this->_wsdl) {
                         // Get this child's WSDL information.
                         // /$soapval->ns/$soapval->type/$item->ns/$item->name
@@ -807,10 +801,10 @@ class SOAP_Base extends SOAP_Base_Object
                             $item->type = $child_type;
                         }
                     }
-                    if (!$isstruct || $item->type == 'Array') {
+                    if ($item->type == 'Array') {
                         if (isset($return->{$item->name}) &&
                             is_object($return->{$item->name})) {
-                            $return->{$item->name} =& $this->_decode($item);
+                            $return->{$item->name} = $this->_decode($item);
                         } elseif (isset($return->{$item->name}) &&
                                   is_array($return->{$item->name})) {
                             $return->{$item->name}[] = $this->_decode($item);
@@ -820,12 +814,12 @@ class SOAP_Base extends SOAP_Base_Object
                                 $this->_decode($item)
                             );
                         } elseif (is_array($return)) {
-                            $return[] =& $this->_decode($item);
+                            $return[] = $this->_decode($item);
                         } else {
-                            $return->{$item->name} =& $this->_decode($item);
+                            $return->{$item->name} = $this->_decode($item);
                         }
                     } elseif (isset($return->{$item->name})) {
-                        $d =& $this->_decode($item);
+                        $d = $this->_decode($item);
                         if (count(get_object_vars($return)) == 1) {
                             $isstruct = false;
                             $return = array($return->{$item->name}, $d);
@@ -833,7 +827,7 @@ class SOAP_Base extends SOAP_Base_Object
                             $return->{$item->name} = array($return->{$item->name}, $d);
                         }
                     } else {
-                        $return->{$item->name} =& $this->_decode($item);
+                        $return->{$item->name} = $this->_decode($item);
                     }
                     // Set the attributes as members in the class.
                     if (method_exists($return, '__set_attribute')) {
@@ -853,17 +847,10 @@ class SOAP_Base extends SOAP_Base_Object
                         }
                         $item->type = $soapval->arrayType;
                     }
-                    if (!$isstruct) {
-                        $return[] = $this->_decode($item);
-                    } elseif (isset($return[$item->name])) {
-                        $isstruct = false;
-                        $d =& $this->_decode($item);
-                        $return = array($return[$item->name], $d);
-                    } else {
-                        $return[$item->name] = $this->_decode($item);
-                    }
+                    $return[] = $this->_decode($item);
                 }
             }
+            //if ($soapval->value == array() && $soapval->type == 'Array') var_dump($soapval, $isstruct, $return);
 
             return $return;
         }
