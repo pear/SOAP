@@ -763,7 +763,6 @@ class SOAP_Base extends SOAP_Base_Object
             $isstruct = $soapval->type != 'Array';
             if ($isstruct) {
                 $classname = $this->_defaultObjectClassname;
-                var_dump($soapval);
                 if (isset($this->_type_translation[$soapval->tqn->fqn()])) {
                     // This will force an error in PHP if the class does not
                     // exist.
@@ -850,7 +849,6 @@ class SOAP_Base extends SOAP_Base_Object
                     $return[] = $this->_decode($item);
                 }
             }
-            //if ($soapval->value == array() && $soapval->type == 'Array') var_dump($soapval, $isstruct, $return);
 
             return $return;
         }
