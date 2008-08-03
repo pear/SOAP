@@ -57,7 +57,9 @@ class SOAP_BugsTest extends PHPUnit_Framework_TestCase {
 
 
     /**
-    *   Bug #10131: incorrect return value in case of an empty array
+    * Bug #10131: incorrect return value in case of an empty array
+    *
+    * @see http://pear.php.net/bugs/bug.php?id=10131
     */
     public function testBug10131()
     {
@@ -121,8 +123,57 @@ EOT;
 
 
     /**
-    *   Bug #2627   Array in return object was not parsed correctly
-    *   http://pear.php.net/bugs/bug.php?id=2627
+    * Bug 1312: When sending a nested array to a PEAR::SOAP WebService,
+    * some elements are objects, not arrays.
+    *
+    * @see http://pear.php.net/bugs/bug.php?id=1312
+    */
+    public function testBug1312()
+    {
+        $msg = <<<EOX
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body
+xmlns:ns1="urn:something"><ns1:test
+SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><anArray
+soapenc:arrayType="xsd:anyType[4]"
+xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+xsi:type="soapenc:Array"><item soapenc:arrayType="xsd:string[0]"
+xsi:type="soapenc:Array" /><item soapenc:arrayType="xsd:double[4]"
+xsi:type="soapenc:Array"><item xsi:type="xsd:double">1</item><item
+xsi:type="xsd:double">5</item><item xsi:type="xsd:double">0</item><item
+xsi:type="xsd:double">6</item></item><item
+soapenc:arrayType="xsd:double[][3]" xsi:type="soapenc:Array"><item
+soapenc:arrayType="xsd:double[3]" xsi:type="soapenc:Array"><item
+xsi:type="xsd:double">8</item><item xsi:type="xsd:double">9</item><item
+xsi:type="xsd:double">1</item></item><item
+soapenc:arrayType="xsd:double[0]" xsi:type="soapenc:Array" /><item
+soapenc:arrayType="xsd:double[6]" xsi:type="soapenc:Array"><item
+xsi:type="xsd:double">5</item><item xsi:type="xsd:double">7</item><item
+xsi:type="xsd:double">654</item><item
+xsi:type="xsd:double">8</item><item xsi:type="xsd:double">1</item><item
+xsi:type="xsd:double">32</item></item></item><item
+soapenc:arrayType="xsd:double[2]" xsi:type="soapenc:Array"><item
+xsi:type="xsd:double">54</item><item
+xsi:type="xsd:double">57</item></item></anArray></ns1:test></SOAP-ENV:Body></SOAP-ENV:Envelope>
+EOX;
+        $parser = new SOAP_Parser($msg);
+        $soapval = $parser->getResponse();
+
+        $this->assertType('array', $soapval->value);
+        $this->assertType('array', $soapval->value[0]->value);
+        $this->assertEquals('anArray', $soapval->value[0]->name);
+        //anArray -> item #3 is an object according to bug report
+        $this->assertType('array', $soapval->value[0]->value[2]->value);
+    }
+
+
+
+    /**
+    * Bug #2627   Array in return object was not parsed correctly
+    *
+    * @see http://pear.php.net/bugs/bug.php?id=2627
     */
     public function testBug2627()
     {
@@ -153,8 +204,9 @@ EOT;
 
 
     /**
-    *   Bug #10206: Timezone in Type/dateTime.php not converted correctly
-    *   http://pear.php.net/bugs/bug.php?id=10206
+    * Bug #10206: Timezone in Type/dateTime.php not converted correctly
+    *
+    * @see http://pear.php.net/bugs/bug.php?id=10206
     */
     public function testBug10206()
     {
@@ -177,20 +229,20 @@ EOT;
 
 
 
-
-
-
-
     public static function echoSoapVal($val, $indent = '')
     {
         echo $indent . $val->name . '(' . $val->type . '): ';
-        echo gettype($val->value) . ':' ;
+        if (is_array($val->value)) {
+            echo gettype($val->value) . '(' . count($val->value) . '):' ;
+        } else {
+            echo gettype($val->value) . ':' ;
+        }
         if (!is_array($val->value)) {
             echo $val->value . "\n";
         } else {
             echo "\n";
             foreach ($val->value as $sub) {
-                echoSoapVal($sub, $indent . '  ');
+                self::echoSoapVal($sub, $indent . '  ');
             }
         }
     }//public static function echoSoapVal($val, $indent = '')
