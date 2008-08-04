@@ -345,39 +345,41 @@ class SOAP_Transport_HTTP extends SOAP_Transport
             case 100: // Continue
                 $this->incoming_payload = $match[2];
                 return $this->_parseResponse();
+            case 200:
+            case 202:
+                $this->incoming_payload = trim($match[2]);
+                if (!strlen($this->incoming_payload)) {
+                    /* Valid one-way message response. */
+                    return true;
+                }
+                break;
             case 400:
                 $this->_raiseSoapFault("HTTP Response $code Bad Request");
                 return false;
-                break;
             case 401:
                 $this->_raiseSoapFault("HTTP Response $code Authentication Failed");
                 return false;
-                break;
             case 403:
                 $this->_raiseSoapFault("HTTP Response $code Forbidden");
                 return false;
-                break;
             case 404:
                 $this->_raiseSoapFault("HTTP Response $code Not Found");
                 return false;
-                break;
             case 407:
                 $this->_raiseSoapFault("HTTP Response $code Proxy Authentication Required");
                 return false;
-                break;
             case 408:
                 $this->_raiseSoapFault("HTTP Response $code Request Timeout");
                 return false;
-                break;
             case 410:
                 $this->_raiseSoapFault("HTTP Response $code Gone");
                 return false;
-                break;
             default:
                 if ($code >= 400 && $code < 500) {
                     $this->_raiseSoapFault("HTTP Response $code Not Found, Server message: $msg");
                     return false;
                 }
+                break;
         }
 
         $this->_parseEncoding($match[1]);
