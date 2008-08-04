@@ -36,7 +36,6 @@ define('WSDL_CACHE_MAX_AGE', 43200);
  * http://dietrich.ganx4.com/soapx4
  *
  * @todo
- * - add wsdl caching
  * - refactor namespace handling ($namespace/$ns)
  * - implement IDL type syntax declaration so we can generate WSDL
  *
