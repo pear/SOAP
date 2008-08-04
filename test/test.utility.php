@@ -93,12 +93,12 @@ function parseMessage($msg)
 {
     // strip line endings
     // $msg = preg_replace('/\r|\n/', ' ', $msg);
-    $response = new SOAP_Parser($msg);
-    if ($response->fault) {
-        return $response->fault->getFault();
+    $parser = new SOAP_Parser($msg);
+    if ($parser->fault) {
+        return $parser->fault->getFault();
     }
-    $return = $response->getResponse();
-    $v = $response->_decode($return);
+    $response = $parser->getResponse();
+    $v = $parser->_decode($response);
     if (gettype($v) == 'array' && count($v) === 1) {
         return array_shift($v);
     }
