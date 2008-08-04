@@ -326,80 +326,82 @@ class SOAP_Transport_HTTP extends SOAP_Transport
      */
     function _parseResponse()
     {
-        if (preg_match("/^(.*?)\r?\n\r?\n(.*)/s",
+        if (!preg_match("/^(.*?)\r?\n\r?\n(.*)/s",
                        $this->incoming_payload,
                        $match)) {
-            $this->response = $match[2];
-            // Find the response error, some servers response with 500 for
-            // SOAP faults.
-            $this->_parseHeaders($match[1]);
+            $this->_raiseSoapFault('Invalid HTTP Response');
+            return false;
+        }
 
-            list(, $code, $msg) = sscanf($this->result_headers[0], '%s %s %s');
-            unset($this->result_headers[0]);
+        $this->response = $match[2];
+        // Find the response error, some servers response with 500 for
+        // SOAP faults.
+        $this->_parseHeaders($match[1]);
 
-            switch($code) {
-                case 100: // Continue
-                    $this->incoming_payload = $match[2];
-                    return $this->_parseResponse();
-                case 400:
-                    $this->_raiseSoapFault("HTTP Response $code Bad Request");
-                    return false;
-                    break;
-                case 401:
-                    $this->_raiseSoapFault("HTTP Response $code Authentication Failed");
-                    return false;
-                    break;
-                case 403:
-                    $this->_raiseSoapFault("HTTP Response $code Forbidden");
-                    return false;
-                    break;
-                case 404:
-                    $this->_raiseSoapFault("HTTP Response $code Not Found");
-                    return false;
-                    break;
-                case 407:
-                    $this->_raiseSoapFault("HTTP Response $code Proxy Authentication Required");
-                    return false;
-                    break;
-                case 408:
-                    $this->_raiseSoapFault("HTTP Response $code Request Timeout");
-                    return false;
-                    break;
-                case 410:
-                    $this->_raiseSoapFault("HTTP Response $code Gone");
-                    return false;
-                    break;
-                default:
-                    if ($code >= 400 && $code < 500) {
-                        $this->_raiseSoapFault("HTTP Response $code Not Found, Server message: $msg");
-                        return false;
-                    }
-            }
+        list(, $code, $msg) = sscanf($this->result_headers[0], '%s %s %s');
+        unset($this->result_headers[0]);
 
-            $this->_parseEncoding($match[1]);
-
-            if ($this->result_content_type == 'application/dime') {
-                // XXX quick hack insertion of DIME
-                if (PEAR::isError($this->_decodeDIMEMessage($this->response, $this->headers, $this->attachments))) {
-                    // _decodeDIMEMessage already raised $this->fault
+        switch($code) {
+            case 100: // Continue
+                $this->incoming_payload = $match[2];
+                return $this->_parseResponse();
+            case 400:
+                $this->_raiseSoapFault("HTTP Response $code Bad Request");
+                return false;
+                break;
+            case 401:
+                $this->_raiseSoapFault("HTTP Response $code Authentication Failed");
+                return false;
+                break;
+            case 403:
+                $this->_raiseSoapFault("HTTP Response $code Forbidden");
+                return false;
+                break;
+            case 404:
+                $this->_raiseSoapFault("HTTP Response $code Not Found");
+                return false;
+                break;
+            case 407:
+                $this->_raiseSoapFault("HTTP Response $code Proxy Authentication Required");
+                return false;
+                break;
+            case 408:
+                $this->_raiseSoapFault("HTTP Response $code Request Timeout");
+                return false;
+                break;
+            case 410:
+                $this->_raiseSoapFault("HTTP Response $code Gone");
+                return false;
+                break;
+            default:
+                if ($code >= 400 && $code < 500) {
+                    $this->_raiseSoapFault("HTTP Response $code Not Found, Server message: $msg");
                     return false;
                 }
-                $this->result_content_type = $this->headers['content-type'];
-            } elseif (stristr($this->result_content_type, 'multipart/related')) {
-                $this->response = $this->incoming_payload;
-                if (PEAR::isError($this->_decodeMimeMessage($this->response, $this->headers, $this->attachments))) {
-                    // _decodeMimeMessage already raised $this->fault
-                    return false;
-                }
-            } elseif ($this->result_content_type != 'text/xml') {
-                $this->_raiseSoapFault($this->response);
+        }
+
+        $this->_parseEncoding($match[1]);
+
+        if ($this->result_content_type == 'application/dime') {
+            // XXX quick hack insertion of DIME
+            if (PEAR::isError($this->_decodeDIMEMessage($this->response, $this->headers, $this->attachments))) {
+                // _decodeDIMEMessage already raised $this->fault
                 return false;
             }
-            // if no content, return false
-            return strlen($this->response) > 0;
+            $this->result_content_type = $this->headers['content-type'];
+        } elseif (stristr($this->result_content_type, 'multipart/related')) {
+            $this->response = $this->incoming_payload;
+            if (PEAR::isError($this->_decodeMimeMessage($this->response, $this->headers, $this->attachments))) {
+                // _decodeMimeMessage already raised $this->fault
+                return false;
+            }
+        } elseif ($this->result_content_type != 'text/xml') {
+            $this->_raiseSoapFault($this->response);
+            return false;
         }
-        $this->_raiseSoapFault('Invalid HTTP Response');
-        return false;
+
+        // if no content, return false
+        return strlen($this->response) > 0;
     }
 
     /**
