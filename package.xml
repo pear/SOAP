@@ -68,6 +68,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * Fix sending attachments over HTTPS (Bug #9538).
 * Fix retrieving WSDL data from file:// URLs (Bug #11729).
 * Add examples for how to use Basic HTTP Authentication (Request #11830).
+* Support one-way-message responses (Request #11220).
 </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
