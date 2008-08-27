@@ -67,7 +67,6 @@ define('SOAP_DEFAULT_ENCODING',  'UTF-8');
  */
 class SOAP_Base_Object extends PEAR
 {
-
     /**
      * Supported encodings, limited by XML extension.
      *
@@ -790,7 +789,7 @@ class SOAP_Base extends SOAP_Base_Object
                 if ($isstruct) {
                     if ($this->_wsdl) {
                         // Get this child's WSDL information.
-                        // /$soapval->ns/$soapval->type/$item->ns/$item->name
+                        // /$soapval->prefix/$soapval->type/$item->prefix/$item->name
                         $child_type = $this->_wsdl->getComplexTypeChildType(
                             $soapval->namespace,
                             $soapval->name,
@@ -1098,7 +1097,7 @@ class SOAP_Base extends SOAP_Base_Object
 class QName
 {
     var $name = '';
-    var $ns = '';
+    var $prefix = '';
     var $namespace = '';
 
     function QName($name, $namespace = '')
@@ -1109,9 +1108,8 @@ class QName
             $this->namespace = $m[1];
         } elseif (substr_count($name, ':') == 1) {
             $s = explode(':', $name);
-            $s = array_reverse($s);
-            $this->name = $s[0];
-            $this->ns = $s[1];
+            $this->prefix = $s[0];
+            $this->name = $s[1];
             $this->namespace = $namespace;
         } else {
             $this->name = $name;
@@ -1133,8 +1131,8 @@ class QName
     {
         if ($this->namespace) {
             return '{' . $this->namespace . '}' . $this->name;
-        } elseif ($this->ns) {
-            return $this->ns . ':' . $this->name;
+        } elseif ($this->prefix) {
+            return $this->prefix . ':' . $this->name;
         }
         return $this->name;
     }

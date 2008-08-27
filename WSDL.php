@@ -1199,8 +1199,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
     {
         // Get element prefix.
         $qname = new QName($name);
-        if ($qname->ns) {
-            $ns = $qname->ns;
+        if ($qname->prefix) {
+            $ns = $qname->prefix;
             if ($ns && ((!$this->tns && strcasecmp($qname->name, 'definitions') == 0) || $ns == $this->tns)) {
                 $name = $qname->name;
             }
@@ -1248,7 +1248,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     if (array_key_exists('base', $attrs)) {
                         $qn = new QName($attrs['base']);
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = $qn->name;
-                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $qn->ns;
+                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $qn->prefix;
                     } else {
                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Struct';
                     }
@@ -1262,8 +1262,8 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 if (isset($attrs['type'])) {
                     $qn = new QName($attrs['type']);
                     $attrs['type'] = $qn->name;
-                    if ($qn->ns && array_key_exists($qn->ns, $this->wsdl->namespaces)) {
-                        $attrs['namespace'] = $qn->ns;
+                    if ($qn->prefix && array_key_exists($qn->prefix, $this->wsdl->namespaces)) {
+                        $attrs['namespace'] = $qn->prefix;
                     }
                 }
 
@@ -1361,7 +1361,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                                     if ($q->name == 'arrayType') {
                                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType][$q->name] = $vq->name. $vq->arrayInfo;
                                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['type'] = 'Array';
-                                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $vq->ns;
+                                        $this->wsdl->complexTypes[$this->schema][$this->currentComplexType]['namespace'] = $vq->prefix;
                                     } else {
                                         $this->wsdl->complexTypes[$this->schema][$this->currentComplexType][$q->name] = $vq->name;
                                     }
@@ -1388,7 +1388,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 }
                 if ($qn) {
                     $attrs['type'] = $qn->name;
-                    $attrs['namespace'] = $qn->ns;
+                    $attrs['namespace'] = $qn->prefix;
                 }
                 $this->wsdl->messages[$this->currentMessage][$attrs['name']] = $attrs;
                 // error in wsdl
@@ -1425,7 +1425,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     if (array_key_exists('message', $attrs)) {
                         $qn = new QName($attrs['message']);
                         $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['message'] = $qn->name;
-                        $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qn->ns;
+                        $this->wsdl->portTypes[$this->currentPortType][$this->currentOperation][$name]['namespace'] = $qn->prefix;
                     }
                 }
                 break;
@@ -1439,7 +1439,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
 
         case 'binding':
-            $ns = $qname->ns ? $this->wsdl->namespaces[$qname->ns] : SCHEMA_WSDL;
+            $ns = $qname->prefix ? $this->wsdl->namespaces[$qname->prefix] : SCHEMA_WSDL;
             switch ($ns) {
             case SCHEMA_SOAP:
             case SCHEMA_SOAP12:
@@ -1626,7 +1626,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
             break;
 
         case 'service':
-            $ns = $qname->ns ? $this->wsdl->namespaces[$qname->ns] : SCHEMA_WSDL;
+            $ns = $qname->prefix ? $this->wsdl->namespaces[$qname->prefix] : SCHEMA_WSDL;
 
             switch ($qname->name) {
             case 'port':
@@ -1636,13 +1636,13 @@ class SOAP_WSDL_Parser extends SOAP_Base
                 // XXX hack to deal with binding namespaces
                 $qn = new QName($attrs['binding']);
                 $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['binding'] = $qn->name;
-                $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['namespace'] = $qn->ns;
+                $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['namespace'] = $qn->prefix;
                 break;
 
             case 'address':
                 $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['address'] = $attrs;
                 // what TYPE of port is it?  SOAP or HTTP?
-                $ns = $qname->ns ? $this->wsdl->namespaces[$qname->ns] : SCHEMA_WSDL;
+                $ns = $qname->prefix ? $this->wsdl->namespaces[$qname->prefix] : SCHEMA_WSDL;
                 switch ($ns) {
                 case SCHEMA_WSDL_HTTP:
                     $this->wsdl->services[$this->currentService]['ports'][$this->currentPort]['type']='http';
@@ -1736,14 +1736,14 @@ class SOAP_WSDL_Parser extends SOAP_Base
         case 'binding':
             // sect 2.5 wsdl:binding attributes: name type
             // children: wsdl:operation soap:binding http:binding
-            if ($qname->ns && $qname->ns != $this->tns) {
+            if ($qname->prefix && $qname->prefix != $this->tns) {
                 break;
             }
             $this->status = 'binding';
             $this->currentBinding = $attrs['name'];
             $qn = new QName($attrs['type']);
             $this->wsdl->bindings[$this->currentBinding]['type'] = $qn->name;
-            $this->wsdl->bindings[$this->currentBinding]['namespace'] = $qn->ns;
+            $this->wsdl->bindings[$this->currentBinding]['namespace'] = $qn->prefix;
             break;
 
         case 'service':

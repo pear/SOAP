@@ -1,18 +1,13 @@
 --TEST--
-QNames : URN QName
+QNames: URN QName
 --FILE--
 <?php
 require_once 'SOAP/Base.php';
 require_once dirname(__FILE__) . '/test.utility.php';
 
-$qname = &new QName('urn:some:api:bar');
-$val = array('name' => $qname->name, 'ns' => $qname->ns);
-var_dump($val);
+$qname = new QName('urn:some:api:bar');
+var_dump($qname->name, $qname->prefix);
 ?>
 --EXPECT--
-array(2) {
-  ["name"]=>
-  string(16) "urn:some:api:bar"
-  ["ns"]=>
-  string(0) ""
-}
+string(16) "urn:some:api:bar"
+string(0) ""

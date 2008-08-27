@@ -39,8 +39,8 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </lead>
  <date>2008-12-31</date>
  <version>
-  <release>0.12.1</release>
-  <api>0.12.0</api>
+  <release>0.13.0</release>
+  <api>0.13.0</api>
  </version>
  <stability>
   <release>beta</release>
@@ -48,6 +48,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>* Add support for XML Schema include statements.
+* Rename QName::ns property to QName::prefix.
  </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
