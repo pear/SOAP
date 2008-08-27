@@ -1670,27 +1670,31 @@ class SOAP_WSDL_Parser extends SOAP_Base
         // Top level elements found under wsdl:definitions.
         switch ($qname->name) {
         case 'import':
-            // sect 2.1.1 wsdl:import attributes: namespace location
-            if ((isset($attrs['location']) || isset($attrs['schemaLocation'])) &&
-                !isset($this->wsdl->imports[$attrs['namespace']])) {
+        case 'include':
+            // WSDL 2.1.1 wsdl:import, XML Schema 4.2.3 xsd:import, XML Schema
+            // 4.2.1 xsd:include attributes
+            $this->status = 'types';
+            if (isset($attrs['location']) || isset($attrs['schemaLocation'])) {
                 $uri = isset($attrs['location']) ? $attrs['location'] : $attrs['schemaLocation'];
                 $location = @parse_url($uri);
                 if (!isset($location['scheme'])) {
                     $base = @parse_url($this->uri);
                     $uri = $this->mergeUrl($base, $uri);
                 }
+                if (isset($this->wsdl->imports[$uri])) {
+                    break;
+                }
+                $this->wsdl->imports[$uri] = $attrs;
 
-                $this->wsdl->imports[$attrs['namespace']] = $attrs;
                 $import_parser_class = get_class($this);
                 $import_parser =& new $import_parser_class($uri, $this->wsdl, $this->docs);
                 if ($import_parser->fault) {
-                    unset($this->wsdl->imports[$attrs['namespace']]);
+                    unset($this->wsdl->imports[$uri]);
                     return false;
                 }
-                $this->currentImport = $attrs['namespace'];
             }
-            // Continue on to the 'types' case - lack of break; is
-            // intentional.
+            $this->status = 'types';
+            break;
 
         case 'types':
             // sect 2.2 wsdl:types
