@@ -1005,12 +1005,13 @@ class SOAP_Base extends SOAP_Base_Object
         if (isset($structure->body)) {
             $data = $structure->body;
             $headers = $structure->headers;
-
+            unset($headers['']);
             return;
         } elseif (isset($structure->parts)) {
             $data = $structure->parts[0]->body;
             $headers = array_merge($structure->headers,
                                    $structure->parts[0]->headers);
+            unset($headers['']);
             if (count($structure->parts) <= 1) {
                 return;
             }
