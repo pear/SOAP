@@ -331,6 +331,11 @@ class SOAP_WSDL extends SOAP_Base
             $opData['namespace'] = $this->bindings[$binding]['operations'][$operation]['input']['namespace'];
         // Message data from messages.
         $inputMsg = $opData['input']['message'];
+        if (isset($opData['input']['parts']) &&
+            !is_array($opData['input']['parts'])) {
+            $opData['input']['parts'] = array($opData['input']['parts'] => '');
+
+        }
         if (is_array($this->messages[$inputMsg])) {
             foreach ($this->messages[$inputMsg] as $pname => $pattrs) {
                 if ($opData['style'] == 'document' &&
@@ -350,6 +355,10 @@ class SOAP_WSDL extends SOAP_Base
             }
         }
         $outputMsg = $opData['output']['message'];
+        if (isset($opData['output']['parts']) &&
+            !is_array($opData['output']['parts'])) {
+            $opData['output']['parts'] = array($opData['output']['parts'] => '');
+        }
         if (is_array($this->messages[$outputMsg])) {
             foreach ($this->messages[$outputMsg] as $pname => $pattrs) {
                 if ($opData['style'] == 'document' &&
