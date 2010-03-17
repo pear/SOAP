@@ -84,7 +84,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(4\) "item"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
@@ -97,7 +97,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(6\) "string"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
@@ -123,7 +123,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(4\) "item"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
@@ -136,7 +136,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(6\) "string"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
@@ -159,7 +159,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(6\) "return"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
@@ -172,7 +172,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(5\) "Array"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(41\) "http:\/\/schemas.xmlsoap.org\/soap\/encoding\/"
@@ -195,7 +195,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(23\) "echoStringArrayResponse"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
@@ -208,7 +208,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(6\) "Struct"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(0\) ""
@@ -241,7 +241,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(4\) "item"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
@@ -254,7 +254,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(6\) "string"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
@@ -280,7 +280,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(4\) "item"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
@@ -293,7 +293,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(6\) "string"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
@@ -316,7 +316,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(17\) "outputStringArray"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
@@ -329,7 +329,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(6\) "Struct"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(0\) ""
@@ -352,7 +352,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(23\) "echoStringArrayResponse"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
@@ -365,7 +365,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(6\) "Struct"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(0\) ""
@@ -398,7 +398,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(4\) "item"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(23\) "http:\/\/soapinterop.org\/"
@@ -411,7 +411,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
           object\((qname|QName)\).+?3\) \{
             \["name"\]\=\>
             string\(6\) "string"
-            \["ns"\]\=\>
+            \["prefix"\]\=\>
             string\(0\) ""
             \["namespace"\]\=\>
             string\(32\) "http:\/\/www.w3.org\/2001\/XMLSchema"
@@ -434,7 +434,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(17\) "outputStringArray"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(23\) "http:\/\/soapinterop.org\/"
@@ -447,7 +447,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
       object\((qname|QName)\).+?3\) \{
         \["name"\]\=\>
         string\(6\) "Struct"
-        \["ns"\]\=\>
+        \["prefix"\]\=\>
         string\(0\) ""
         \["namespace"\]\=\>
         string\(0\) ""
@@ -470,7 +470,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(23\) "echoStringArrayResponse"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(23\) "http:\/\/soapinterop.org\/"
@@ -483,7 +483,7 @@ object\((soap_value|SOAP_Value)\).+?10\) \{
   object\((qname|QName)\).+?3\) \{
     \["name"\]\=\>
     string\(6\) "Struct"
-    \["ns"\]\=\>
+    \["prefix"\]\=\>
     string\(0\) ""
     \["namespace"\]\=\>
     string\(0\) ""
