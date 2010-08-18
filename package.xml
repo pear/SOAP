@@ -51,6 +51,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 * Rename QName::ns property to QName::prefix.
 * Fix parsing multipart/related responses (Bugs #14756, #14854).
 * Fix parsing certain WSDLs with attachments (Bill Blough, Bug #16968).
+* Use PCRE instead of ereg_* functions (Olle Jonsson, Bug #17726).
  </notes>
  <contents>
   <dir baseinstalldir="SOAP" name="/">
