@@ -6,7 +6,7 @@ Deserialize custom struct
 require_once dirname(__FILE__) . '/../test.utility.php';
 require_once 'PEAR/Config.php';
 $config = &PEAR_Config::singleton();
-require_once $config->get('doc_dir') . '/SOAP/example/example_server.php';
+require_once dirname(dirname(dirname(__FILE__))) . '/example/example_server.php';
 
 $msg = '<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope

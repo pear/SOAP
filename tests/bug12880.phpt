@@ -10,7 +10,7 @@ require_once 'SOAP/Client.php';
 require_once 'SOAP/Server.php';
 require_once 'PEAR/Config.php';
 $config = &PEAR_Config::singleton();
-require_once $config->get('doc_dir') . '/SOAP/example/example_server.php';
+require_once dirname(dirname(__FILE__)) . '/example/example_server.php';
 
 /* Create example server. */
 $_SERVER['SERVER_NAME'] = null;
