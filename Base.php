@@ -822,7 +822,11 @@ class SOAP_Base extends SOAP_Base_Object
                             $isstruct = false;
                             $return = array($return->{$item->name}, $d);
                         } else {
-                            $return->{$item->name} = array($return->{$item->name}, $d);
+                            if (is_array($return->{$item->name})) {
+                                $return->{$item->name} = array_merge($return->{$item->name}, array($d));
+                            } else {
+                                $return->{$item->name} = array($return->{$item->name}, $d);
+                            }
                         }
                     } else {
                         $return->{$item->name} = $this->_decode($item);
