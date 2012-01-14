@@ -8,7 +8,7 @@ require_once 'SOAP/Client.php';
 $soap_client = new SOAP_Client('');
 require_once 'PEAR/Config.php';
 $config = &PEAR_Config::singleton();
-require_once $config->get('doc_dir') . '/SOAP/example/example_server.php';
+require_once dirname(dirname(__FILE__)) . '/example/example_server.php';
 
 $struct = new SOAPStruct('test string', 123, 123.123);
 echo $soap_client->_generate('echoStruct',
