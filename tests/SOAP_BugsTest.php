@@ -161,11 +161,11 @@ EOX;
         $parser = new SOAP_Parser($msg);
         $soapval = $parser->getResponse();
 
-        $this->assertType('array', $soapval->value);
-        $this->assertType('array', $soapval->value[0]->value);
+        $this->assertInternalType('array', $soapval->value);
+        $this->assertInternalType('array', $soapval->value[0]->value);
         $this->assertEquals('anArray', $soapval->value[0]->name);
         //anArray -> item #3 is an object according to bug report
-        $this->assertType('array', $soapval->value[0]->value[2]->value);
+        $this->assertInternalType('array', $soapval->value[0]->value[2]->value);
     }
 
 
@@ -187,10 +187,10 @@ EOX;
 
         $client = new SOAP_Base();
         $dec    = $client->_decode($val);
-        $this->assertType('object', $dec);
-        $this->assertType('string', $dec->zero);
-        $this->assertType('array' , $dec->one);
-        $this->assertType('array' , $dec->two);
+        $this->assertInternalType('object', $dec);
+        $this->assertInternalType('string', $dec->zero);
+        $this->assertInternalType('array' , $dec->one);
+        $this->assertInternalType('array' , $dec->two);
         $this->assertEquals(2, count($dec->one));
         $this->assertEquals(2, count($dec->two));
 
