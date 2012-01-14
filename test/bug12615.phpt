@@ -58,7 +58,7 @@ function printassert($flag, $message)
  */
 function parseXml($xml)
 {
-    $response =& new SOAP_Parser($xml, 'UTF-8', $v = null);
+    $response = new SOAP_Parser($xml, 'UTF-8', $v = null);
 
     // This still looks normal.
     $return = $response->getResponse();
