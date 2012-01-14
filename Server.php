@@ -294,6 +294,7 @@ class SOAP_Server extends SOAP_Base
         $this->headers['Content-Length'] = strlen($response);
 
         foreach ($this->headers as $k => $v) {
+            $v = str_replace(array("\r", "\n"), '', $v);
             header("$k: $v");
             $hdrs .= "$k: $v\r\n";
         }
