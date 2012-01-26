@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<definitions name="ServerExample" targetNamespace="urn:ServerExample" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="urn:ServerExample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:ns5="http://soapinterop.org/xsd">
+<types xmlns="http://schemas.xmlsoap.org/wsdl/">
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://soapinterop.org/xsd">
+<complexType name="SOAPStruct">
+<all>
+<element name="varString" type="xsd:string"/>
+<element name="varInt" type="xsd:int"/>
+<element name="varFloat" type="xsd:float"/>
+</all>
+</complexType>
+</schema>
+</types>
+<message name="echoStructAsSimpleTypesRequest">
+<part name="inputStruct" type="ns5:SOAPStruct"/>
+</message>
+<message name="echoStructAsSimpleTypesResponse">
+<part name="outputString" type="xsd:string"/>
+<part name="outputInteger" type="xsd:int"/>
+<part name="outputFloat" type="xsd:float"/>
+</message>
+<message name="echoStringSimpleRequest">
+<part name="inputStringSimple" type="xsd:string"/>
+</message>
+<message name="echoStringSimpleResponse">
+<part name="outputStringSimple" type="xsd:string"/>
+</message>
+<message name="echoStringRequest">
+<part name="inputString" type="xsd:string"/>
+</message>
+<message name="echoStringResponse">
+<part name="outputString" type="xsd:string"/>
+</message>
+<message name="divideRequest">
+<part name="dividend" type="xsd:int"/>
+<part name="divisor" type="xsd:int"/>
+</message>
+<message name="divideResponse">
+<part name="outputFloat" type="xsd:float"/>
+</message>
+<message name="echoStructRequest">
+<part name="inputStruct" type="ns5:SOAPStruct"/>
+</message>
+<message name="echoStructResponse">
+<part name="outputStruct" type="ns5:SOAPStruct"/>
+</message>
+<message name="echoMimeAttachmentRequest">
+<part name="stuff" type="xsd:string"/>
+</message>
+<message name="echoMimeAttachmentResponse">
+<part name="outputMime" type="xsd:string"/>
+</message>
+<portType name="ServerExamplePort">
+<operation name="echoStructAsSimpleTypes">
+<input message="tns:echoStructAsSimpleTypesRequest"/>
+<output message="tns:echoStructAsSimpleTypesResponse"/>
+</operation>
+<operation name="echoStringSimple">
+<input message="tns:echoStringSimpleRequest"/>
+<output message="tns:echoStringSimpleResponse"/>
+</operation>
+<operation name="echoString">
+<input message="tns:echoStringRequest"/>
+<output message="tns:echoStringResponse"/>
+</operation>
+<operation name="divide">
+<input message="tns:divideRequest"/>
+<output message="tns:divideResponse"/>
+</operation>
+<operation name="echoStruct">
+<input message="tns:echoStructRequest"/>
+<output message="tns:echoStructResponse"/>
+</operation>
+<operation name="echoMimeAttachment">
+<input message="tns:echoMimeAttachmentRequest"/>
+<output message="tns:echoMimeAttachmentResponse"/>
+</operation>
+</portType>
+<binding name="ServerExampleBinding" type="tns:ServerExamplePort">
+<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="echoStructAsSimpleTypes">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#echoStructAsSimpleTypes"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+<operation name="echoStringSimple">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#echoStringSimple"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+<operation name="echoString">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#echoString"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+<operation name="divide">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#divide"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+<operation name="echoStruct">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#echoStruct"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+<operation name="echoMimeAttachment">
+<soap:operation soapAction="urn:SOAP_Example_Server#soap_example_server#echoMimeAttachment"/>
+<input>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</input>
+<output>
+<soap:body use="encoded" namespace="urn:SOAP_Example_Server" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+</output>
+</operation>
+</binding>
+<service name="ServerExampleService">
+<documentation/>
+<port name="ServerExamplePort" binding="tns:ServerExampleBinding">
+<soap:address location="http://neo.wg.de/SOAP/example/server.php"/>
+</port>
+</service>
+</definitions>

@@ -1,0 +1,94 @@
+<wsdl:definitions targetNamespace="http://bean.itso" xmlns:impl="http://bean.itso" xmlns:intf="http://bean.itso" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns2="http://objects.itso" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <schema targetNamespace="http://bean.itso" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:impl="http://bean.itso" xmlns:intf="http://bean.itso" xmlns:tns2="http://objects.itso" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <import namespace="http://objects.itso"/>
+   <import namespace="http://ws-i.org/profiles/basic/1.1/xsd" schemaLocation="swaref.xsd"/>
+   <element name="getDayForecast">
+    <complexType>
+     <sequence>
+      <element name="theDate" nillable="true" type="xsd:dateTime"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getDayForecastResponse">
+    <complexType>
+     <sequence>
+      <element name="getDayForecastReturn" nillable="true" type="tns2:Weather"/>
+     </sequence>
+    </complexType>
+   </element>
+  </schema>
+    <schema targetNamespace="http://objects.itso" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:impl="http://bean.itso" xmlns:intf="http://bean.itso" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <complexType name="Weather">
+    <sequence>
+     <element name="condition" nillable="true" type="xsd:string"/>
+     <element name="date" nillable="true" type="xsd:dateTime"/>
+     <element name="windDirection" nillable="true" type="xsd:string"/>
+     <element name="windSpeed" type="xsd:int"/>
+     <element name="temperatureCelsius" type="xsd:int"/>
+     <element name="dbflag" type="xsd:boolean"/>
+    </sequence>
+   </complexType>
+  </schema>
+  </wsdl:types>
+  <wsdl:message name="getDayForecastRequest">
+    <wsdl:part element="impl:getDayForecast" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="getDayForecastImageRequest">
+    <wsdl:part name="theDate" type="xsd:dateTime"/>
+    <wsdl:part name="bgImage" type="xsd:hexBinary"/>
+  </wsdl:message>
+  <wsdl:message name="getDayForecastResponse">
+    <wsdl:part element="impl:getDayForecastResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="getDayForecastImageResponse">
+    <wsdl:part name="weatherImage" type="wsi:swaRef"/>
+  </wsdl:message>
+  <wsdl:portType name="WeatherAttachment">
+    <wsdl:operation name="getDayForecast">
+      <wsdl:input message="impl:getDayForecastRequest" name="getDayForecastRequest"/>
+      <wsdl:output message="impl:getDayForecastResponse" name="getDayForecastResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="getDayForecastImage">
+      <wsdl:input message="impl:getDayForecastImageRequest" name="getDayForecastImageRequest"/>
+      <wsdl:output message="impl:getDayForecastImageResponse" name="getDayForecastImageResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="WeatherAttachmentSoapBinding" type="impl:WeatherAttachment">
+    <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getDayForecast">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="getDayForecastRequest">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getDayForecastResponse">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDayForecastImage">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="getDayForecastImageRequest">
+    <mime:part xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/">
+				<wsdlsoap:body parts="theDate" use="literal" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			</mime:part>
+        <mime:multipartRelated>
+          <mime:part>
+            <mime:content part="bgImage" type="image/jpeg"/>
+          </mime:part>
+        </mime:multipartRelated>
+      </wsdl:input>
+      <wsdl:output name="getDayForecastImageResponse">
+        <mime:multipartRelated>
+          <mime:part>
+            <wsdlsoap:body parts="weatherImage" use="literal"/>
+          </mime:part>
+        </mime:multipartRelated>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="WeatherAttachmentService">
+    <wsdl:port binding="impl:WeatherAttachmentSoapBinding" name="WeatherAttachment">
+      <wsdlsoap:address location="http://localhost/WeatherAttachmentWeb/services/WeatherAttachment"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
