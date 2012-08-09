@@ -508,19 +508,26 @@ class SOAP_WSDL extends SOAP_Base
         return preg_match('/^[\w_:#\/]+$/', $string);
     }
 
-    function _addArg(&$args, &$argarray, $argname)
+    function _addArg(&$args, &$argarray, $argname, $nillable = false, &$nillableEls = array())
     {
         if ($args) {
             $args .= ', ';
         }
         $args .= '$' . $argname;
+    	if($nillable) {
+    		$args .= ' = NULL';
+    		$nillableEls[] = $argname;
+    	}
         if (!$this->_validateString($argname)) {
             return;
         }
-        if ($argarray) {
-            $argarray .= ', ';
-        }
-        $argarray .= "'$argname' => $" . $argname;
+        if(!$nillable)
+        {
+	        if ($argarray) {
+	            $argarray .= ', ';
+	        }
+	        $argarray .= "'$argname' => $" . $argname;
+	    }
     }
 
     function _elementArg(&$args, &$argarray, &$_argtype, $_argname)
@@ -694,20 +701,38 @@ class SOAP_WSDL extends SOAP_Base
                                 // XXX need to wrap the parameters in a
                                 // SOAP_Value.
                             }
+                            $usingNillables = false;
+                            $nillableEls = array();
                             if (isset($el['elements'])) {
                                 foreach ($el['elements'] as $elname => $elattrs) {
                                     $elname = $this->_sanitize($elname);
+                                    if((isset($elattrs['nillable']) && $elattrs['nillable'])
+                                    || (isset($elattrs['minOccurs']) && $elattrs['minOccurs'] == 0))
+                                    {
+                            			// If you encounter one nillable, all subsequent
+                            			// arguments must be defaulted to NULL -- PHP
+                            			// function signature requirement for functions
+                            			// with parameters having defaults
+                                    	$usingNillables = true;
+                                    }
                                     // Is the element a complex type?
                                     if (isset($this->complexTypes[$elattrs['namespace']][$elname])) {
                                         $comments .= $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
                                     } else {
-                                        $this->_addArg($args, $argarray, $elname);
+                                        $this->_addArg($args, $argarray, $elname, $usingNillables, $nillableEls);
                                     }
                                 }
                             }
                             if ($el['complex'] && $argarray) {
                                 $wrapname = '{' . $this->namespaces[$_argtype['namespace']].'}' . $el['name'];
-                                $comments .= "        \${$el['name']} = new SOAP_Value('$wrapname', false, \$v = array($argarray));\n";
+                                $comments .= "        \$v = array($argarray);\n";
+                                if($usingNillables && !empty($nillableEls)) {
+                                	foreach($nillableEls as $nillableEl)
+                                	{
+                                		$comments .= "        isset(\$$nillableEl) && \$v['$nillableEl'] = \$$nillableEl;\n";
+                                	}
+                                }
+                                $comments .= "        \${$el['name']} = new SOAP_Value('$wrapname', false, \$v);\n";
                                 $argarray = "'{$el['name']}' => \${$el['name']}";
                             }
                         } else {
