@@ -508,26 +508,25 @@ class SOAP_WSDL extends SOAP_Base
         return preg_match('/^[\w_:#\/]+$/', $string);
     }
 
-    function _addArg(&$args, &$argarray, $argname, $nillable = false, &$nillableEls = array())
+    function _addArg(&$args, &$argarray, $argname, $nillable = false, &$nillableArgs = array())
     {
         if ($args) {
             $args .= ', ';
         }
         $args .= '$' . $argname;
-    	if($nillable) {
-    		$args .= ' = NULL';
-    		$nillableEls[] = $argname;
-    	}
+        if($nillable) {
+            $args .= ' = null';
+            $nillableArgs[] = $argname;
+        }
         if (!$this->_validateString($argname)) {
             return;
         }
-        if(!$nillable)
-        {
-	        if ($argarray) {
-	            $argarray .= ', ';
-	        }
-	        $argarray .= "'$argname' => $" . $argname;
-	    }
+        if(!$nillable) {
+            if ($argarray) {
+                $argarray .= ', ';
+            }
+            $argarray .= "'$argname' => $" . $argname;
+        }
     }
 
     function _elementArg(&$args, &$argarray, &$_argtype, $_argname)
@@ -702,35 +701,31 @@ class SOAP_WSDL extends SOAP_Base
                                 // SOAP_Value.
                             }
                             $usingNillables = false;
-                            $nillableEls = array();
+                            $nillableArgs = array();
                             if (isset($el['elements'])) {
                                 foreach ($el['elements'] as $elname => $elattrs) {
                                     $elname = $this->_sanitize($elname);
                                     if((isset($elattrs['nillable']) && $elattrs['nillable'])
-                                    || (isset($elattrs['minOccurs']) && $elattrs['minOccurs'] == 0))
-                                    {
-                            			// If you encounter one nillable, all subsequent
-                            			// arguments must be defaulted to NULL -- PHP
-                            			// function signature requirement for functions
-                            			// with parameters having defaults
-                                    	$usingNillables = true;
+                                    || (isset($elattrs['minOccurs']) && $elattrs['minOccurs'] == 0)) {
+                                        // If you encounter one nillable, all subsequent
+                                        // arguments must default to null
+                                        $usingNillables = true;
                                     }
                                     // Is the element a complex type?
                                     if (isset($this->complexTypes[$elattrs['namespace']][$elname])) {
                                         $comments .= $this->_complexTypeArg($args, $argarray, $_argtype, $_argname);
                                     } else {
-                                        $this->_addArg($args, $argarray, $elname, $usingNillables, $nillableEls);
+                                        $this->_addArg($args, $argarray, $elname, $usingNillables, $nillableArgs);
                                     }
                                 }
                             }
                             if ($el['complex'] && $argarray) {
                                 $wrapname = '{' . $this->namespaces[$_argtype['namespace']].'}' . $el['name'];
                                 $comments .= "        \$v = array($argarray);\n";
-                                if($usingNillables && !empty($nillableEls)) {
-                                	foreach($nillableEls as $nillableEl)
-                                	{
-                                		$comments .= "        isset(\$$nillableEl) && \$v['$nillableEl'] = \$$nillableEl;\n";
-                                	}
+                                if($usingNillables && !empty($nillableArgs)) {
+                                    foreach($nillableArgs as $nillableArg) {
+                                        $comments .= "        isset(\$$nillableArg) && \$v['$nillableArg'] = \$$nillableArg;\n";
+                                    }
                                 }
                                 $comments .= "        \${$el['name']} = new SOAP_Value('$wrapname', false, \$v);\n";
                                 $argarray = "'{$el['name']}' => \${$el['name']}";
