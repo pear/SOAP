@@ -514,14 +514,14 @@ class SOAP_WSDL extends SOAP_Base
             $args .= ', ';
         }
         $args .= '$' . $argname;
-        if($nillable) {
+        if ($nillable) {
             $args .= ' = null';
             $nillableArgs[] = $argname;
         }
         if (!$this->_validateString($argname)) {
             return;
         }
-        if(!$nillable) {
+        if (!$nillable) {
             if ($argarray) {
                 $argarray .= ', ';
             }
@@ -705,7 +705,7 @@ class SOAP_WSDL extends SOAP_Base
                             if (isset($el['elements'])) {
                                 foreach ($el['elements'] as $elname => $elattrs) {
                                     $elname = $this->_sanitize($elname);
-                                    if((isset($elattrs['nillable']) && $elattrs['nillable'])
+                                    if ((isset($elattrs['nillable']) && $elattrs['nillable'])
                                     || (isset($elattrs['minOccurs']) && $elattrs['minOccurs'] == 0)) {
                                         // If you encounter one nillable, all subsequent
                                         // arguments must default to null
@@ -722,7 +722,7 @@ class SOAP_WSDL extends SOAP_Base
                             if ($el['complex'] && $argarray) {
                                 $wrapname = '{' . $this->namespaces[$_argtype['namespace']].'}' . $el['name'];
                                 $comments .= "        \$v = array($argarray);\n";
-                                if($usingNillables && !empty($nillableArgs)) {
+                                if ($usingNillables && !empty($nillableArgs)) {
                                     foreach($nillableArgs as $nillableArg) {
                                         $comments .= "        isset(\$$nillableArg) && \$v['$nillableArg'] = \$$nillableArg;\n";
                                     }
