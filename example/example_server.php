@@ -46,7 +46,7 @@ class SOAP_Example_Server {
          * before the type will create an XML schema with the targetNamespace
          * for the type multiple types with the same namespace will appear in
          * the same schema section.  Types with different namespaces will be
-         * in seperate schema sections.  The following SOAPStruct typedef
+         * in separate schema sections.  The following SOAPStruct typedef
          * cooresponds to the SOAPStruct class above. */
         $this->__typedef['{http://soapinterop.org/xsd}SOAPStruct'] =
             array('varString' => 'string',

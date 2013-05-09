@@ -169,7 +169,7 @@ class SOAP_Client extends SOAP_Client_Overload
     var $headersOut = null;
 
     /**
-     * The headers we recieved back in the response.
+     * The headers we received back in the response.
      *
      * @var array
      */
