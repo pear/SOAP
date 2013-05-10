@@ -312,7 +312,7 @@ class SOAP_Client extends SOAP_Client_Overload
      *   encoding; when set to 'literal' SOAP types will be omitted.
      * - 'keep_arrays_flat': use the tag name multiple times for each element
      *   when passing in an array in literal mode
-     * - 'no_type_prefix': supress adding of the namespace prefix
+     * - 'no_type_prefix': suppress adding of the namespace prefix
      *
      * @access public
      *
