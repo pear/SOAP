@@ -690,7 +690,7 @@ class SOAP_WSDL extends SOAP_Base
                         $_argname = $this->_sanitize($_argname);
                         if ($opstyle == 'document' && $use == 'literal' &&
                             $_argtype['name'] == 'parameters') {
-                            // The type or element refered to is used for
+                            // The type or element referred to is used for
                             // parameters.
                             $elattrs = null;
                             $el = $this->elements[$_argtype['namespace']][$_argtype['type']];
@@ -1502,7 +1502,7 @@ class SOAP_WSDL_Parser extends SOAP_Base
                     // soap:body attributes:
                     // part - optional.  listed parts must appear in body, missing means all parts appear in body
                     // use - required. encoded|literal
-                    // encodingStyle - optional.  space seperated list of encodings (uri's)
+                    // encodingStyle - optional.  space separated list of encodings (uri's)
                     $this->wsdl->bindings[$this->currentBinding]
                                     ['operations'][$this->currentOperation][$this->opStatus] = $attrs;
                     break;
