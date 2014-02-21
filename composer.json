@@ -1,0 +1,52 @@
+{
+    "authors": [
+        {
+            "email": "jan@horde.org",
+            "name": "Jan Schneider",
+            "role": "Lead"
+        },
+        {
+            "email": "chuck@horde.org",
+            "name": "Chuck Hagenbuch",
+            "role": "Lead"
+        },
+        {
+            "email": "shane@php.net",
+            "name": "Shane Caraveo",
+            "role": "Lead"
+        },
+        {
+            "email": "abaker@php.net",
+            "name": "Al Baker",
+            "role": "Lead"
+        },
+        {
+            "email": "arnaud@php.net",
+            "name": "Arnaud Limbourg",
+            "role": "Lead"
+        }
+    ],
+    "autoload": {
+        "classmap": [
+            "./"
+        ]
+    },
+    "description": "More info available on: http://pear.php.net/package/SOAP",
+    "license": "PHP License",
+    "name": "pear/soap",
+    "support": {
+        "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=SOAP",
+        "source": "https://github.com/pear/SOAP"
+    },
+    "type": "library",
+    "require": {
+        "pear/pear_exception": "*",
+        "pear/pear": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "suggest": {
+        "pear/mail": "Install optionally via your project's composer.json"
+    }
+}
