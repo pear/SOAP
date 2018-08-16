@@ -8,7 +8,7 @@
   <name>Jan Schneider</name>
   <user>yunosh</user>
   <email>jan@horde.org</email>
-  <active>yes</active>
+  <active>no</active>
  </lead>
  <lead>
   <name>Chuck Hagenbuch</name>
@@ -34,11 +34,10 @@
   <email>arnaud@php.net</email>
   <active>no</active>
  </lead>
- <date>2012-01-26</date>
- <time>23:07:23</time>
+ <date>2018-08-16</date>
  <version>
-  <release>0.13.0</release>
-  <api>0.13.0</api>
+  <release>0.14.0</release>
+  <api>0.14.0</api>
  </version>
  <stability>
   <release>beta</release>
@@ -46,21 +45,8 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-* Rename QName::ns property to QName::prefix.
-* Fix parsing multipart/related responses (Bugs #14756, #14854).
-* Fix parsing certain WSDLs with attachments (Bill Blough, Bug #16968).
-* Use PCRE instead of ereg_* functions (Olle Jonsson, Bug #17726).]
-QA release
-Bug #11729 WSDL Local File loading
-Bug #14344 Use Net_Server in SOAP_Server_TCP
-Bug #14756 multipart/related response is not parsed
-Bug #14782 logic problem in SOAP_Base bulids multidimensional arrays instead of flat
-Bug #14854 multipart/related responses no longer handled correctly
-Bug #16968 Bad array assignment when using WSDL client
-Bug #17659 Assigning the return value of new by reference is deprecated
-Bug #17726 Patch: Using PCRE functions to avoid deprecated functions
-Bug #18458 Returning SOAP_Attachment in MIME
-Bug #18492 Wrong response when returning multiple results
+* PR #1: added support for XML "nillable" when using SOAP overload extension
+* PR #3: added composer support
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -209,6 +195,22 @@ Bug #17659 Assigning the return value of new by reference is deprecated
 Bug #17726 Patch: Using PCRE functions to avoid deprecated functions
 Bug #18458 Returning SOAP_Attachment in MIME
 Bug #18492 Wrong response when returning multiple results
+   </notes>
+  </release>
+  <release>
+   <date>2018-08-16</date>
+   <version>
+   <release>0.14.0</release>
+    <api>0.14.0</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+* PR #1: added support for XML "nillable" when using SOAP overload extension
+* PR #3: added composer support
    </notes>
   </release>
  </changelog>
