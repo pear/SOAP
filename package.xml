@@ -59,7 +59,7 @@
    <file baseinstalldir="/" md5sum="14068d387733dd872ed7a18cda71756c" name="example/email_pop_gateway.php" role="doc" />
    <file baseinstalldir="/" md5sum="680e4e40a17367a15e42f96e8430b7ef" name="example/email_pop_server.php" role="doc" />
    <file baseinstalldir="/" md5sum="c2073e439da92f2213e9defd8d933fdc" name="example/email_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="1d12cfe5d74c748a2aa0799db19644c9" name="example/example_server.php" role="doc" />
+   <file baseinstalldir="/" md5sum="51e7172fc03f22e9927035de771eed48" name="example/example_server.php" role="doc" />
    <file baseinstalldir="/" md5sum="773190540cbe5b38d9390baba34d50f2" name="example/example_types.php" role="doc" />
    <file baseinstalldir="/" md5sum="6c636fdb465e7ae625d6403cd5ff03bd" name="example/server.php" role="doc" />
    <file baseinstalldir="/" md5sum="f1828a50496208a9b82a1dbf4e2e1a2e" name="example/server2.php" role="doc" />
@@ -70,14 +70,14 @@
    <file baseinstalldir="/" md5sum="91889414f5150dcca4df673d91d3071c" name="example/tcp_server.php" role="doc" />
    <file baseinstalldir="/" md5sum="cd6879c21d01df15361ede51ab98a28b" name="example/wsdl_client.php" role="doc" />
    <file baseinstalldir="/" md5sum="045e2260cbfb96b495ad1d8bdd3a27c3" name="SOAP/Base.php" role="php" />
-   <file baseinstalldir="/" md5sum="426de36842e5f6ec66b2723dcd7d1343" name="SOAP/Client.php" role="php" />
+   <file baseinstalldir="/" md5sum="0bcc8739f66dfda13ee0ab95b8609094" name="SOAP/Client.php" role="php" />
    <file baseinstalldir="/" md5sum="cc9c59e1e12ff3c3c7d239dd83ec1c27" name="SOAP/Disco.php" role="php" />
    <file baseinstalldir="/" md5sum="34b9f405ebde848809b27ca2b16f1095" name="SOAP/Fault.php" role="php" />
    <file baseinstalldir="/" md5sum="a5283fe9f5a20dd2507c4a0d95fa9d9f" name="SOAP/Parser.php" role="php" />
    <file baseinstalldir="/" md5sum="e21427068d6fc0305577220391ab96b6" name="SOAP/Server.php" role="php" />
    <file baseinstalldir="/" md5sum="892890fe3942fdb50251b69508d64c02" name="SOAP/Transport.php" role="php" />
-   <file baseinstalldir="/" md5sum="da18ba7258ba6b6f02ccc775c498f06e" name="SOAP/Value.php" role="php" />
-   <file baseinstalldir="/" md5sum="6b655367a6b6147295adb21e63579bf3" name="SOAP/WSDL.php" role="php" />
+   <file baseinstalldir="/" md5sum="403896c8b952cb3911a9b0bbc6258240" name="SOAP/Value.php" role="php" />
+   <file baseinstalldir="/" md5sum="be3872003e53cf4b6f63515b9e05582b" name="SOAP/WSDL.php" role="php" />
    <file baseinstalldir="/" md5sum="d52cf688ed1939da9eb3609c13667149" name="SOAP/Server/Email.php" role="php" />
    <file baseinstalldir="/" md5sum="b9bb5a83bebeaf715258e18b0c49640b" name="SOAP/Server/Email_Gateway.php" role="php" />
    <file baseinstalldir="/" md5sum="e32579a7dc6dc0e4426063aaa46d50a1" name="SOAP/Server/TCP.php" role="php" />
