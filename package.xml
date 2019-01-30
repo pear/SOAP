@@ -105,11 +105,11 @@
    <file baseinstalldir="/" md5sum="53a2849b32d756d863799951a58511e6" name="tests/parser.phpt" role="test" />
    <file baseinstalldir="/" md5sum="664020c70093fc05ad77c657baca299d" name="tests/qnames_1.phpt" role="test" />
    <file baseinstalldir="/" md5sum="2f318cc3980eaf277e7114b1e22c85c9" name="tests/qnames_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="fdbf969de2ae32cdae745dab530c11ec" name="tests/smtp.php" role="test" />
+   <file baseinstalldir="/" md5sum="9ae2794001237ae2d43c7bede06609dd" name="tests/smtp.php" role="test" />
    <file baseinstalldir="/" md5sum="d769f060c5586d9ba0dfb1d538e9e75f" name="tests/SOAP_BugsTest.php" role="test" />
    <file baseinstalldir="/" md5sum="d266c903b88ff51cc4c6ee99d3ee7faf" name="tests/test.utility.php" role="test" />
    <file baseinstalldir="/" md5sum="aa06b347957e897bc696e29464f8e990" name="tests/wsdl.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2a0fad30468c7bca6dc93e8bc0808599" name="tests/xmethods.php" role="test" />
+   <file baseinstalldir="/" md5sum="6e48599d72d6df7bdad1724f5662f620" name="tests/xmethods.php" role="test" />
    <file baseinstalldir="/" md5sum="6a4249d0a897f6fbce59f9a9762c1d65" name="tests/deserialize/array.phpt" role="test" />
    <file baseinstalldir="/" md5sum="de53ce1f6fa7459d817c1145dbdec8cf" name="tests/deserialize/multiref_1.phpt" role="test" />
    <file baseinstalldir="/" md5sum="8a10be72a02152d4d447acf6c4acb93a" name="tests/deserialize/multiref_2.phpt" role="test" />
