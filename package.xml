@@ -50,88 +50,88 @@
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="a3d3e5b2ab17e1b2a3f4ac654c0ea475" name="example/attachment.php" role="doc" />
-   <file baseinstalldir="/" md5sum="9725311141395e72585cfe454710c3f6" name="example/client.php" role="doc" />
-   <file baseinstalldir="/" md5sum="1e3da86affea91b35c716bb50aeb96fb" name="example/com_client.php" role="doc" />
-   <file baseinstalldir="/" md5sum="8e372e84d98c7d02e151d129a0910e91" name="example/disco_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="aa7541f843e810b33be3e4b2798c83b6" name="example/email_client.php" role="doc" />
-   <file baseinstalldir="/" md5sum="50b58ade2e42e7dfebd02acf6b04f5b4" name="example/email_gateway.php" role="doc" />
-   <file baseinstalldir="/" md5sum="14068d387733dd872ed7a18cda71756c" name="example/email_pop_gateway.php" role="doc" />
-   <file baseinstalldir="/" md5sum="680e4e40a17367a15e42f96e8430b7ef" name="example/email_pop_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="c2073e439da92f2213e9defd8d933fdc" name="example/email_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="1d12cfe5d74c748a2aa0799db19644c9" name="example/example_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="773190540cbe5b38d9390baba34d50f2" name="example/example_types.php" role="doc" />
-   <file baseinstalldir="/" md5sum="6c636fdb465e7ae625d6403cd5ff03bd" name="example/server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="f1828a50496208a9b82a1dbf4e2e1a2e" name="example/server2.php" role="doc" />
-   <file baseinstalldir="/" md5sum="da91113171a1561cf08649c8c1a74e9a" name="example/smtp.php" role="doc" />
-   <file baseinstalldir="/" md5sum="e40af9efaffed7b713b93fd4d42c9930" name="example/stockquote.php" role="doc" />
-   <file baseinstalldir="/" md5sum="cc5e3c4ea39747f70d473313c0b64b8a" name="example/tcp_client.php" role="doc" />
-   <file baseinstalldir="/" md5sum="ccc9acb5b161dd84ccec6d19a5579b59" name="example/tcp_daemon.pl" role="doc" />
-   <file baseinstalldir="/" md5sum="91889414f5150dcca4df673d91d3071c" name="example/tcp_server.php" role="doc" />
-   <file baseinstalldir="/" md5sum="cd6879c21d01df15361ede51ab98a28b" name="example/wsdl_client.php" role="doc" />
-   <file baseinstalldir="/" md5sum="045e2260cbfb96b495ad1d8bdd3a27c3" name="SOAP/Base.php" role="php" />
-   <file baseinstalldir="/" md5sum="426de36842e5f6ec66b2723dcd7d1343" name="SOAP/Client.php" role="php" />
-   <file baseinstalldir="/" md5sum="cc9c59e1e12ff3c3c7d239dd83ec1c27" name="SOAP/Disco.php" role="php" />
-   <file baseinstalldir="/" md5sum="34b9f405ebde848809b27ca2b16f1095" name="SOAP/Fault.php" role="php" />
-   <file baseinstalldir="/" md5sum="a5283fe9f5a20dd2507c4a0d95fa9d9f" name="SOAP/Parser.php" role="php" />
-   <file baseinstalldir="/" md5sum="e21427068d6fc0305577220391ab96b6" name="SOAP/Server.php" role="php" />
-   <file baseinstalldir="/" md5sum="892890fe3942fdb50251b69508d64c02" name="SOAP/Transport.php" role="php" />
-   <file baseinstalldir="/" md5sum="da18ba7258ba6b6f02ccc775c498f06e" name="SOAP/Value.php" role="php" />
-   <file baseinstalldir="/" md5sum="6b655367a6b6147295adb21e63579bf3" name="SOAP/WSDL.php" role="php" />
-   <file baseinstalldir="/" md5sum="d52cf688ed1939da9eb3609c13667149" name="SOAP/Server/Email.php" role="php" />
-   <file baseinstalldir="/" md5sum="b9bb5a83bebeaf715258e18b0c49640b" name="SOAP/Server/Email_Gateway.php" role="php" />
-   <file baseinstalldir="/" md5sum="e32579a7dc6dc0e4426063aaa46d50a1" name="SOAP/Server/TCP.php" role="php" />
-   <file baseinstalldir="/" md5sum="e5ed2ccf1d95904d33ab7488c80d840b" name="SOAP/Server/TCP/Handler.php" role="php" />
-   <file baseinstalldir="/" md5sum="ef2c2f6f827625d20a1c29c1b1811ac6" name="SOAP/Transport/HTTP.php" role="php" />
-   <file baseinstalldir="/" md5sum="9210c61c033e6fadd7e94ea9091f592a" name="SOAP/Transport/SMTP.php" role="php" />
-   <file baseinstalldir="/" md5sum="18b2224fe5c4ca3bc679d0d5d2601fe7" name="SOAP/Transport/TCP.php" role="php" />
-   <file baseinstalldir="/" md5sum="1795fac1d15bde53b3ba44d9129b5fc9" name="SOAP/Transport/TEST.php" role="php" />
-   <file baseinstalldir="/" md5sum="49074235a9a0efff9c8a1c98ed371aa6" name="SOAP/Type/dateTime.php" role="php" />
-   <file baseinstalldir="/" md5sum="f48bd3b090087bc0fbc9ac87a1cade8e" name="SOAP/Type/duration.php" role="php" />
-   <file baseinstalldir="/" md5sum="16796001ac468d58c537dde94113bf12" name="SOAP/Type/hexBinary.php" role="php" />
-   <file baseinstalldir="/" md5sum="4229289cd6fc4aa23beb1d7396afa285" name="tests/AllTests.php" role="test" />
-   <file baseinstalldir="/" md5sum="b11f21f1e1b1612656607f82427a5003" name="tests/bug1927.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="743dcc21e92dbd7730106b911ef560ff" name="tests/bug4523.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="7e4487d1603a7cc9f39efb6a6329bcae" name="tests/bug11013.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="a5bf8f6e6c35e69df88ff33da7192dc0" name="tests/bug12615.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="36e934af539c75fe3aa204c183542ead" name="tests/bug12880.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="317484066d09054c5b484e21e001f673" name="tests/bug14756.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="c10aebb99f552979b6b4e62d1164e859" name="tests/bug16968.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="d4f23d99073e9c59255750cab2776c8c" name="tests/bug16968.wsdl" role="test" />
-   <file baseinstalldir="/" md5sum="b8837c0d5c3212c9c263b339a0d6721f" name="tests/dateTime.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="ad70d81a598c05c03bb36c52d74e31e4" name="tests/example.wsdl" role="test" />
-   <file baseinstalldir="/" md5sum="fa14a74959e0650ef1f30c689e71cb81" name="tests/example_server.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="97d3ddf44f0807bb5db0329adce1d3e5" name="tests/example_server_php5.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="53a2849b32d756d863799951a58511e6" name="tests/parser.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="664020c70093fc05ad77c657baca299d" name="tests/qnames_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2f318cc3980eaf277e7114b1e22c85c9" name="tests/qnames_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="fdbf969de2ae32cdae745dab530c11ec" name="tests/smtp.php" role="test" />
-   <file baseinstalldir="/" md5sum="d769f060c5586d9ba0dfb1d538e9e75f" name="tests/SOAP_BugsTest.php" role="test" />
-   <file baseinstalldir="/" md5sum="d266c903b88ff51cc4c6ee99d3ee7faf" name="tests/test.utility.php" role="test" />
-   <file baseinstalldir="/" md5sum="aa06b347957e897bc696e29464f8e990" name="tests/wsdl.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2a0fad30468c7bca6dc93e8bc0808599" name="tests/xmethods.php" role="test" />
-   <file baseinstalldir="/" md5sum="6a4249d0a897f6fbce59f9a9762c1d65" name="tests/deserialize/array.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="de53ce1f6fa7459d817c1145dbdec8cf" name="tests/deserialize/multiref_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="8a10be72a02152d4d447acf6c4acb93a" name="tests/deserialize/multiref_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="b45585f8c2e3fc93037b14306ef47170" name="tests/deserialize/multiref_3.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="8e6ea1c62fc142b9de53e769427fc12a" name="tests/deserialize/multiref_4.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="a249d2e803faef199210a80c0259bf82" name="tests/deserialize/null.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="dd312a109bc980215d7fc4f87831f7e8" name="tests/deserialize/string.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="b4a6c39940fc26794043fcb7b49bb054" name="tests/deserialize/struct_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="0229ff3e9e79a0c24c582e87a7be1108" name="tests/deserialize/struct_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2f984417939128456f9f2bd51d3a040e" name="tests/deserialize/struct_3.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="c4bebaf03eb4e7e8c42891eb6e0b49b0" name="tests/deserialize/struct_4.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2992bfd437f9313806e70b819385da9e" name="tests/serialize/string_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="6f61f196039fb4a5628d9cc594be1ec5" name="tests/serialize/string_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="b8cc1711d44fabb48367e565ee04ad93" name="tests/serialize/string_doc.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="25f1624964c8085f97403af89ba9cae0" name="tests/serialize/string_doc_literal_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="35c5ddac449fffb4af62b966866890c3" name="tests/serialize/string_literal_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="e0a7a71fdb045794a791e4978ba7faee" name="tests/serialize/struct_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="e6f64dfd865ed32f3a6b36e4b2fd9047" name="tests/serialize/struct_2.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="2a15ad73287fb497760f19a48024ead2" name="tests/serialize/struct_3.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="38e030de8d536197f4b31f5f5692df06" name="tests/serialize/struct_doc_literal_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="d30719d3aa309115be9fcef3d9ae4201" name="tests/serialize/struct_literal_1.phpt" role="test" />
-   <file baseinstalldir="/" md5sum="9e503419cf505917b2cf9d7032cca2e2" name="tools/genproxy.php" role="php" />
+   <file baseinstalldir="/" name="example/attachment.php" role="doc" />
+   <file baseinstalldir="/" name="example/client.php" role="doc" />
+   <file baseinstalldir="/" name="example/com_client.php" role="doc" />
+   <file baseinstalldir="/" name="example/disco_server.php" role="doc" />
+   <file baseinstalldir="/" name="example/email_client.php" role="doc" />
+   <file baseinstalldir="/" name="example/email_gateway.php" role="doc" />
+   <file baseinstalldir="/" name="example/email_pop_gateway.php" role="doc" />
+   <file baseinstalldir="/" name="example/email_pop_server.php" role="doc" />
+   <file baseinstalldir="/" name="example/email_server.php" role="doc" />
+   <file baseinstalldir="/" name="example/example_server.php" role="doc" />
+   <file baseinstalldir="/" name="example/example_types.php" role="doc" />
+   <file baseinstalldir="/" name="example/server.php" role="doc" />
+   <file baseinstalldir="/" name="example/server2.php" role="doc" />
+   <file baseinstalldir="/" name="example/smtp.php" role="doc" />
+   <file baseinstalldir="/" name="example/stockquote.php" role="doc" />
+   <file baseinstalldir="/" name="example/tcp_client.php" role="doc" />
+   <file baseinstalldir="/" name="example/tcp_daemon.pl" role="doc" />
+   <file baseinstalldir="/" name="example/tcp_server.php" role="doc" />
+   <file baseinstalldir="/" name="example/wsdl_client.php" role="doc" />
+   <file baseinstalldir="/" name="SOAP/Base.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Client.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Disco.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Fault.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Parser.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Server.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Transport.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Value.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/WSDL.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Server/Email.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Server/Email_Gateway.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Server/TCP.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Server/TCP/Handler.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Transport/HTTP.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Transport/SMTP.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Transport/TCP.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Transport/TEST.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Type/dateTime.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Type/duration.php" role="php" />
+   <file baseinstalldir="/" name="SOAP/Type/hexBinary.php" role="php" />
+   <file baseinstalldir="/" name="tests/AllTests.php" role="test" />
+   <file baseinstalldir="/" name="tests/bug1927.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug4523.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug11013.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug12615.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug12880.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug14756.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug16968.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/bug16968.wsdl" role="test" />
+   <file baseinstalldir="/" name="tests/dateTime.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/example.wsdl" role="test" />
+   <file baseinstalldir="/" name="tests/example_server.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/example_server_php5.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/parser.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/qnames_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/qnames_2.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/smtp.php" role="test" />
+   <file baseinstalldir="/" name="tests/SOAP_BugsTest.php" role="test" />
+   <file baseinstalldir="/" name="tests/test.utility.php" role="test" />
+   <file baseinstalldir="/" name="tests/wsdl.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/xmethods.php" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/array.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/multiref_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/multiref_2.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/multiref_3.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/multiref_4.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/null.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/string.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/struct_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/struct_2.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/struct_3.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/deserialize/struct_4.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/string_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/string_2.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/string_doc.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/string_doc_literal_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/string_literal_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/struct_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/struct_2.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/struct_3.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/struct_doc_literal_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tests/serialize/struct_literal_1.phpt" role="test" />
+   <file baseinstalldir="/" name="tools/genproxy.php" role="php" />
   </dir>
  </contents>
  <dependencies>
